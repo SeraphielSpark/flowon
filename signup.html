@@ -6,28 +6,31 @@
   <title>Flux On Automation Platform</title>
 
   <style>
-    *{
+    * {
       font-family: "Segoe UI", Tahoma, sans-serif;
+      box-sizing: border-box; /* Added global box-sizing for better scaling */
     }
-    body{
+    
+    body {
       margin: 0;
-      height: 100%;
+      min-height: 100vh; /* Changed from height:100% to allow scrolling */
       width: 100%;
-      box-sizing: border-box;
-      background:linear-gradient(135deg, #151457,#000000, #0f0061);
+      background: linear-gradient(135deg, #151457,#000000, #0f0061);
       color: white;
+      /* Prevent horizontal scroll if elements overflow slightly */
+      overflow-x: hidden; 
     }
 
     /* HERO */
-    .hero{
+    .hero {
       padding: 60px 40px 30px;
       text-align: center;
     }
-    .hero h1{
+    .hero h1 {
       font-size: 34px;
       margin-bottom: 10px;
     }
-    .hero p{
+    .hero p {
       font-size: 15px;
       color: #d6d6d6;
       max-width: 720px;
@@ -35,33 +38,36 @@
       line-height: 1.6;
     }
 
-    .container{
+    .container {
       display: grid;
       grid-template-columns: 1fr 1fr;
       place-content: center;
-      height: 100%;
+      /* Removed fixed height: 100% to prevent cutoff */
+      min-height: 600px; 
       width: 100%;
+      padding-bottom: 50px;
     }
-    .form-container{
+
+    .form-container {
       display: flex;
       border: #0f0061 2px solid;
       margin-left: 30px;
-      padding-left: 10px;
+      padding: 0 20px; /* Adjusted padding for better fit */
       align-items: center;
       justify-content: center;
       border-radius: 10px;
-      box-sizing: border-box;
       flex-direction: column;
       height: 550px;
       width: 400px;
       background: linear-gradient(145deg, #000000, #0d0c2a, #000000);
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
     }
-    h2{
+
+    h2 {
       text-align: center;
       margin-bottom: 5px;
     }
-    h3{
+    h3 {
       text-align: center;
       font-size: 18px;
       font-weight: 500;
@@ -69,7 +75,7 @@
     }
     label {
       display: block;
-      margin-bottom:6px;
+      margin-bottom: 6px;
       font-size: 13px;
       color: #f6f6f6;
       font-weight: 600;
@@ -81,26 +87,28 @@
       border-bottom-left-radius: 6px;
       border: none;
       border-bottom: 2px solid #2c5364;
-      border-bottom-right-radius:6px ;
+      border-bottom-right-radius: 6px;
       color: #f6f6f6;
       background-color: transparent;
       font-size: 14px;
       outline: none;
-      margin-top:10px;
+      margin-top: 10px;
     }
 
     input:focus {
       border-color: #2c5364;
       border-top: 2px solid #2c5364;
       border-top-left-radius: 6px;
-      border-top-right-radius:6px;
+      border-top-right-radius: 6px;
       border-bottom: none;
-      transition: border-top 300ms ease-in ;
+      transition: border-top 300ms ease-in;
     }
-    .form-data{
+
+    .form-data {
       margin-bottom: 15px;
       width: 300px;
     }
+
     button {
       width: 300px;
       padding: 13px;
@@ -117,29 +125,82 @@
     button:hover {
       background: #203a43;
     }
-    .space-container{
+
+    .space-container {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding-right: 30px;
     }
-    .sponsor-img{
+    
+    .space-container > img {
+        /* Ensure main image doesn't overflow */
+        max-width: 100%;
+        height: auto;
+    }
+
+    .sponsor-img {
       display: flex;
       gap: 20px;
       flex-direction: row;
       margin-top: 20px;
+      flex-wrap: wrap; /* Allows logos to wrap on small screens */
+      justify-content: center;
     }
-    .sponsor-img img{
+    .sponsor-img img {
       width: 100px;
       height: fit-content;
+    }
+
+    /* --- MOBILE RESPONSIVE STYLES --- */
+    @media (max-width: 900px) {
+      .container {
+        display: flex;
+        flex-direction: column-reverse; /* Stack: Images on top, Form below (or remove reverse for Form top) */
+        height: auto;
+        padding: 0 20px 60px 20px;
+      }
+
+      /* Fix the Form Container */
+      .form-container {
+        width: 100%;           /* flexible width */
+        max-width: 400px;      /* don't get too wide on tablets */
+        height: auto;          /* flexible height */
+        margin: 0 auto;        /* center it, remove margin-left */
+        padding: 40px 20px;    /* breathing room inside */
+        margin-bottom: 40px;   /* space between form and images */
+      }
+
+      /* Make inputs and button full width of the container */
+      .form-data {
+        width: 100%;
+      }
+      
+      button {
+        width: 100%;
+      }
+
+      /* Fix the Image/Space Container */
+      .space-container {
+        padding-right: 0;
+        margin-bottom: 40px;
+        width: 100%;
+      }
+      
+      .hero {
+        padding: 40px 20px;
+      }
+      
+      .hero h1 {
+        font-size: 28px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<!-- HERO SECTION -->
 <section class="hero">
   <h1>One Data System. Unlimited Automation.</h1>
   <p>
@@ -148,10 +209,8 @@
   </p>
 </section>
 
-<!-- MAIN CONTENT -->
 <section class="container">
 
-  <!-- LEFT: SIGNUP -->
   <div class="form-container">
     <h2>Flux On Automation Platform</h2>
     <h3>Create your personal automation workspace</h3>
@@ -184,7 +243,6 @@
     </p>
   </div>
 
-  <!-- RIGHT: VISUAL -->
   <div class="space-container">
     <img style="width: 100%; height:fit-content;" src="main.png"/>
 
