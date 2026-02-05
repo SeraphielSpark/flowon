@@ -15,7 +15,7 @@ corsOptions = {
 app.get('/api/userdata/:flowid', async (req,res) => {
   const { flowid } = req.params;
   try{
-    const response = await fetch(`https://loveofn8n.app.n8n.cloud/webhook/e6bf03cc-c9e6-4727-91c5-375b420ac2ce/${flowid}/`);
+    const response = await fetch(`https://loveofn8ncloud.app.n8n.cloud/webhook/e6bf03cc-c9e6-4727-91c5-375b420ac2ce/${flowid}/`);
     const data = await response.json();
     res.json(data);
   } catch(err){
@@ -31,7 +31,7 @@ app.post('/api/updatecustomers', async (req, res) => {
   
   try {
     // Send to n8n to update the customers field
-    const response = await fetch(`https://loveofn8n.app.n8n.cloud/webhook/updatecustomers`, {
+    const response = await fetch(`https://loveofn8ncloud.app.n8n.cloud/webhook/updatecustomers`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -53,7 +53,7 @@ app.post('/api/updatecustomers', async (req, res) => {
 app.post('/api/createtable', async (req,res) => {
   const { userid, name } = req.body;
   try{
-    const response = await fetch(`https://loveofn8n.app.n8n.cloud/webhook/createtable`, {
+    const response = await fetch(`https://loveofn8ncloud.app.n8n.cloud/webhook/createtable`, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ userid, name })
@@ -67,3 +67,4 @@ app.post('/api/createtable', async (req,res) => {
 });
 
 app.listen(PORT,()=>console.log(`Server running on port ${PORT}`));
+
