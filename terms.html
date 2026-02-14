@@ -4,52 +4,210 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service - Flux On</title>
+
+    <!-- SEO & Trust -->
+    <meta name="description" content="Terms of Service for Flux On. Understand your responsibilities, Gmail integration rules, and usage policies for our email automation platform.">
+
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px 20px; }
-        h1 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        h2 { margin-top: 30px; color: #111; }
-        footer { margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px; font-size: 0.9em; color: #666; }
+        :root {
+            --bg: #f7f9fc;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --accent: #2563eb;
+            --border: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text);
+            line-height: 1.75;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            padding: 50px 45px;
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .updated {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            margin-top: 45px;
+            font-size: 1.4rem;
+            border-left: 4px solid var(--accent);
+            padding-left: 12px;
+        }
+
+        p {
+            margin: 16px 0;
+        }
+
+        ul {
+            padding-left: 22px;
+            margin: 14px 0;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding-top: 25px;
+            border-top: 1px solid var(--border);
+            font-size: 0.9rem;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                padding: 35px 25px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <h1>Terms of Service</h1>
-    <p>Last updated: October 26, 2025</p>
+<div class="container">
+    <div class="card">
 
-    <p>Please read these Terms of Service ("Terms") carefully before using the Flux On web application.</p>
+        <h1>Terms of Service</h1>
+        <p class="updated">Last updated: October 26, 2025</p>
 
-    <h2>1. Acceptance of Terms</h2>
-    <p>By accessing or using Flux On, you agree to be bound by these Terms. If you disagree with any part of the terms, you may not use the service.</p>
+        <p>
+            These Terms of Service ("Terms") govern your access to and use of the Flux On web application
+            and related services. Please read them carefully.
+        </p>
 
-    <h2>2. Description of Service</h2>
-    <p>Flux On is a customer management and email automation tool. It allows users to organize customer data and send automated email campaigns via their connected Gmail account.</p>
+        <h2>1. Acceptance of Terms</h2>
+        <p>
+            By accessing or using Flux On, you confirm that you have read, understood, and agree to be
+            bound by these Terms. If you do not agree with any part of these Terms, you must discontinue
+            use of the service immediately.
+        </p>
 
-    <h2>3. User Responsibilities</h2>
-    <p>You agree to use Flux On responsibly. Specifically, you agree NOT to:</p>
-    <ul>
-        <li>Send unsolicited spam or bulk emails in violation of CAN-SPAM or GDPR laws.</li>
-        <li>Send content that is illegal, harmful, threatening, or abusive.</li>
-        <li>Attempt to reverse engineer the application.</li>
-    </ul>
+        <h2>2. Description of Service</h2>
+        <p>
+            Flux On is a customer management and email automation platform that enables users to organize
+            contact data, create email templates, and send automated email campaigns through their
+            connected Google Gmail account.
+        </p>
 
-    <h2>4. Gmail Integration</h2>
-    <p>By connecting your Google Account, you grant Flux On permission to send emails on your behalf. You acknowledge that you are solely responsible for the content of the emails sent through our platform.</p>
+        <h2>3. Eligibility</h2>
+        <p>
+            You must be at least 18 years old to use Flux On. By using the service, you represent and
+            warrant that you meet this requirement and have the legal capacity to enter into these Terms.
+        </p>
 
-    <h2>5. Termination</h2>
-    <p>We reserve the right to terminate or suspend access to our service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.</p>
+        <h2>4. User Responsibilities</h2>
+        <p>
+            You agree to use Flux On in a lawful, ethical, and responsible manner. You expressly agree NOT to:
+        </p>
+        <ul>
+            <li>Send unsolicited, deceptive, or unlawful spam emails.</li>
+            <li>Violate CAN-SPAM, GDPR, or other applicable email and data protection regulations.</li>
+            <li>Transmit content that is illegal, harmful, threatening, abusive, defamatory, or misleading.</li>
+            <li>Attempt to gain unauthorized access to the system or reverse engineer any part of the application.</li>
+        </ul>
 
-    <h2>6. Limitation of Liability</h2>
-    <p>In no event shall Flux On, nor its developers, be liable for any indirect, incidental, special, or consequential damages resulting from your use of the service or your inability to use the service.</p>
+        <h2>5. Gmail Integration and Google OAuth</h2>
+        <p>
+            By connecting your Google Account, you explicitly grant Flux On permission to access Gmail
+            services through Google OAuth for the purpose of sending emails and managing automation
+            workflows on your behalf.
+        </p>
+        <p>
+            You acknowledge that Flux On does not control or review the content of emails you send and
+            that you are solely responsible for all messages transmitted using your account.
+        </p>
 
-    <h2>7. Changes</h2>
-    <p>We reserve the right to modify or replace these Terms at any time. Your continued use of the service after any such changes constitutes your acceptance of the new Terms.</p>
+        <h2>6. Account Security</h2>
+        <p>
+            You are responsible for maintaining the confidentiality of your account and for all activities
+            that occur under your access credentials. Flux On is not liable for any loss or damage arising
+            from unauthorized use of your account.
+        </p>
 
-    <h2>8. Contact</h2>
-    <p>For any questions regarding these Terms, please contact us at: <strong>taiwoemmanuel435@gmail.com</strong></p>
+        <h2>7. Termination and Suspension</h2>
+        <p>
+            We reserve the right to suspend or terminate your access to Flux On at our sole discretion,
+            without prior notice, if we determine that you have violated these Terms or applicable laws,
+            or if your usage poses a risk to the platform or other users.
+        </p>
 
-    <footer>
-        &copy; 2025 Flux On. All rights reserved.
-    </footer>
+        <h2>8. Service Availability</h2>
+        <p>
+            Flux On is provided on an “as is” and “as available” basis. We do not guarantee uninterrupted
+            or error-free operation and may modify, suspend, or discontinue the service at any time.
+        </p>
+
+        <h2>9. Limitation of Liability</h2>
+        <p>
+            To the fullest extent permitted by law, Flux On and its developers shall not be liable for any
+            indirect, incidental, special, consequential, or punitive damages arising from your use of,
+            or inability to use, the service.
+        </p>
+
+        <h2>10. Changes to These Terms</h2>
+        <p>
+            We may update these Terms from time to time. Continued use of Flux On after any changes
+            constitutes your acceptance of the revised Terms.
+        </p>
+
+        <h2>11. Contact Information</h2>
+        <p>
+            If you have any questions regarding these Terms of Service, please contact us at:
+        </p>
+        <p>
+            Email: <strong>taiwoemmanuel435@gmail.com</strong>
+        </p>
+
+        <footer>
+            © 2025 Flux On. All rights reserved.
+        </footer>
+
+    </div>
+</div>
 
 </body>
 </html>
