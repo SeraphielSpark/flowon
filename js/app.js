@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.location.href = 'signup.html';
     return;
   }
-  
+
   // Initial Load
   loadUserData();
   setupEventListeners();
