@@ -52,12 +52,16 @@
     color: var(--text-main);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
 
   /* --- Layout --- */
   .app-container {
     display: flex;
     min-height: 100vh;
+    width: 100%;
   }
 
   /* --- Sidebar (Desktop) --- */
@@ -136,6 +140,23 @@
   .nav-item.active .nav-icon { color: var(--text-main); }
   .nav-icon { font-size: 16px; color: var(--text-tertiary); width: 20px; text-align: center; }
 
+  /* LEGAL SIDEBAR SECTION */
+  .sidebar-legal {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-light);
+    margin-bottom: 10px;
+  }
+  .legal-link {
+    display: block;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    padding: 6px 12px;
+    transition: color 0.2s;
+  }
+  .legal-link:hover { color: var(--text-main); text-decoration: underline; }
+
   /* --- Main Content --- */
   .main-content {
     flex: 1;
@@ -143,6 +164,7 @@
     display: flex;
     flex-direction: column;
     background: var(--bg-body);
+    min-height: 100vh;
   }
 
   /* --- Header --- */
@@ -163,6 +185,29 @@
   .header-title span { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
 
   .header-actions { display: flex; align-items: center; gap: 20px; }
+
+  /* LEGAL HEADER PILLS */
+  .legal-header-pills {
+    display: flex;
+    gap: 8px;
+    margin-right: 12px;
+  }
+  .legal-pill {
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--text-secondary);
+    background: var(--bg-subtle);
+    padding: 6px 12px;
+    border-radius: 20px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+  .legal-pill:hover {
+    background: #fff;
+    border-color: var(--border-light);
+    color: var(--text-main);
+  }
 
   /* --- Notification Bell --- */
   .notification-btn {
@@ -199,7 +244,7 @@
   .profile-name { font-size: 13px; font-weight: 600; line-height: 1.2; }
 
   /* --- Page Structure --- */
-  .page-content { padding: 40px; max-width: 1200px; margin: 0 auto; width: 100%; }
+  .page-content { padding: 40px; max-width: 1200px; margin: 0 auto; width: 100%; flex: 1; }
   .section-content { animation: fadeIn 0.3s ease-out; }
 
   @keyframes fadeIn {
@@ -227,6 +272,11 @@
   .card-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); }
   .card-count { font-size: 36px; font-weight: 800; line-height: 1; margin-bottom: 8px; letter-spacing: -1px; }
   .card-desc { font-size: 13px; color: var(--text-tertiary); }
+  
+  /* Legal Card Specific */
+  .legal-card-content { display: flex; flex-direction: column; gap: 8px; }
+  .legal-card-link { font-size: 13px; color: var(--accent-blue); text-decoration: none; font-weight: 500; }
+  .legal-card-link:hover { text-decoration: underline; }
 
   /* --- Buttons --- */
   .btn {
@@ -517,6 +567,9 @@
       backdrop-filter: blur(10px);
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
+    
+    .sidebar-legal { display: none; } /* Hide sidebar legal on mobile to save space */
+    .legal-header-pills { display: none; } /* Hide header legal on mobile */
 
     .logo-area { margin-bottom: 0; padding: 0; flex-shrink: 0; }
     .logo span { display: none; }
@@ -645,7 +698,12 @@
       </a>
     </nav>
     
-    <div class="nav-menu" style="flex: 0;">
+    <div class="sidebar-legal">
+        <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" class="legal-link">Privacy Policy</a>
+        <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" class="legal-link">Terms of Service</a>
+    </div>
+
+    <div class="nav-menu" style="flex: 0; margin-top: 12px;">
       <a href="#" class="nav-item" onclick="confirmLogout()">
         <span class="nav-icon">↪</span>
         <span>Log Out</span>
@@ -661,6 +719,11 @@
       </div>
       
       <div class="header-actions">
+        <div class="legal-header-pills">
+            <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" class="legal-pill">Privacy</a>
+            <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" class="legal-pill">Terms</a>
+        </div>
+
         <div class="notification-btn" onclick="showSection('inbox')" title="Notifications">
             <svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -732,6 +795,18 @@
             </div>
             <div class="card-count" id="responseRate" aria-live="polite">0%</div>
             <div class="card-desc">Average engagement</div>
+          </div>
+
+          <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-title">Legal & Compliance</div>
+                <div class="card-icon">🛡️</div>
+            </div>
+            <div class="legal-card-content">
+                <div style="font-size:12px; color:var(--text-tertiary); margin-bottom:4px;">Account Status: Verified</div>
+                <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" class="legal-card-link">View Privacy Policy →</a>
+                <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" class="legal-card-link">View Terms of Service →</a>
+            </div>
           </div>
         </div>
         
@@ -1067,6 +1142,18 @@
             </div>
         </div>
       </section>
+      
+      <footer style="text-align: center; padding: 40px 20px; color: var(--text-tertiary); font-size: 13px; margin-top: auto; border-top: 1px solid var(--border-light); background: #fafafa; border-radius: var(--radius-md);">
+        <p style="margin-bottom: 8px;">
+            &copy; 2025 Flux On. All rights reserved.
+        </p>
+        <p>
+            <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" style="color: var(--text-secondary); text-decoration: none; margin: 0 10px; font-weight: 500;">Privacy Policy</a>
+            •
+            <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" style="color: var(--text-secondary); text-decoration: none; margin: 0 10px; font-weight: 500;">Terms of Service</a>
+        </p>
+      </footer>
+
     </div>
   </main>
 </div>
@@ -1157,20 +1244,7 @@
     </div>
   </div>
 </div>
-<footer style="text-align:center;padding:20px;color:#888;font-size:12px;margin-top:40px;border-top:1px solid #e0e0e0;">
-  <p>
-    © 2025 Flux On.
-    <a href="https://seraphielspark.github.io/flowon/privacy.html"
-       style="color:#555;text-decoration:none;margin:0 10px;">
-      Privacy Policy
-    </a>
-    |
-    <a href="https://seraphielspark.github.io/flowon/terms.html"
-       style="color:#555;text-decoration:none;margin:0 10px;">
-      Terms of Service
-    </a>
-  </p>
-</footer>
+
 <script>
 // ============================================
 // CONFIGURATION & GLOBAL STATE
@@ -2119,4 +2193,3 @@ function renderAnalytics() {
 </body>
 
 </html>
-
