@@ -143,7 +143,7 @@
   /* LEGAL SIDEBAR SECTION */
   .sidebar-legal {
     margin-top: auto;
-    padding-top: 20px;
+    padding-top: 12px;
     border-top: 1px solid var(--border-light);
     margin-bottom: 10px;
   }
@@ -156,6 +156,18 @@
     transition: color 0.2s;
   }
   .legal-link:hover { color: var(--text-main); text-decoration: underline; }
+  
+  /* Sidebar Google Status */
+  .sidebar-status-indicator {
+      font-size: 12px;
+      padding: 0 12px;
+      margin-bottom: 8px;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+  }
 
   /* --- Main Content --- */
   .main-content {
@@ -207,6 +219,13 @@
     background: #fff;
     border-color: var(--border-light);
     color: var(--text-main);
+  }
+  
+  .status-pill-connected {
+      background: var(--color-green-bg) !important;
+      color: var(--color-green-text) !important;
+      border-color: var(--color-green-text) !important;
+      cursor: default !important;
   }
 
   /* --- Notification Bell --- */
@@ -568,8 +587,8 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
     
-    .sidebar-legal { display: none; } /* Hide sidebar legal on mobile to save space */
-    .legal-header-pills { display: none; } /* Hide header legal on mobile */
+    .sidebar-legal { display: none; } 
+    .legal-header-pills { display: none; } 
 
     .logo-area { margin-bottom: 0; padding: 0; flex-shrink: 0; }
     .logo span { display: none; }
@@ -698,6 +717,11 @@
       </a>
     </nav>
     
+    <div id="sidebarGoogleStatus" class="sidebar-status-indicator">
+        <div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div>
+        Gmail: Not Linked
+    </div>
+
     <div class="sidebar-legal">
         <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" class="legal-link">Privacy Policy</a>
         <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" class="legal-link">Terms of Service</a>
@@ -719,6 +743,10 @@
       </div>
       
       <div class="header-actions">
+        <div id="headerGoogleStatus" class="legal-pill status-pill-connected" style="display: none;">
+            ✓ Gmail Linked
+        </div>
+
         <div class="legal-header-pills">
             <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" class="legal-pill">Privacy</a>
             <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" class="legal-pill">Terms</a>
@@ -1323,32 +1351,72 @@ function setupEventListeners() {
 // ============================================
 
 function connectGoogle() {
-    // Redirects browser to backend to start OAuth dance
-    window.location.href = `${API_BASE_URL}/google/connect`;
+   // 1. Get the stored User ID
+   const userId = localStorage.getItem('flowid'); 
+   
+   // 2. Security Check
+   if (!userId) {
+       alert("User ID is missing. Please log in again.");
+       return;
+   }
+
+   // 3. Construct the URL
+   const targetUrl = `${API_BASE_URL}/google/connect?userId=${encodeURIComponent(userId)}`;
+   
+   // 4. Debug Alert (This proves the code is updated)
+   // You can remove this alert after it works once
+   console.log("Redirecting to:", targetUrl); 
+
+   // 5. Redirect
+   window.location.href = targetUrl;
 }
 
 function updateConnectionUI(isConnected) {
     isGoogleConnected = isConnected;
+
+    // 1. Automation Section Card
     const statusEl = document.getElementById('connectionStatus');
     const btn = document.getElementById('btnConnectGoogle');
-    
+
     if (isConnected) {
-        // Update Status Badge
+        // Connected State
         statusEl.className = 'connection-status status-connected';
-        statusEl.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
+        statusEl.innerHTML = '<span class="status-dot"></span><span>Active</span>';
         
-        // Update Button
-        btn.innerHTML = '✓ Account Linked';
-        btn.className = 'btn btn-success'; // Turns green/active style
-        btn.disabled = true;
+        // Show Green Button but keep enabled for Reconnect
+        btn.innerHTML = '✓ Account Linked (Reconnect?)';
+        btn.className = 'btn btn-success'; // Green style
+        
+        // Ensure button triggers reconnect, not just disabled
+        btn.onclick = function() {
+            if(confirm('Do you want to reconnect your Google Account?')) {
+                connectGoogle();
+            }
+        };
+        btn.disabled = false; // Allow clicking to reconnect
     } else {
-        // Reset to Disconnected
+        // Disconnected State
         statusEl.className = 'connection-status status-disconnected';
         statusEl.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
         
         btn.innerHTML = 'Connect Gmail';
         btn.className = 'btn btn-secondary';
+        btn.onclick = connectGoogle;
         btn.disabled = false;
+    }
+
+    // 2. Header Indicator
+    const headerStatus = document.getElementById('headerGoogleStatus');
+    if(headerStatus) {
+        headerStatus.style.display = isConnected ? 'inline-flex' : 'none';
+    }
+
+    // 3. Sidebar Indicator
+    const sidebarStatus = document.getElementById('sidebarGoogleStatus');
+    if(sidebarStatus) {
+        sidebarStatus.innerHTML = isConnected 
+            ? '<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-green-text);"></div> Gmail: Active'
+            : '<div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div> Gmail: Not Linked';
     }
 }
 
@@ -1437,11 +1505,12 @@ async function loadUserData() {
     updateValue('settingsName', username);
     updateValue('settingsEmail', userData.email || '');
     
-    // 4. Update Google Status (Check if backend says we are connected)
-    // Note: In a real app, userData should have a 'googleConnected: true/false' flag
-    if (userData.googleConnected) {
-        updateConnectionUI(true);
-    }
+    // 4. Update Google Status (Check for tokens in response)
+    // We check if google_access_token AND google_refresh_token exist
+    const hasTokens = userData.google_access_token && userData.google_refresh_token;
+    
+    // Pass this status to the UI updater
+    updateConnectionUI(hasTokens);
     
     const rawFlattened = parseAndFlattenCustomers(userData.customers);
     customers = normalizeCustomerData(rawFlattened);
