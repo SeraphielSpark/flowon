@@ -198,9 +198,9 @@
 
   .header-actions { display: flex; align-items: center; gap: 20px; }
 
-  /* LEGAL HEADER PILLS */
+  /* LEGAL HEADER PILLS (Removed from view but class kept for structure if needed later) */
   .legal-header-pills {
-    display: flex;
+    display: none; /* HIDDEN AS REQUESTED */
     gap: 8px;
     margin-right: 12px;
   }
@@ -214,11 +214,6 @@
     border-radius: 20px;
     transition: all 0.2s;
     border: 1px solid transparent;
-  }
-  .legal-pill:hover {
-    background: #fff;
-    border-color: var(--border-light);
-    color: var(--text-main);
   }
   
   .status-pill-connected {
@@ -292,11 +287,6 @@
   .card-count { font-size: 36px; font-weight: 800; line-height: 1; margin-bottom: 8px; letter-spacing: -1px; }
   .card-desc { font-size: 13px; color: var(--text-tertiary); }
   
-  /* Legal Card Specific */
-  .legal-card-content { display: flex; flex-direction: column; gap: 8px; }
-  .legal-card-link { font-size: 13px; color: var(--accent-blue); text-decoration: none; font-weight: 500; }
-  .legal-card-link:hover { text-decoration: underline; }
-
   /* --- Buttons --- */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -747,11 +737,6 @@
             ✓ Gmail Linked
         </div>
 
-        <div class="legal-header-pills">
-            <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" class="legal-pill">Privacy</a>
-            <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" class="legal-pill">Terms</a>
-        </div>
-
         <div class="notification-btn" onclick="showSection('inbox')" title="Notifications">
             <svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -823,18 +808,6 @@
             </div>
             <div class="card-count" id="responseRate" aria-live="polite">0%</div>
             <div class="card-desc">Average engagement</div>
-          </div>
-
-          <div class="dashboard-card">
-            <div class="card-header">
-                <div class="card-title">Legal & Compliance</div>
-                <div class="card-icon">🛡️</div>
-            </div>
-            <div class="legal-card-content">
-                <div style="font-size:12px; color:var(--text-tertiary); margin-bottom:4px;">Account Status: Verified</div>
-                <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" class="legal-card-link">View Privacy Policy →</a>
-                <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" class="legal-card-link">View Terms of Service →</a>
-            </div>
           </div>
         </div>
         
@@ -1363,11 +1336,7 @@ function connectGoogle() {
    // 3. Construct the URL
    const targetUrl = `${API_BASE_URL}/google/connect?userId=${encodeURIComponent(userId)}`;
    
-   // 4. Debug Alert (This proves the code is updated)
-   // You can remove this alert after it works once
-   console.log("Redirecting to:", targetUrl); 
-
-   // 5. Redirect
+   // 4. Redirect
    window.location.href = targetUrl;
 }
 
@@ -1506,10 +1475,7 @@ async function loadUserData() {
     updateValue('settingsEmail', userData.email || '');
     
     // 4. Update Google Status (Check for tokens in response)
-    // We check if google_access_token AND google_refresh_token exist
     const hasTokens = userData.google_access_token && userData.google_refresh_token;
-    
-    // Pass this status to the UI updater
     updateConnectionUI(hasTokens);
     
     const rawFlattened = parseAndFlattenCustomers(userData.customers);
@@ -1534,10 +1500,9 @@ async function loadUserData() {
 }
 
 // ============================================
-// INBOX LOGIC (ENHANCED)
+// INBOX LOGIC
 // ============================================
 
-// Helper to remove n8n artifacts
 function cleanN8nValue(val) {
     if (!val) return '';
     if (typeof val === 'string' && val.startsWith('=')) {
@@ -1599,7 +1564,6 @@ function renderInboxList() {
         const rawBody = cleanN8nValue(msg.body_text || '');
         const snippet = rawBody ? rawBody.substring(0, 50) + '...' : 'No preview available';
         
-        // Elite: Unread and selection styling
         const isReadClass = msg.read ? '' : 'unread';
         const selectedClass = index === currentMessageIndex ? 'selected' : '';
 
@@ -1627,17 +1591,14 @@ async function viewEmail(index, element) {
     if (!msg.read) {
         msg.read = true;
         updateNotificationCount();
-        // Optimistically update backend (assuming backend support added)
         fetch(`${API_BASE_URL}/inbox/read/${msg.id}`, { method: 'POST' }).catch(e=>console.log(e));
     }
     
-    // Re-render list to update styling (remove unread dot, add selected bg)
     renderInboxList();
 
     // Update View
     document.getElementById('inboxEmptyState').style.display = 'none';
     
-    // Ensure inboxContent is flex to support new layout
     const content = document.getElementById('inboxContent');
     content.style.display = 'flex'; 
 
@@ -1657,14 +1618,12 @@ async function viewEmail(index, element) {
     updateText('viewDate', dateStr);
     updateText('viewAvatar', getInitials(fromName));
 
-    // Handle HTML Body safely
     const bodyContainer = document.getElementById('viewBody');
     const htmlContent = cleanN8nValue(msg.body_html);
     const textContent = cleanN8nValue(msg.body_text);
     
     bodyContainer.innerHTML = htmlContent || textContent || '<p>No content</p>';
     
-    // Mobile handling
     if(window.innerWidth <= 768) {
         document.getElementById('inboxView').classList.add('active');
     }
@@ -1677,16 +1636,13 @@ async function deleteCurrentMessage() {
 
     const msg = inboxMessages[currentMessageIndex];
     
-    // 1. Optimistic UI Update
     inboxMessages.splice(currentMessageIndex, 1);
     currentMessageIndex = -1;
     
-    // 2. Reset View
     document.getElementById('inboxContent').style.display = 'none';
     document.getElementById('inboxEmptyState').style.display = 'flex';
     if(window.innerWidth <= 768) closeMobileInbox();
 
-    // 3. Render & API Call
     renderInboxList();
     updateNotificationCount();
     
@@ -2088,15 +2044,15 @@ function previewMessage() {
 async function sendAutomatedMessages() {
     if(selectedEmails.size === 0) { alert('No recipients selected'); return; }
     
-    // Check Google Connection
+    // --- UPDATED STRICT SECURITY CHECK ---
     if (!isGoogleConnected) {
-        if(!confirm("Warning: Your Google account is not connected. Emails might fail to send. Connect now?")) {
-            // User chose to continue anyway, proceed...
-        } else {
-            connectGoogle();
-            return;
-        }
+        alert("Action Blocked: You must connect your Google Account to send automated messages.");
+        // Close modal and scroll to the connection card for better UX
+        closeModal('previewModal');
+        document.querySelector('.google-connect-card').scrollIntoView({ behavior: 'smooth' });
+        return; // STOP EXECUTION STRICTLY
     }
+    // -------------------------------------
 
     const btn = document.getElementById('btnConfirmSend');
     setButtonLoading(btn, true, 'Sending...');
@@ -2260,5 +2216,4 @@ function renderAnalytics() {
 }
 </script>
 </body>
-
 </html>
