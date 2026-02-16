@@ -6,17 +6,17 @@
 <title>Flux On Customer Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="icon" href="/Flow Project/favicon.ico" type="image/x-icon">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
 <!-- Standard favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="/Flow Project/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/Flow Project/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <!-- ICO fallback -->
-<link rel="shortcut icon" href="/Flow Project/favicon.ico">
+<link rel="shortcut icon" href="favicon.ico">
 <!-- Apple -->
-<link rel="apple-touch-icon" sizes="180x180" href="/Flow Project/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <!-- Android / Chrome -->
-<link rel="icon" type="image/png" sizes="192x192" href="/Flow Project/android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/Flow Project/android-chrome-512x512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -708,6 +708,30 @@
     .google-connect-card .btn { width: 100%; justify-content: center; }
   }
 
+  /* Auth Status Indicator Styles - Preserving your exact styling */
+  .auth-status {
+    display: flex;
+    flex-direction: column;
+    margin: 8px 0;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-subtle);
+  }
+  
+  .auth-status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  
+  .auth-status-item .auth-icon {
+    font-size: 14px;
+    color: var(--text-tertiary);
+  }
+
 </style>
 </head>
 <body>
@@ -725,7 +749,7 @@
   <aside class="sidebar" id="mainSidebar" aria-label="Main navigation">
     <div class="logo-area">
       <div class="logo" style="column-gap: 2px;">
-        <div style="background-color: transparent; width: fit-content;" aria-hidden="true"><img src="/Flow Project/favicon.ico"></div>
+        <div style="background-color: transparent; width: fit-content;" aria-hidden="true"><img src="favicon.ico"></div>
         <span>Flux On</span>
       </div>
       <!-- MOBILE CLOSE BUTTON -->
@@ -762,6 +786,14 @@
         <span>Settings</span>
       </a>
     </nav>
+    
+    <!-- Auth Status Indicator - Shows login status in sidebar (visible on mobile) -->
+    <div class="auth-status" id="mobileAuthStatus">
+      <div class="auth-status-item">
+        <span class="auth-icon">🔒</span>
+        <span>Not signed in</span>
+      </div>
+    </div>
     
     <div id="sidebarGoogleStatus" class="sidebar-status-indicator">
         <div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div>
@@ -1384,11 +1416,38 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('logoutauth').style.display = 'none';
     document.getElementById('signupauth').style.display = 'flex';
     document.getElementById('loginRequiredModal').style.display = 'flex';
+    
+    // Update mobile auth status
+    const mobileAuthStatus = document.getElementById('mobileAuthStatus');
+    if (mobileAuthStatus) {
+      mobileAuthStatus.innerHTML = `
+        <div class="auth-status-item">
+          <span class="auth-icon">🔒</span>
+          <span>Not signed in</span>
+        </div>
+        <div class="auth-status-item" style="margin-top: 8px;">
+          <a href="signup.html" style="color: var(--text-main); text-decoration: none; font-weight: 600;">Sign in</a>
+          <span style="margin: 0 4px;">or</span>
+          <a href="signup.html" style="color: var(--text-main); text-decoration: none; font-weight: 600;">Register</a>
+        </div>
+      `;
+    }
     return;
   }
   else{
     document.getElementById('logoutauth').style.display = 'flex';
     document.getElementById('signupauth').style.display = 'none';
+    
+    // Update mobile auth status for logged in user
+    const mobileAuthStatus = document.getElementById('mobileAuthStatus');
+    if (mobileAuthStatus) {
+      mobileAuthStatus.innerHTML = `
+        <div class="auth-status-item">
+          <span class="auth-icon">✓</span>
+          <span>Signed in</span>
+        </div>
+      `;
+    }
   }
   // 1. Check for Google Connection Success (OAuth Redirect)
   const urlParams = new URLSearchParams(window.location.search);
@@ -2287,8 +2346,7 @@ function renderAnalytics() {
     `).join('');
 }
 
-// --- NEW FUNCTION: MOBILE MENU LOGIC ---
-
+// --- MOBILE MENU LOGIC ---
 function toggleMobileMenu() {
     const sidebar = document.getElementById('mainSidebar');
     const overlay = document.getElementById('mobileOverlay');
