@@ -6,17 +6,17 @@
 <title>Flux On Customer Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="icon" href="/Flow Project/favicon.ico" type="image/x-icon">
 <!-- Standard favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/Flow Project/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/Flow Project/favicon-16.png">
 <!-- ICO fallback -->
-<link rel="shortcut icon" href="favicon.ico">
+<link rel="shortcut icon" href="/Flow Project/favicon.ico">
 <!-- Apple -->
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/Flow Project/apple-touch-icon.png">
 <!-- Android / Chrome -->
-<link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/Flow Project/android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/Flow Project/android-chrome-512x512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -749,7 +749,7 @@
   <aside class="sidebar" id="mainSidebar" aria-label="Main navigation">
     <div class="logo-area">
       <div class="logo" style="column-gap: 2px;">
-        <div style="background-color: transparent; width: fit-content;" aria-hidden="true"><img src="favicon.ico"></div>
+        <div style="background-color: transparent; width: fit-content;" aria-hidden="true"><img src="/Flow Project/favicon.ico"></div>
         <span>Flux On</span>
       </div>
       <!-- MOBILE CLOSE BUTTON -->
@@ -2217,6 +2217,7 @@ async function saveAllChanges() {
         const payload = {
             userId: flowId,
             customers: customers,
+            templates: templates
         };
         await fetch(`${API_BASE_URL}/updatecustomers`, {
             method: 'POST',
