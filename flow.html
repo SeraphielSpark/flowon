@@ -376,96 +376,6 @@
   /* Status Variations */
   .status-disconnected { background: var(--color-red-bg); color: var(--color-red-text); }
   .status-connected { background: var(--color-green-bg); color: var(--color-green-text); }
-  
-  /* --- INBOX CONNECT PROMPT STYLES --- */
-  .inbox-connect-prompt {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 40px;
-      text-align: center;
-      background: #fff;
-      border-radius: var(--radius-lg);
-      border: 1px dashed var(--border-light);
-      margin-bottom: 24px;
-  }
-  
-  .inbox-connect-icon {
-      font-size: 64px;
-      margin-bottom: 24px;
-      opacity: 0.7;
-  }
-  
-  .inbox-connect-title {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: var(--text-main);
-  }
-  
-  .inbox-connect-description {
-      color: var(--text-secondary);
-      margin-bottom: 32px;
-      max-width: 500px;
-      line-height: 1.6;
-  }
-  
-  .inbox-connect-button {
-      background: #000;
-      color: #fff;
-      border: none;
-      padding: 14px 32px;
-      border-radius: 40px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  
-  .inbox-connect-button:hover {
-      background: #333;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-  }
-  
-  .inbox-connect-button svg {
-      width: 20px;
-      height: 20px;
-  }
-  
-  .inbox-header-connected {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding: 16px 20px;
-      background: var(--color-green-bg);
-      border-radius: var(--radius-md);
-      color: var(--color-green-text);
-  }
-  
-  .inbox-header-connected .btn-link {
-      background: transparent;
-      border: 1px solid currentColor;
-      color: var(--color-green-text);
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-  }
-  
-  .inbox-header-connected .btn-link:hover {
-      background: var(--color-green-text);
-      color: white;
-  }
-  
   /* --- INBOX STYLES (ELITE STRUCTURE) --- */
   .inbox-layout {
       display: grid;
@@ -796,9 +706,6 @@
     
     .google-connect-card { flex-direction: column; align-items: flex-start; gap: 20px; }
     .google-connect-card .btn { width: 100%; justify-content: center; }
-    
-    .inbox-connect-prompt { padding: 40px 20px; }
-    .inbox-connect-title { font-size: 20px; }
   }
 
   /* Auth Status Indicator Styles - Preserving your exact styling */
@@ -1054,51 +961,15 @@
           </div>
         </div>
       </section>
-      
-      <!-- UPDATED INBOX SECTION WITH CONNECT PROMPT -->
       <section id="inboxSection" class="section-content" aria-labelledby="inboxTitle" style="display: none;">
         <div class="welcome-card" style="margin-bottom: 24px;">
            <h1 id="inboxTitle">Inbox</h1>
            <p>Messages from your audience.</p>
         </div>
         
-        <!-- Google Connection Status & Prompt (Shown when disconnected) -->
-        <div id="inboxConnectContainer" style="display: none;">
-          <div class="inbox-connect-prompt">
-            <div class="inbox-connect-icon">📧</div>
-            <div class="inbox-connect-title">Connect Your Gmail Account</div>
-            <div class="inbox-connect-description">
-              To view and manage your inbox messages, you need to connect your Gmail account. 
-              This allows you to read, reply, and manage emails directly from Flux On.
-            </div>
-            <button class="inbox-connect-button" onclick="connectGoogle()">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M21.35,11.1H12.18V13.83H17.45C17.19,15.3 16.34,16.58 15.19,17.38V19.51H18.38C20.25,17.79 21.33,15.24 21.33,12.28C21.33,11.9 21.27,11.5 21.18,11.13V11.1M12.18,21.36C14.75,21.36 16.91,20.5 18.38,19.14L15.19,17.01C14.33,17.58 13.25,17.9 12.18,17.9C9.7,17.9 7.6,16.22 6.84,13.93H3.55V16.48C5.07,19.5 8.35,21.36 12.18,21.36M6.84,13.93C6.64,13.36 6.54,12.75 6.54,12.14C6.54,11.53 6.64,10.92 6.84,10.34V7.8H3.55C2.26,10.37 2.26,13.9 3.55,16.48H6.84M12.18,6.38C13.56,6.38 14.81,6.86 15.79,7.79L18.42,5.16C16.91,3.75 14.75,2.92 12.18,2.92C8.35,2.92 5.07,4.78 3.55,7.8L6.84,10.34C7.6,8.05 9.7,6.38 12.18,6.38Z" />
-              </svg>
-              Connect Gmail Account
-            </button>
-            <p style="margin-top: 24px; font-size: 12px; color: var(--text-tertiary);">
-              We'll only access your emails to display them in your inbox. Your data is secure.
-            </p>
-          </div>
-        </div>
-        
-        <!-- Connected Header (Shown when connected) -->
-        <div id="inboxConnectedHeader" class="inbox-header-connected" style="display: none;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-            <span style="font-weight: 600;">Gmail Connected</span>
-            <span style="font-size: 12px;" id="inboxEmailDisplay"></span>
-          </div>
-          <button class="btn-link" onclick="refreshInbox()">⟳ Refresh Inbox</button>
-        </div>
-        
-        <!-- Inbox Layout (Hidden until connected) -->
-        <div class="inbox-layout" id="inboxLayout" style="display: none;">
+        <div class="inbox-layout">
            <div class="inbox-list" id="inboxList">
-               <div style="padding: 32px; text-align: center; color: var(--text-tertiary);">Loading messages...</div>
+               <div style="padding: 32px; text-align: center; color: var(--text-tertiary);">Loading...</div>
            </div>
            <div class="inbox-view" id="inboxView">
                <div class="inbox-empty-state" id="inboxEmptyState">
@@ -1109,19 +980,12 @@
                <div id="inboxContent" style="display: none; height: 100%; flex-direction: column;">
                    <div class="inbox-toolbar">
                        <div style="display: flex; align-items: center;">
-                           <button class="btn btn-secondary mobile-back-btn" style="display:none; height: 32px; padding: 0 10px;" onclick="closeMobileInbox()">← Back</button>
+                           <button class="btn btn-secondary mobile-back-btn" style="display:none; height: 32px; padding: 0 10px;" onclick="closeMobileInbox()">←</button>
                            <span style="font-size: 13px; color: var(--text-tertiary);" id="viewMetaToolbar">Reading Message</span>
                        </div>
-                       <div style="display: flex; gap: 8px;">
-                           <button class="btn btn-icon-only" onclick="archiveCurrentMessage()" title="Archive Message">
-                               <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                               </svg>
-                           </button>
+                       <div>
                            <button class="btn btn-icon-only" onclick="deleteCurrentMessage()" title="Delete Message">
-                               <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                               </svg>
+                               <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                            </button>
                        </div>
                    </div>
@@ -1139,7 +1003,7 @@
                            </div>
                        </div>
                        <div class="inbox-view-body" id="viewBody">
-                       </div>
+                           </div>
                    </div>
                </div>
            </div>
@@ -1500,17 +1364,15 @@ let flowId = localStorage.getItem('flowid');
 let currentUser = null;
 let customers = [];
 let templates = [];
-let inboxMessages = [];
-let currentMessageIndex = -1;
+let inboxMessages = []; // STORE INBOX MESSAGES
+let currentMessageIndex = -1; // TRACK SELECTED MESSAGE
 let selectedEmails = new Set();
 let isGoogleConnected = false;
-let userEmail = '';
-
 const defaultTemplates = [
-    { name: "Welcome Email", tag: "Onboarding", subject: "Welcome to our community!", body: "Welcome to our community! We're excited to have you..." },
-    { name: "Product Update", tag: "News", subject: "New features just launched!", body: "Check out the latest features we've just released..." },
-    { name: "Black Friday Promo", tag: "Sales", subject: "50% OFF Everything!", body: "Get 50% off everything this weekend only!" },
-    { name: "Feedback Request", tag: "Support", subject: "We'd love your feedback", body: "We'd love to hear your thoughts on your recent purchase..." }
+    { name: "Welcome Email", tag: "Onboarding", body: "Welcome to our community! We're excited to have you..." },
+    { name: "Product Update", tag: "News", body: "Check out the latest features we've just released..." },
+    { name: "Black Friday Promo", tag: "Sales", body: "Get 50% off everything this weekend only!" },
+    { name: "Feedback Request", tag: "Support", body: "We'd love to hear your thoughts on your recent purchase..." }
 ];
 
 // ============================================
@@ -1519,7 +1381,9 @@ const defaultTemplates = [
 function checkAuth() {
     flowId = localStorage.getItem('flowid');
     if (!flowId) {
+        // Show login required modal
         document.getElementById('loginRequiredModal').style.display = 'flex';
+        
         return false;
     }
     return true;
@@ -1527,6 +1391,7 @@ function checkAuth() {
 
 function requireAuth(section) {
     if (!checkAuth()) {
+        // Store the section they tried to access
         sessionStorage.setItem('redirectAfterLogin', section);
         return false;
     }
@@ -1535,7 +1400,9 @@ function requireAuth(section) {
 }
 
 function redirectToSignup() {
+    // Clear any existing data
     localStorage.removeItem('flowid');
+    // Redirect to signup page
     window.location.href = 'signup.html';
 }
 
@@ -1543,26 +1410,14 @@ function redirectToSignup() {
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
-  // Check URL params for OAuth callback
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('status') === 'connected') {
-      const userId = urlParams.get('userId');
-      if (userId) {
-          localStorage.setItem('flowid', userId);
-      }
-      
-      window.history.replaceState({}, document.title, window.location.pathname);
-      updateConnectionUI(true);
-      showMessage('Google Account Connected Successfully!', 'success');
-      showSection('automation');
-  }
-
   // Check if user is logged in
   if (!flowId) {
+    // Show login required modal
     document.getElementById('logoutauth').style.display = 'none';
     document.getElementById('signupauth').style.display = 'flex';
     document.getElementById('loginRequiredModal').style.display = 'flex';
     
+    // Update mobile auth status
     const mobileAuthStatus = document.getElementById('mobileAuthStatus');
     if (mobileAuthStatus) {
       mobileAuthStatus.innerHTML = `
@@ -1583,6 +1438,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('logoutauth').style.display = 'flex';
     document.getElementById('signupauth').style.display = 'none';
     
+    // Update mobile auth status for logged in user
     const mobileAuthStatus = document.getElementById('mobileAuthStatus');
     if (mobileAuthStatus) {
       mobileAuthStatus.innerHTML = `
@@ -1593,15 +1449,29 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
     }
   }
+  // 1. Check for Google Connection Success (OAuth Redirect)
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('status') === 'connected') {
+      // Clean the URL bar
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Update UI Immediately
+      updateConnectionUI(true);
+      showMessage('Google Account Connected Successfully!', 'success');
+      
+      // Navigate to automation tab automatically
+      showSection('automation');
+  }
   
   // Initial Load
   loadUserData();
   setupEventListeners();
-  // Poll for new emails every 30 seconds
-  setInterval(loadInboxMessages, 30000);
+  // Poll for new emails every 10 seconds
+  setInterval(loadInboxMessages, 10000);
 });
 
 function setupEventListeners() {
+  // Toggle Schedule Date visibility
   const scheduleSelect = document.getElementById('scheduleType');
   if(scheduleSelect) {
       scheduleSelect.addEventListener('change', function() {
@@ -1610,6 +1480,7 @@ function setupEventListeners() {
       });
   }
   
+  // Message form submission
   const msgForm = document.getElementById('messageForm');
   if(msgForm) {
       msgForm.addEventListener('submit', function(e) {
@@ -1618,45 +1489,49 @@ function setupEventListeners() {
       });
   }
 }
-
 // ============================================
 // GOOGLE INTEGRATION LOGIC
 // ============================================
 function connectGoogle() {
    if (!checkAuth()) return;
    
+   // 1. Get the stored User ID
    const userId = localStorage.getItem('flowid'); 
    
+   // 2. Security Check
    if (!userId) {
        alert("User ID is missing. Please log in again.");
        return;
    }
-   
+   // 3. Construct the URL
    const targetUrl = `${API_BASE_URL}/google/connect?userId=${encodeURIComponent(userId)}`;
+   
+   // 4. Redirect
    window.location.href = targetUrl;
 }
-
-function updateConnectionUI(isConnected, email = '') {
+function updateConnectionUI(isConnected) {
     isGoogleConnected = isConnected;
-    userEmail = email;
-    
-    // Update automation section
+    // 1. Automation Section Card
     const statusEl = document.getElementById('connectionStatus');
     const btn = document.getElementById('btnConnectGoogle');
-    
     if (isConnected) {
+        // Connected State
         statusEl.className = 'connection-status status-connected';
         statusEl.innerHTML = '<span class="status-dot"></span><span>Active</span>';
         
+        // Show Green Button but keep enabled for Reconnect
         btn.innerHTML = '✓ Account Linked (Reconnect?)';
-        btn.className = 'btn btn-success';
+        btn.className = 'btn btn-success'; // Green style
+        
+        // Ensure button triggers reconnect, not just disabled
         btn.onclick = function() {
             if(confirm('Do you want to reconnect your Google Account?')) {
                 connectGoogle();
             }
         };
-        btn.disabled = false;
+        btn.disabled = false; // Allow clicking to reconnect
     } else {
+        // Disconnected State
         statusEl.className = 'connection-status status-disconnected';
         statusEl.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
         
@@ -1665,63 +1540,19 @@ function updateConnectionUI(isConnected, email = '') {
         btn.onclick = connectGoogle;
         btn.disabled = false;
     }
-    
-    // Update header
+    // 2. Header Indicator
     const headerStatus = document.getElementById('headerGoogleStatus');
     if(headerStatus) {
         headerStatus.style.display = isConnected ? 'inline-flex' : 'none';
     }
-    
-    // Update sidebar
+    // 3. Sidebar Indicator
     const sidebarStatus = document.getElementById('sidebarGoogleStatus');
     if(sidebarStatus) {
         sidebarStatus.innerHTML = isConnected 
-            ? `<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-green-text);"></div> Gmail: Active (${email.split('@')[0]})`
+            ? '<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-green-text);"></div> Gmail: Active'
             : '<div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div> Gmail: Not Linked';
     }
-    
-    // Update inbox UI based on connection status
-    updateInboxUI();
 }
-
-// ============================================
-// INBOX UI MANAGEMENT
-// ============================================
-function updateInboxUI() {
-    const connectContainer = document.getElementById('inboxConnectContainer');
-    const connectedHeader = document.getElementById('inboxConnectedHeader');
-    const inboxLayout = document.getElementById('inboxLayout');
-    
-    if (!isGoogleConnected) {
-        // Show connect prompt, hide inbox
-        connectContainer.style.display = 'block';
-        connectedHeader.style.display = 'none';
-        inboxLayout.style.display = 'none';
-    } else {
-        // Show inbox, hide connect prompt
-        connectContainer.style.display = 'none';
-        connectedHeader.style.display = 'flex';
-        inboxLayout.style.display = 'grid';
-        
-        // Update email display
-        const emailDisplay = document.getElementById('inboxEmailDisplay');
-        if (emailDisplay && userEmail) {
-            emailDisplay.textContent = `(${userEmail})`;
-        }
-        
-        // Load inbox messages
-        loadInboxMessages();
-    }
-}
-
-async function refreshInbox() {
-    if (!isGoogleConnected) return;
-    showGlobalLoader(true, 'Refreshing inbox...');
-    await loadInboxMessages();
-    showGlobalLoader(false);
-    showMessage('Inbox refreshed', 'success');
-}
-
 // ============================================
 // DATA LOADING ENGINE
 // ============================================
@@ -1748,7 +1579,6 @@ function parseAndFlattenCustomers(input) {
     });
     return flatList;
 }
-
 function normalizeCustomerData(flatList) {
     const seenEmails = new Set();
     const uniqueList = [];
@@ -1773,7 +1603,6 @@ function normalizeCustomerData(flatList) {
     });
     return uniqueList;
 }
-
 function safeParseTemplates(input) {
     if (Array.isArray(input)) return input;
     if (typeof input === 'string') {
@@ -1781,18 +1610,20 @@ function safeParseTemplates(input) {
     }
     return [];
 }
-
 async function loadUserData() {
   if (!checkAuth()) return;
   
   try {
     showGlobalLoader(true, 'Loading Dashboard...');
     
+    // 1. Fetch User Data
     const response = await fetch(`${API_BASE_URL}/userdata/${flowId}`);
     if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
     const userData = await response.json();
     currentUser = userData;
-    
+    // 2. Fetch Inbox Data
+    await loadInboxMessages();
+    // 3. Update UI
     const username = userData.username || userData.email || 'User';
     updateText('userGreeting', username.split(' ')[0]);
     updateText('profileName', username);
@@ -1800,28 +1631,21 @@ async function loadUserData() {
     updateValue('settingsName', username);
     updateValue('settingsEmail', userData.email || '');
     
-    // Check Google connection status
+    // 4. Update Google Status (Check for tokens in response)
     const hasTokens = userData.google_access_token && userData.google_refresh_token;
-    const userEmail = userData.email || '';
-    updateConnectionUI(hasTokens, userEmail);
+    updateConnectionUI(hasTokens);
     
     const rawFlattened = parseAndFlattenCustomers(userData.customers);
     customers = normalizeCustomerData(rawFlattened);
     
     const rawTemplates = safeParseTemplates(userData.templates);
     templates = rawTemplates.length > 0 ? rawTemplates : [...defaultTemplates];
-    
     updateDashboardStats();
     renderCustomerTable();
     renderEmailList();
     renderTemplates();
     renderTemplateSelector();
     renderAnalytics();
-    
-    // Load inbox if connected
-    if (hasTokens) {
-        await loadInboxMessages();
-    }
     
   } catch (error) {
     console.error('CRITICAL ERROR loading data:', error);
@@ -1830,9 +1654,8 @@ async function loadUserData() {
     showGlobalLoader(false);
   }
 }
-
 // ============================================
-// INBOX API FUNCTIONS
+// INBOX LOGIC
 // ============================================
 function cleanN8nValue(val) {
     if (!val) return '';
@@ -1841,25 +1664,20 @@ function cleanN8nValue(val) {
     }
     return val;
 }
-
 async function loadInboxMessages() {
-    if (!checkAuth() || !isGoogleConnected) return;
+    if (!checkAuth()) return;
     
     try {
-        const res = await fetch(`${API_BASE_URL}/inbox?userId=${encodeURIComponent(flowId)}`);
+        const res = await fetch(`${API_BASE_URL}/inbox`);
         if (res.ok) {
             inboxMessages = await res.json();
             updateNotificationCount();
             renderInboxList();
-        } else if (res.status === 401) {
-            // Token expired or invalid
-            updateConnectionUI(false);
         }
     } catch (e) {
         console.error("Failed to load inbox", e);
     }
 }
-
 function updateNotificationCount() {
     const unread = inboxMessages.filter(m => !m.read).length;
     const badge = document.getElementById('notificationBadge');
@@ -1873,37 +1691,33 @@ function updateNotificationCount() {
         updateText('unreadStats', 0);
     }
 }
-
 function renderInboxList() {
     const listContainer = document.getElementById('inboxList');
     if (!listContainer) return;
-    
     if (inboxMessages.length === 0) {
         listContainer.innerHTML = `<div style="padding: 40px 24px; text-align: center; color: var(--text-tertiary);">
             <div style="font-size: 24px; margin-bottom: 8px;">📭</div>
-            No messages in your inbox
+            No messages yet
         </div>`;
         return;
     }
-    
     let html = '';
     inboxMessages.forEach((msg, index) => {
-        const from = msg.from_name || msg.from_email || 'Unknown';
-        const subject = msg.subject || '(No Subject)';
+        const from = cleanN8nValue(msg.from_name) || cleanN8nValue(msg.from_email) || 'Unknown';
+        const subject = cleanN8nValue(msg.subject) || '(No Subject)';
         
         let dateDisplay = 'Today';
         if(msg.date) {
-            const d = new Date(msg.date);
+            const d = new Date(cleanN8nValue(msg.date));
             if(!isNaN(d.getTime())) dateDisplay = d.toLocaleDateString();
         }
-        
-        const snippet = msg.snippet || 'No preview available';
+        const rawBody = cleanN8nValue(msg.body_text || '');
+        const snippet = rawBody ? rawBody.substring(0, 50) + '...' : 'No preview available';
         
         const isReadClass = msg.read ? '' : 'unread';
         const selectedClass = index === currentMessageIndex ? 'selected' : '';
-        
         html += `
-            <div class="inbox-item ${isReadClass} ${selectedClass}" onclick="viewEmail(${index})">
+            <div class="inbox-item ${isReadClass} ${selectedClass}" onclick="viewEmail(${index}, this)">
                 <div class="inbox-item-header">
                     <span class="inbox-sender">${escapeHtml(from)}</span>
                     <span class="inbox-date">${dateDisplay}</span>
@@ -1915,132 +1729,77 @@ function renderInboxList() {
     });
     listContainer.innerHTML = html;
 }
-
-async function viewEmail(index) {
-    if (!checkAuth() || !isGoogleConnected) return;
+async function viewEmail(index, element) {
+    if (!checkAuth()) return;
     
     const msg = inboxMessages[index];
     if (!msg) return;
-    
     currentMessageIndex = index;
-    
-    // Mark as read if unread
+    // Handle Read Status
     if (!msg.read) {
         msg.read = true;
         updateNotificationCount();
-        
-        // Call API to mark as read
-        try {
-            await fetch(`${API_BASE_URL}/inbox/read/${msg.id}?userId=${encodeURIComponent(flowId)}`, { 
-                method: 'POST' 
-            });
-        } catch(e) {
-            console.error('Failed to mark as read', e);
-        }
+        fetch(`${API_BASE_URL}/inbox/read/${msg.id}`, { method: 'POST' }).catch(e=>console.log(e));
     }
     
     renderInboxList();
-    
-    // Update view
+    // Update View
     document.getElementById('inboxEmptyState').style.display = 'none';
+    
     const content = document.getElementById('inboxContent');
-    content.style.display = 'flex';
-    
-    const fromName = msg.from_name || 'Unknown';
-    const fromEmail = msg.from_email || '';
-    const subject = msg.subject || '(No Subject)';
-    
+    content.style.display = 'flex'; 
+    const fromName = cleanN8nValue(msg.from_name) || 'Unknown';
+    const fromEmail = cleanN8nValue(msg.from_email);
+    const subject = cleanN8nValue(msg.subject) || '(No Subject)';
     let dateStr = 'Unknown Date';
+    
     if (msg.date) {
-         const d = new Date(msg.date);
+         const d = new Date(cleanN8nValue(msg.date));
          if(!isNaN(d.getTime())) dateStr = d.toLocaleString();
     }
-    
     updateText('viewSubject', subject);
     updateText('viewSender', fromName);
     updateText('viewEmail', fromEmail);
     updateText('viewDate', dateStr);
     updateText('viewAvatar', getInitials(fromName));
-    
     const bodyContainer = document.getElementById('viewBody');
-    const htmlContent = msg.body_html;
-    const textContent = msg.body_text;
+    const htmlContent = cleanN8nValue(msg.body_html);
+    const textContent = cleanN8nValue(msg.body_text);
     
-    if (htmlContent && !htmlContent.startsWith('=')) {
-        bodyContainer.innerHTML = htmlContent;
-    } else {
-        bodyContainer.innerHTML = `<pre style="font-family: inherit; white-space: pre-wrap;">${escapeHtml(textContent || 'No content')}</pre>`;
-    }
+    bodyContainer.innerHTML = htmlContent || textContent || '<p>No content</p>';
     
     if(window.innerWidth <= 768) {
         document.getElementById('inboxView').classList.add('active');
     }
 }
-
 async function deleteCurrentMessage() {
-    if (!checkAuth() || !isGoogleConnected) return;
+    if (!checkAuth()) return;
     if (currentMessageIndex === -1) return;
     
     if(!confirm('Delete this message permanently?')) return;
-    
     const msg = inboxMessages[currentMessageIndex];
     
-    try {
-        await fetch(`${API_BASE_URL}/inbox/${msg.id}?userId=${encodeURIComponent(flowId)}`, { 
-            method: 'DELETE' 
-        });
-        
-        inboxMessages.splice(currentMessageIndex, 1);
-        currentMessageIndex = -1;
-        
-        document.getElementById('inboxContent').style.display = 'none';
-        document.getElementById('inboxEmptyState').style.display = 'flex';
-        
-        if(window.innerWidth <= 768) closeMobileInbox();
-        renderInboxList();
-        updateNotificationCount();
-        
-        showMessage('Message deleted', 'success');
-    } catch (e) {
-        console.error("Delete failed", e);
-        showMessage('Error deleting message', 'error');
-    }
-}
-
-async function archiveCurrentMessage() {
-    if (!checkAuth() || !isGoogleConnected) return;
-    if (currentMessageIndex === -1) return;
+    inboxMessages.splice(currentMessageIndex, 1);
+    currentMessageIndex = -1;
     
-    const msg = inboxMessages[currentMessageIndex];
+    document.getElementById('inboxContent').style.display = 'none';
+    document.getElementById('inboxEmptyState').style.display = 'flex';
+    if(window.innerWidth <= 768) closeMobileInbox();
+    renderInboxList();
+    updateNotificationCount();
     
     try {
-        await fetch(`${API_BASE_URL}/inbox/archive/${msg.id}?userId=${encodeURIComponent(flowId)}`, { 
-            method: 'POST' 
-        });
-        
-        inboxMessages.splice(currentMessageIndex, 1);
-        currentMessageIndex = -1;
-        
-        document.getElementById('inboxContent').style.display = 'none';
-        document.getElementById('inboxEmptyState').style.display = 'flex';
-        
-        if(window.innerWidth <= 768) closeMobileInbox();
-        renderInboxList();
-        updateNotificationCount();
-        
-        showMessage('Message archived', 'success');
+        await fetch(`${API_BASE_URL}/inbox/${msg.id}`, { method: 'DELETE' });
     } catch (e) {
-        console.error("Archive failed", e);
-        showMessage('Error archiving message', 'error');
+        console.error("Delete failed on server", e);
+        showMessage('Error deleting message on server', 'error');
     }
 }
-
 function closeMobileInbox() {
     document.getElementById('inboxView').classList.remove('active');
     currentMessageIndex = -1;
     renderInboxList();
 }
-
 // ============================================
 // UI RENDERING FUNCTIONS
 // ============================================
@@ -2048,15 +1807,14 @@ function updateDashboardStats() {
   const total = customers.length;
   updateText('totalCustomers', total);
   updateText('totalEmails', total); 
+  updateText('messagesSent', inboxMessages.length > 0 ? inboxMessages.length + 120 : '124'); 
   updateText('activeCampaigns', '2'); 
   updateText('responseRate', '18%'); 
   updateText('customerCount', `(${total})`);
 }
-
 function renderCustomerTable() {
   const container = document.getElementById('tableContainer');
   if (!container) return;
-  
   if (customers.length === 0) {
     container.innerHTML = `
       <div style="padding: 40px; text-align: center;">
@@ -2066,7 +1824,6 @@ function renderCustomerTable() {
       </div>`;
     return;
   }
-  
   let html = `
     <table class="simple-table">
       <thead>
@@ -2081,7 +1838,6 @@ function renderCustomerTable() {
         </tr>
       </thead>
       <tbody>`;
-  
   customers.forEach((c, i) => {
     const status = c.status || 'Active';
     html += `
@@ -2104,21 +1860,17 @@ function renderCustomerTable() {
         </td>
       </tr>`;
   });
-  
   html += `</tbody></table>`;
   container.innerHTML = html;
 }
-
 function renderEmailList() {
   const container = document.getElementById('emailList');
   if(!container) return;
-  
   const validCustomers = customers.filter(c => c.email && c.email.includes('@'));
   if (validCustomers.length === 0) {
     container.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-secondary);"><p>No valid email addresses found.</p></div>`;
     return;
   }
-  
   let html = '';
   validCustomers.forEach((c) => {
     const isSelected = selectedEmails.has(c.email);
@@ -2136,20 +1888,16 @@ function renderEmailList() {
         <div class="email-status status-${status.toLowerCase()}">${status}</div>
       </div>`;
   });
-  
   container.innerHTML = html;
   updateSelectionCount();
 }
-
 function renderTemplates() {
     const grid = document.getElementById('templatesGrid');
     if(!grid) return;
-    
     if (templates.length === 0) {
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px;">No templates found.</div>`;
         return;
     }
-    
     let html = '';
     templates.forEach((t, i) => {
         html += `
@@ -2166,14 +1914,11 @@ function renderTemplates() {
                 </div>
             </div>`;
     });
-    
     grid.innerHTML = html;
 }
-
 function renderTemplateSelector() {
     const container = document.getElementById('automationTemplateSelector');
     if(!container) return;
-    
     let html = '';
     templates.forEach((t, i) => {
         html += `<button class="template-btn" onclick="loadTemplate(${i})">${escapeHtml(t.name)}</button> `;
@@ -2181,7 +1926,6 @@ function renderTemplateSelector() {
     html += `<button class="template-btn" onclick="loadTemplate('custom')">Blank</button>`;
     container.innerHTML = html;
 }
-
 // ============================================
 // USER ACTIONS & LOGIC
 // ============================================
@@ -2193,12 +1937,10 @@ function toggleEmailSelection(checkbox) {
   updateSelectionCount();
   updateSelectAllCheckbox();
 }
-
 function toggleAllEmails() {
   if (!checkAuth()) return;
   const selectAll = document.getElementById('selectAllEmails');
   const checkboxes = document.querySelectorAll('.email-checkbox');
-  
   if (selectAll.checked) {
     selectedEmails.clear();
     checkboxes.forEach(cb => {
@@ -2211,32 +1953,26 @@ function toggleAllEmails() {
   }
   updateSelectionCount();
 }
-
 function updateSelectionCount() {
   updateText('selectedCount', selectedEmails.size);
 }
-
 function updateSelectAllCheckbox() {
   const selectAll = document.getElementById('selectAllEmails');
   const checkboxes = document.querySelectorAll('.email-checkbox');
   const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-  
   if(selectAll) {
       selectAll.checked = checkedCount === checkboxes.length && checkboxes.length > 0;
       selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
   }
 }
-
 function updateCustomerField(index, field, value) {
   if (!customers[index]) customers[index] = {};
   customers[index][field] = value;
 }
-
 async function saveCustomer(index) {
   if (!checkAuth()) return;
   await saveAllChanges();
 }
-
 async function deleteCustomer(index) {
   if (!checkAuth()) return;
   if (!confirm('Are you sure you want to delete this customer?')) return;
@@ -2244,7 +1980,6 @@ async function deleteCustomer(index) {
   refreshUI();
   await saveAllChanges();
 }
-
 function addNewCustomer() {
   if (!checkAuth()) return;
   updateValue('newCustomerName', '');
@@ -2254,16 +1989,13 @@ function addNewCustomer() {
   updateValue('newCustomerStatus', 'Active');
   openModal('addCustomerModal');
 }
-
 async function saveNewCustomer() {
   if (!checkAuth()) return;
   const btn = document.getElementById('btnSaveCustomer');
   setButtonLoading(btn, true, 'Saving...');
-  
   try {
       const name = document.getElementById('newCustomerName').value.trim();
       if (!name) { alert('Name is required'); setButtonLoading(btn, false); return; }
-      
       const newC = {
           name: name,
           email: document.getElementById('newCustomerEmail').value.trim(),
@@ -2283,37 +2015,29 @@ async function saveNewCustomer() {
       setButtonLoading(btn, false);
   }
 }
-
 function importCustomers() {
     if (!checkAuth()) return;
     document.getElementById('csvFileInput').click();
 }
-
 function handleFileSelect(event) {
     if (!checkAuth()) return;
     const file = event.target.files[0];
     if (!file) return;
-    
     showGlobalLoader(true, 'Parsing CSV...');
     const reader = new FileReader();
-    
     reader.onload = function(e) {
         setTimeout(() => processCSV(e.target.result), 100);
     };
-    
     reader.readAsText(file);
     event.target.value = ''; 
 }
-
 function processCSV(csvText) {
     const lines = csvText.split(/\r\n|\n/).filter(line => line.trim() !== '');
-    
     if (lines.length < 2) {
         showGlobalLoader(false);
         alert('CSV file is too short or empty.');
         return;
     }
-    
     function parseCSVRow(text) {
         const re_value = /(?!\s*$)\s*(?:'([^']*)'|"([^"]*)"|([^,;]*))\s*(?:[,;]|$)/g;
         const row = [];
@@ -2325,31 +2049,25 @@ function processCSV(csvText) {
         });
         return row;
     }
-    
     const rawHeaders = parseCSVRow(lines[0]);
     const headers = rawHeaders.map(h => h.toLowerCase().trim());
-    
     let emailIdx = headers.findIndex(h => h === 'email' || h.includes('primary email') || h.includes('email address'));
     let nameIdx = headers.findIndex(h => h === 'name' || h.includes('full name') || h.includes('first name'));
     let companyIdx = headers.findIndex(h => h.includes('company'));
     let phoneIdx = headers.findIndex(h => h.includes('phone') || h.includes('mobile'));
-    
     if (emailIdx === -1 && lines.length > 0) {
         const firstDataRow = parseCSVRow(lines[1]);
         emailIdx = firstDataRow.findIndex(val => val && val.includes('@'));
     }
-    
     if (emailIdx === -1) {
         showGlobalLoader(false);
         alert('Could not detect an Email column. Please check your CSV.');
         return;
     }
-    
     let importedCount = 0;
     for (let i = 1; i < lines.length; i++) {
         const row = parseCSVRow(lines[i]);
         if (!row || row.length === 0) continue;
-        
         const email = (row[emailIdx] || '').trim();
         if (email && email.includes('@')) {
             let name = 'Unknown';
@@ -2371,14 +2089,12 @@ function processCSV(csvText) {
             importedCount++;
         }
     }
-    
     refreshUI();
     saveAllChanges().finally(() => {
         showGlobalLoader(false);
         showMessage(`Successfully imported ${importedCount} customers!`, 'success');
     });
 }
-
 function createNewTemplate() {
     if (!checkAuth()) return;
     updateValue('templateIndex', '-1');
@@ -2386,7 +2102,6 @@ function createNewTemplate() {
     updateText('templateModalTitle', 'Add New Template');
     openModal('templateModal');
 }
-
 function editTemplate(index) {
     if (!checkAuth()) return;
     const t = templates[index];
@@ -2398,12 +2113,10 @@ function editTemplate(index) {
     updateText('templateModalTitle', 'Edit Template');
     openModal('templateModal');
 }
-
 async function saveTemplate() {
     if (!checkAuth()) return;
     const btn = document.getElementById('btnSaveTemplate');
     setButtonLoading(btn, true);
-    
     const index = parseInt(document.getElementById('templateIndex').value);
     const newT = {
         name: document.getElementById('templateName').value,
@@ -2411,17 +2124,14 @@ async function saveTemplate() {
         subject: document.getElementById('templateSubject').value,
         body: document.getElementById('templateBody').value
     };
-    
     if (index === -1) templates.push(newT);
     else templates[index] = newT;
-    
     closeModal('templateModal');
     renderTemplates();
     renderTemplateSelector();
     await saveAllChanges();
     setButtonLoading(btn, false);
 }
-
 async function deleteTemplate(index) {
     if (!checkAuth()) return;
     if(!confirm('Delete template?')) return;
@@ -2430,17 +2140,14 @@ async function deleteTemplate(index) {
     renderTemplateSelector();
     await saveAllChanges();
 }
-
 function useTemplate(index) {
     if (!checkAuth()) return;
     loadTemplate(index);
     showSection('automation');
 }
-
 function loadTemplate(identifier) {
     document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
     if(event && event.target) event.target.classList.add('active');
-    
     if(identifier === 'custom') {
         updateValue('emailSubject', '');
         updateValue('emailBody', '');
@@ -2452,7 +2159,6 @@ function loadTemplate(identifier) {
         }
     }
 }
-
 function previewMessage() {
     if (!checkAuth()) return;
     const subject = document.getElementById('emailSubject').value;
@@ -2461,42 +2167,37 @@ function previewMessage() {
     updateText('previewBody', body);
     openModal('previewModal');
 }
-
 async function sendAutomatedMessages() {
     if (!checkAuth()) return;
     if(selectedEmails.size === 0) { alert('No recipients selected'); return; }
     
+    // --- UPDATED STRICT SECURITY CHECK ---
     if (!isGoogleConnected) {
         alert("Action Blocked: You must connect your Google Account to send automated messages.");
+        // Close modal and scroll to the connection card for better UX
         closeModal('previewModal');
         document.querySelector('.google-connect-card').scrollIntoView({ behavior: 'smooth' });
-        return;
+        return; // STOP EXECUTION STRICTLY
     }
-    
+    // -------------------------------------
     const btn = document.getElementById('btnConfirmSend');
     setButtonLoading(btn, true, 'Sending...');
-    
     const payload = {
         userId: flowId,
-        emailData: {
-            campaignName: document.getElementById('campaignName').value,
-            recipients: Array.from(selectedEmails),
-            subject: document.getElementById('emailSubject').value,
-            body: document.getElementById('emailBody').value,
-            fromName: document.getElementById('fromName').value,
-            fromEmail: document.getElementById('fromEmail').value
-        }
+        campaignName: document.getElementById('campaignName').value,
+        recipients: Array.from(selectedEmails),
+        subject: document.getElementById('emailSubject').value,
+        body: document.getElementById('emailBody').value,
+        fromName: document.getElementById('fromName').value,
+        fromEmail: document.getElementById('fromEmail').value
     };
-    
     try {
         const res = await fetch(`${API_BASE_URL}/send-automated-messages`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
         });
-        
         if(!res.ok) throw new Error('Send failed');
-        
         showMessage(`Sent to ${selectedEmails.size} recipients`, 'success');
         closeModal('previewModal');
         selectedEmails.clear();
@@ -2508,24 +2209,20 @@ async function sendAutomatedMessages() {
         setButtonLoading(btn, false);
     }
 }
-
 async function saveAllChanges() {
     if (!checkAuth()) return;
     const btn = document.getElementById('btnSaveChanges');
     if(btn) setButtonLoading(btn, true, 'Saving...');
-    
     try {
         const payload = {
             userId: flowId,
             customers: customers,
         };
-        
         await fetch(`${API_BASE_URL}/updatecustomers`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
         });
-        
         showMessage('Data saved to cloud', 'success');
     } catch(e) {
         console.error(e);
@@ -2534,7 +2231,6 @@ async function saveAllChanges() {
         if(btn) setButtonLoading(btn, false);
     }
 }
-
 // ============================================
 // UTILITIES
 // ============================================
@@ -2543,14 +2239,12 @@ function refreshUI() {
     renderCustomerTable();
     renderEmailList();
 }
-
 function refreshData() {
     if (!checkAuth()) return;
     const btn = document.getElementById('btnRefresh');
     setButtonLoading(btn, true, 'Refreshing...');
     loadUserData().finally(() => setButtonLoading(btn, false));
 }
-
 function showMessage(text, type) {
     const msg = document.createElement('div');
     msg.textContent = text;
@@ -2558,7 +2252,6 @@ function showMessage(text, type) {
     document.body.appendChild(msg);
     setTimeout(() => msg.remove(), 3000);
 }
-
 function setButtonLoading(btn, isLoading, text='Loading...') {
     if(!btn) return;
     if(isLoading) {
@@ -2570,7 +2263,6 @@ function setButtonLoading(btn, isLoading, text='Loading...') {
         btn.disabled = false;
     }
 }
-
 function showGlobalLoader(show, text='Loading...') {
     const el = document.getElementById('globalLoader');
     if(el) {
@@ -2579,17 +2271,14 @@ function showGlobalLoader(show, text='Loading...') {
         if(txt) txt.textContent = text;
     }
 }
-
 function updateText(id, text) {
     const el = document.getElementById(id);
     if(el) el.textContent = text;
 }
-
 function updateValue(id, val) {
     const el = document.getElementById(id);
     if(el) el.value = val;
 }
-
 function escapeHtml(text) {
   if (!text) return "";
   return text
@@ -2599,11 +2288,9 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
-
 function getInitials(name) {
     return (name || 'U').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
 }
-
 function showSection(id) {
     if (!checkAuth()) return;
     
@@ -2626,36 +2313,29 @@ function showSection(id) {
         'settings': 'Settings'
     };
     updateText('pageTitle', titles[id] || 'Dashboard');
-    
-    // Special handling for inbox section
-    if (id === 'inbox') {
-        updateInboxUI();
-    }
 }
 
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 function clearForm() { if(confirm('Reset form?')) document.getElementById('messageForm').reset(); }
-
 function confirmLogout() { 
     if(confirm('Log out?')) { 
         localStorage.removeItem('flowid'); 
+        // Clear all data
         customers = [];
         templates = [];
         inboxMessages = [];
         selectedEmails.clear();
         currentUser = null;
+        // Reload the page to show login modal
         window.location.reload();
     } 
 }
-
 function renderAnalytics() {
     const container = document.getElementById('analyticsChart');
     if(!container) return;
-    
     const data = [10, 40, 25, 50, 30, 60, 70];
     const max = Math.max(...data);
-    
     container.innerHTML = data.map((d,i) => `
         <div class="chart-bar-group">
             <div class="chart-value">${d}</div>
@@ -2670,9 +2350,11 @@ function toggleMobileMenu() {
     const sidebar = document.getElementById('mainSidebar');
     const overlay = document.getElementById('mobileOverlay');
     
+    // Toggle classes
     sidebar.classList.toggle('active');
     overlay.classList.toggle('active');
     
+    // Prevent body scrolling when menu is open
     if (sidebar.classList.contains('active')) {
         document.body.style.overflow = 'hidden';
     } else {
@@ -2689,17 +2371,20 @@ function closeMobileMenu() {
     document.body.style.overflow = '';
 }
 
+// Close menu on ESC key
 document.addEventListener('keydown', function(event) {
     if (event.key === "Escape") {
         closeMobileMenu();
     }
 });
 
+// Export function (placeholder)
 function exportCustomers() {
     if (!checkAuth()) return;
     alert('Export functionality will be implemented soon!');
 }
 
+// Save settings function (placeholder)
 function saveSettings(btn) {
     if (!checkAuth()) return;
     showMessage('Settings saved successfully!', 'success');
