@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,6 +14,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<!-- i18next Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.6/i18next.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-browser-languagedetector/7.1.0/i18nextBrowserLanguageDetector.min.js"></script>
 <style>
   :root {
     /* Modern Palette */
@@ -263,6 +265,90 @@
     display: flex; 
     align-items: center; 
     gap: 20px; 
+  }
+  
+  /* Language Selector */
+  .language-selector {
+    position: relative;
+    margin-right: 10px;
+  }
+  
+  .language-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-main);
+    transition: all 0.2s;
+  }
+  
+  .language-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
+  }
+  
+  .language-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    max-height: 400px;
+    overflow-y: auto;
+    width: 280px;
+    display: none;
+    margin-top: 5px;
+  }
+  
+  .language-dropdown.show {
+    display: block;
+  }
+  
+  .language-option {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  
+  .language-option:last-child {
+    border-bottom: none;
+  }
+  
+  .language-option:hover {
+    background: var(--bg-subtle);
+  }
+  
+  .language-option.active {
+    background: var(--color-blue-bg);
+    color: var(--color-blue-text);
+    font-weight: 600;
+  }
+  
+  .language-dropdown::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .language-dropdown::-webkit-scrollbar-track {
+    background: var(--bg-subtle);
+  }
+  
+  .language-dropdown::-webkit-scrollbar-thumb {
+    background: var(--text-tertiary);
+    border-radius: 3px;
+  }
+  
+  .language-dropdown::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
   }
   
   /* Header Status Pills */
@@ -1959,7 +2045,6 @@
     }
   }
 </style>
-</style>
 </head>
 <body>
 
@@ -1982,35 +2067,35 @@
     </div>
     
     <nav class="nav-menu" aria-label="Primary navigation">
-      <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard'); closeMobileMenu();" aria-current="page">
+      <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard'); closeMobileMenu();" aria-current="page" data-i18n="nav.dashboard">
         <span class="nav-icon">📊</span>
         <span>Dashboard</span>
       </a>
-      <a href="#customers" class="nav-item" onclick="showSection('customers'); closeMobileMenu();">
+      <a href="#customers" class="nav-item" onclick="showSection('customers'); closeMobileMenu();" data-i18n="nav.customers">
         <span class="nav-icon">👥</span>
         <span>Customers</span>
       </a>
-      <a href="#inbox" class="nav-item" onclick="showSection('inbox'); closeMobileMenu();">
+      <a href="#inbox" class="nav-item" onclick="showSection('inbox'); closeMobileMenu();" data-i18n="nav.inbox">
         <span class="nav-icon">📥</span>
         <span>Inbox</span>
       </a>
-      <a href="#automation" class="nav-item" onclick="showSection('automation'); closeMobileMenu();">
+      <a href="#automation" class="nav-item" onclick="showSection('automation'); closeMobileMenu();" data-i18n="nav.automation">
         <span class="nav-icon">⚡</span>
         <span>Automation</span>
       </a>
-      <a href="#whatsapp" class="nav-item" onclick="showSection('whatsapp'); closeMobileMenu();">
+      <a href="#whatsapp" class="nav-item" onclick="showSection('whatsapp'); closeMobileMenu();" data-i18n="nav.whatsapp">
         <span class="nav-icon">📱</span>
         <span>WhatsApp</span>
       </a>
-      <a href="#analytics" class="nav-item" onclick="showSection('analytics'); closeMobileMenu();">
+      <a href="#analytics" class="nav-item" onclick="showSection('analytics'); closeMobileMenu();" data-i18n="nav.analytics">
         <span class="nav-icon">📈</span>
         <span>Analytics</span>
       </a>
-      <a href="#templates" class="nav-item" onclick="showSection('templates'); closeMobileMenu();">
+      <a href="#templates" class="nav-item" onclick="showSection('templates'); closeMobileMenu();" data-i18n="nav.templates">
         <span class="nav-icon">📝</span>
         <span>Templates</span>
       </a>
-      <a href="#settings" class="nav-item" onclick="showSection('settings'); closeMobileMenu();">
+      <a href="#settings" class="nav-item" onclick="showSection('settings'); closeMobileMenu();" data-i18n="nav.settings">
         <span class="nav-icon">⚙️</span>
         <span>Settings</span>
       </a>
@@ -2019,35 +2104,35 @@
     <div class="auth-status" id="mobileAuthStatus">
       <div class="auth-status-item">
         <span class="auth-icon">🔒</span>
-        <span>Not signed in</span>
+        <span data-i18n="auth.notSignedIn">Not signed in</span>
       </div>
     </div>
     
     <div id="sidebarGoogleStatus" class="sidebar-status-indicator">
         <div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div>
-        Gmail: Not Linked
+        <span data-i18n="status.gmailNotLinked">Gmail: Not Linked</span>
     </div>
     
     <div id="sidebarWhatsAppStatus" class="sidebar-status-indicator" style="margin-top: 5px;">
         <div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div>
-        WhatsApp: Not Connected
+        <span data-i18n="status.whatsappNotConnected">WhatsApp: Not Connected</span>
     </div>
     
     <div class="sidebar-legal">
-        <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" class="legal-link">Privacy Policy</a>
-        <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" class="legal-link">Terms of Service</a>
+        <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" class="legal-link" data-i18n="legal.privacy">Privacy Policy</a>
+        <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" class="legal-link" data-i18n="legal.terms">Terms of Service</a>
     </div>
     <div class="nav-menu" style="flex: 0; margin-top: 2px;">
-      <a href="#" id="logoutauth" class="nav-item" style="font-size: 12px; height: fit-content; margin: 0 0 0 0; padding: 0 0 0 0;" onclick="confirmLogout()">
+      <a href="#" id="logoutauth" class="nav-item" style="font-size: 12px; height: fit-content; margin: 0 0 0 0; padding: 0 0 0 0;" onclick="confirmLogout()" data-i18n="auth.logOut">
         <span class="nav-icon">↪</span>
         <span>Log Out</span>
       </a>
       <div id="signupauth">
-        <a href="signup.html" class="nav-item" style="font-size: 12px; height: fit-content; margin: 0 0 0 0; padding: 0 0 0 0;">
+        <a href="signup.html" class="nav-item" style="font-size: 12px; height: fit-content; margin: 0 0 0 0; padding: 0 0 0 0;" data-i18n="auth.login">
           <span class="nav-icon">↪</span>
           <span>Login To Existing Account</span>
         </a>
-        <a href="signup.html" class="nav-item" style="font-size: 12px; height: fit-content; margin: 0 0 0 0; padding: 0 0 0 0;">
+        <a href="signup.html" class="nav-item" style="font-size: 12px; height: fit-content; margin: 0 0 0 0; padding: 0 0 0 0;" data-i18n="auth.register">
           <span class="nav-icon">↪</span>
           <span>Register New Account</span>
         </a>
@@ -2067,14 +2152,24 @@
       </button>
 
       <div class="header-title" id="pageTitle">
-        <span>Dashboard</span>
+        <span data-i18n="titles.dashboard">Dashboard</span>
       </div>
       
       <div class="header-actions">
-        <div id="headerGoogleStatus" class="legal-pill status-pill-connected" style="display: none;">
+        <!-- Language Selector -->
+        <div class="language-selector">
+          <button class="language-btn" onclick="toggleLanguageDropdown()">
+            <span>🌐</span>
+            <span id="currentLanguage">English</span>
+            <span>▼</span>
+          </button>
+          <div class="language-dropdown" id="languageDropdown"></div>
+        </div>
+        
+        <div id="headerGoogleStatus" class="legal-pill status-pill-connected" style="display: none;" data-i18n="status.gmailLinked">
             ✓ Gmail Linked
         </div>
-        <div id="headerWhatsAppStatus" class="legal-pill" style="display: none; background: #e5f5e9; color: var(--whatsapp-dark);">
+        <div id="headerWhatsAppStatus" class="legal-pill" style="display: none; background: #e5f5e9; color: var(--whatsapp-dark);" data-i18n="status.whatsappConnected">
             📱 WhatsApp Connected
         </div>
         <div class="notification-btn" onclick="showSection('inbox')" title="Notifications">
@@ -2084,7 +2179,7 @@
             </svg>
             <div class="notification-badge" id="notificationBadge">0</div>
         </div>
-        <button class="btn btn-secondary" id="btnRefresh" style="height: 36px; padding: 0 12px; font-size: 13px;" onclick="refreshData()" aria-label="Refresh data">
+        <button class="btn btn-secondary" id="btnRefresh" style="height: 36px; padding: 0 12px; font-size: 13px;" onclick="refreshData()" aria-label="Refresh data" data-i18n="buttons.refresh">
             Refresh
         </button>
         <div class="profile-area" onclick="showSection('settings')" role="button" tabindex="0" aria-label="User profile">
@@ -2101,13 +2196,13 @@
       <!-- Dashboard Section -->
       <section id="dashboardSection" class="section-content" aria-labelledby="dashboardTitle">
         <div class="welcome-card">
-          <h1 id="dashboardTitle">Hello, <span id="userGreeting">User</span>.</h1>
-          <p>Here is your overview. Manage customers and automate flows.</p>
+          <h1 id="dashboardTitle"><span data-i18n="dashboard.hello">Hello,</span> <span id="userGreeting">User</span>.</h1>
+          <p data-i18n="dashboard.description">Here is your overview. Manage customers and automate flows.</p>
           <div class="action-buttons">
-            <button class="btn btn-primary" onclick="requireAuth('automation')">
+            <button class="btn btn-primary" onclick="requireAuth('automation')" data-i18n="dashboard.startAutomation">
               Start Automation
             </button>
-            <button class="btn btn-secondary" onclick="requireAuth('customers')">
+            <button class="btn btn-secondary" onclick="requireAuth('customers')" data-i18n="dashboard.manageCustomers">
               Manage Customers
             </button>
           </div>
@@ -2116,51 +2211,51 @@
         <div class="dashboard-cards">
           <div class="dashboard-card" onclick="requireAuth('customers')" style="cursor: pointer;">
             <div class="card-header">
-              <div class="card-title">Total Customers</div>
+              <div class="card-title" data-i18n="dashboard.totalCustomers">Total Customers</div>
               <div class="card-icon">👥</div>
             </div>
             <div class="card-count" id="totalCustomers" aria-live="polite">0</div>
-            <div class="card-desc">Active in database</div>
+            <div class="card-desc" data-i18n="dashboard.activeInDatabase">Active in database</div>
           </div>
           
           <div class="dashboard-card" onclick="requireAuth('inbox')" style="cursor: pointer;">
             <div class="card-header">
-              <div class="card-title">Inbox</div>
+              <div class="card-title" data-i18n="dashboard.inbox">Inbox</div>
               <div class="card-icon">📥</div>
             </div>
             <div class="card-count" id="unreadStats" aria-live="polite">0</div>
-            <div class="card-desc">Unread messages</div>
+            <div class="card-desc" data-i18n="dashboard.unreadMessages">Unread messages</div>
           </div>
           
           <div class="dashboard-card" onclick="requireAuth('automation')" style="cursor: pointer;">
             <div class="card-header">
-              <div class="card-title">Active Campaigns</div>
+              <div class="card-title" data-i18n="dashboard.activeCampaigns">Active Campaigns</div>
               <div class="card-icon">⚡</div>
             </div>
             <div class="card-count" id="activeCampaigns" aria-live="polite">0</div>
-            <div class="card-desc">Workflows running</div>
+            <div class="card-desc" data-i18n="dashboard.workflowsRunning">Workflows running</div>
           </div>
           
           <div class="dashboard-card" onclick="requireAuth('analytics')" style="cursor: pointer;">
             <div class="card-header">
-              <div class="card-title">Response Rate</div>
+              <div class="card-title" data-i18n="dashboard.responseRate">Response Rate</div>
               <div class="card-icon">📈</div>
             </div>
             <div class="card-count" id="responseRate" aria-live="polite">0%</div>
-            <div class="card-desc">Average engagement</div>
+            <div class="card-desc" data-i18n="dashboard.averageEngagement">Average engagement</div>
           </div>
         </div>
         
         <div class="automation-card">
           <div class="automation-header">
-            <h2>Quick Actions</h2>
+            <h2 data-i18n="dashboard.quickActions">Quick Actions</h2>
           </div>
           <div class="automation-content">
             <div class="action-buttons">
-              <button class="btn btn-secondary" onclick="requireAuth('automation')">
+              <button class="btn btn-secondary" onclick="requireAuth('automation')" data-i18n="dashboard.createWelcomeSeries">
                 🎉 Create Welcome Series
               </button>
-              <button class="btn btn-secondary" onclick="requireAuth('automation')">
+              <button class="btn btn-secondary" onclick="requireAuth('automation')" data-i18n="dashboard.sendFollowUp">
                 🔄 Send Follow-up
               </button>
             </div>
@@ -2173,28 +2268,28 @@
         <div class="welcome-card">
           <div style="display: flex; flex-direction: column; gap: 16px;">
             <div>
-              <h1 id="customersTitle">Customers</h1>
-              <p>View and manage your subscriber database.</p>
+              <h1 id="customersTitle" data-i18n="titles.customers">Customers</h1>
+              <p data-i18n="customers.description">View and manage your subscriber database.</p>
             </div>
             <div class="action-buttons">
-               <button class="btn btn-secondary" onclick="exportCustomers()">Export CSV</button>
-               <button class="btn btn-secondary" onclick="importCustomers()">Import CSV</button>
+               <button class="btn btn-secondary" onclick="exportCustomers()" data-i18n="customers.exportCSV">Export CSV</button>
+               <button class="btn btn-secondary" onclick="importCustomers()" data-i18n="customers.importCSV">Import CSV</button>
                <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleFileSelect(event)">
-               <button class="btn btn-primary" onclick="addNewCustomer()">+ Add Customer</button>
+               <button class="btn btn-primary" onclick="addNewCustomer()" data-i18n="customers.addCustomer">+ Add Customer</button>
             </div>
           </div>
         </div>
         
         <div class="automation-card">
           <div class="automation-header">
-            <span class="card-title" style="margin: 0; font-size: 14px;">All Records <span class="data-count" id="customerCount" style="color: var(--text-tertiary); margin-left: 8px;">(0)</span></span>
-            <button class="btn btn-success" id="btnSaveChanges" style="height: 36px;" onclick="saveAllChanges()">
+            <span class="card-title" style="margin: 0; font-size: 14px;"><span data-i18n="customers.allRecords">All Records</span> <span class="data-count" id="customerCount" style="color: var(--text-tertiary); margin-left: 8px;">(0)</span></span>
+            <button class="btn btn-success" id="btnSaveChanges" style="height: 36px;" onclick="saveAllChanges()" data-i18n="customers.saveChanges">
               Save Changes
             </button>
           </div>
           
           <div id="tableContainer" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-            <div style="padding: 40px; text-align: center; color: var(--text-tertiary);">
+            <div style="padding: 40px; text-align: center; color: var(--text-tertiary);" data-i18n="customers.loading">
               Loading data...
             </div>
           </div>
@@ -2204,20 +2299,20 @@
       <!-- Inbox Section -->
       <section id="inboxSection" class="section-content" aria-labelledby="inboxTitle" style="display: none;">
         <div class="welcome-card" style="margin-bottom: 24px;">
-           <h1 id="inboxTitle">Inbox</h1>
-           <p>Messages from your audience.</p>
+           <h1 id="inboxTitle" data-i18n="inbox.title">Inbox</h1>
+           <p data-i18n="inbox.description">Messages from your audience.</p>
         </div>
         
         <!-- Google Connection Status & Prompt -->
         <div id="inboxConnectContainer" style="display: none;">
           <div class="google-connect-card" style="border-color: var(--color-red-bg);">
             <div class="google-info">
-              <h3>Connect Your Gmail Account</h3>
-              <p>To view and manage your inbox messages, you need to connect your Gmail account.</p>
+              <h3 data-i18n="inbox.connectGmail">Connect Your Gmail Account</h3>
+              <p data-i18n="inbox.connectGmailDesc">To view and manage your inbox messages, you need to connect your Gmail account.</p>
               
               <div id="inboxConnectionStatus" class="connection-status status-disconnected">
                 <span class="status-dot"></span>
-                <span>Disconnected</span>
+                <span data-i18n="inbox.disconnected">Disconnected</span>
               </div>
             </div>
             
@@ -2225,7 +2320,7 @@
               <svg style="width:18px; height:18px;" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M21.35,11.1H12.18V13.83H17.45C17.19,15.3 16.34,16.58 15.19,17.38V19.51H18.38C20.25,17.79 21.33,15.24 21.33,12.28C21.33,11.9 21.27,11.5 21.18,11.13V11.1M12.18,21.36C14.75,21.36 16.91,20.5 18.38,19.14L15.19,17.01C14.33,17.58 13.25,17.9 12.18,17.9C9.7,17.9 7.6,16.22 6.84,13.93H3.55V16.48C5.07,19.5 8.35,21.36 12.18,21.36M6.84,13.93C6.64,13.36 6.54,12.75 6.54,12.14C6.54,11.53 6.64,10.92 6.84,10.34V7.8H3.55C2.26,10.37 2.26,13.9 3.55,16.48H6.84M12.18,6.38C13.56,6.38 14.81,6.86 15.79,7.79L18.42,5.16C16.91,3.75 14.75,2.92 12.18,2.92C8.35,2.92 5.07,4.78 3.55,7.8L6.84,10.34C7.6,8.05 9.7,6.38 12.18,6.38Z" />
               </svg>
-              Connect Gmail
+              <span data-i18n="buttons.connectGmail">Connect Gmail</span>
             </button>
           </div>
         </div>
@@ -2233,28 +2328,28 @@
         <!-- Inbox Layout -->
         <div class="inbox-layout" id="inboxLayout">
            <div class="inbox-list" id="inboxList">
-               <div style="padding: 32px; text-align: center; color: var(--text-tertiary);">Loading messages...</div>
+               <div style="padding: 32px; text-align: center; color: var(--text-tertiary);" data-i18n="inbox.loading">Loading messages...</div>
            </div>
            <div class="inbox-view" id="inboxView">
                <div class="inbox-empty-state" id="inboxEmptyState">
                    <div class="empty-icon">📨</div>
-                   <div>Select a message to read</div>
+                   <div data-i18n="inbox.selectMessage">Select a message to read</div>
                </div>
                
                <div id="inboxContent" style="display: none; height: 100%; flex-direction: column;">
                    <div class="inbox-toolbar">
                        <div style="display: flex; align-items: center;">
-                           <button class="btn btn-secondary mobile-back-btn" style="display:none; height: 32px; padding: 0 10px;" onclick="closeMobileInbox()">←</button>
-                           <span style="font-size: 13px; color: var(--text-tertiary);" id="viewMetaToolbar">Reading Message</span>
+                           <button class="btn btn-secondary mobile-back-btn" style="display:none; height: 32px; padding: 0 10px;" onclick="closeMobileInbox()" data-i18n="buttons.back">← Back</button>
+                           <span style="font-size: 13px; color: var(--text-tertiary);" id="viewMetaToolbar" data-i18n="inbox.readingMessage">Reading Message</span>
                        </div>
                        <div style="display: flex; gap: 8px;">
-                           <button class="btn btn-icon-only" onclick="sendToWhatsApp()" title="Send to WhatsApp" id="whatsappNotifyBtn" style="color: var(--whatsapp-green);">
+                           <button class="btn btn-icon-only" onclick="sendToWhatsApp()" title="Send to WhatsApp" id="whatsappNotifyBtn" style="color: var(--whatsapp-green);" data-i18n="inbox.sendToWhatsApp">
                                <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="currentColor">
                                    <path d="M19.05 4.91A9.816 9.816 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.32a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.183 8.183 0 0 1 2.41 5.83c.02 4.54-3.68 8.24-8.22 8.24z"/>
                                    <path d="M16.5 13.5c-.25-.12-1.48-.73-1.71-.81-.23-.08-.4-.12-.56.12-.16.25-.64.81-.78.98-.15.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.15-.25-.02-.38.11-.5.11-.11.25-.29.37-.44.12-.15.16-.25.25-.41.08-.16.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.49-.4-.42-.56-.43-.14-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.12.17 1.77 2.71 4.29 3.8.6.26 1.07.41 1.43.53.6.19 1.15.16 1.58.1.48-.07 1.48-.61 1.69-1.19.21-.58.21-1.08.15-1.19-.06-.1-.22-.16-.47-.28z"/>
                                </svg>
                            </button>
-                           <button class="btn btn-icon-only" onclick="deleteCurrentMessage()" title="Delete Message">
+                           <button class="btn btn-icon-only" onclick="deleteCurrentMessage()" title="Delete Message" data-i18n="inbox.delete">
                                <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                            </button>
                        </div>
@@ -2262,14 +2357,14 @@
                    
                    <div class="inbox-view-content">
                        <div class="inbox-view-header">
-                           <div class="view-subject" id="viewSubject">Subject</div>
+                           <div class="view-subject" id="viewSubject"><span data-i18n="inbox.subject">Subject</span></div>
                            <div class="view-meta">
                                <div class="view-avatar" id="viewAvatar">U</div>
                                <div class="view-info">
-                                   <div class="view-sender-name" id="viewSender">Sender Name</div>
+                                   <div class="view-sender-name" id="viewSender"><span data-i18n="inbox.senderName">Sender Name</span></div>
                                    <div class="view-sender-email" id="viewEmail">sender@email.com</div>
                                </div>
-                               <div class="view-timestamp" id="viewDate">Today</div>
+                               <div class="view-timestamp" id="viewDate"><span data-i18n="inbox.today">Today</span></div>
                            </div>
                        </div>
                        <div class="inbox-view-body" id="viewBody"></div>
@@ -2282,21 +2377,21 @@
       <!-- Automation Section -->
       <section id="automationSection" class="section-content" aria-labelledby="automationTitle" style="display: none;">
         <div class="welcome-card">
-           <h1>Automation Center</h1>
-           <p>Compose and schedule email campaigns.</p>
+           <h1 data-i18n="automation.title">Automation Center</h1>
+           <p data-i18n="automation.description">Compose and schedule email campaigns.</p>
         </div>
         
         <div class="automation-card">
           <div class="automation-header">
-            <h2>New Campaign</h2>
+            <h2 data-i18n="automation.newCampaign">New Campaign</h2>
             <div class="stats-grid">
               <div class="stat-item">
                 <div class="stat-value" id="selectedCount">0</div>
-                <div class="stat-label">Recipients</div>
+                <div class="stat-label" data-i18n="automation.recipients">Recipients</div>
               </div>
               <div class="stat-item">
                 <div class="stat-value" id="totalEmails">0</div>
-                <div class="stat-label">Total List</div>
+                <div class="stat-label" data-i18n="automation.totalList">Total List</div>
               </div>
             </div>
           </div>
@@ -2305,12 +2400,12 @@
             
             <div class="google-connect-card">
                 <div class="google-info">
-                    <h3>Connect Google Account</h3>
-                    <p>Link your account to send automated emails directly via your Gmail.</p>
+                    <h3 data-i18n="automation.connectGoogle">Connect Google Account</h3>
+                    <p data-i18n="automation.connectGoogleDesc">Link your account to send automated emails directly via your Gmail.</p>
                     
                     <div id="connectionStatus" class="connection-status status-disconnected">
                         <span class="status-dot"></span>
-                        <span>Disconnected</span>
+                        <span data-i18n="automation.disconnected">Disconnected</span>
                     </div>
                 </div>
                 
@@ -2318,19 +2413,19 @@
                     <svg style="width:18px; height:18px;" viewBox="0 0 24 24">
                         <path fill="currentColor" d="M21.35,11.1H12.18V13.83H17.45C17.19,15.3 16.34,16.58 15.19,17.38V19.51H18.38C20.25,17.79 21.33,15.24 21.33,12.28C21.33,11.9 21.27,11.5 21.18,11.13V11.1M12.18,21.36C14.75,21.36 16.91,20.5 18.38,19.14L15.19,17.01C14.33,17.58 13.25,17.9 12.18,17.9C9.7,17.9 7.6,16.22 6.84,13.93H3.55V16.48C5.07,19.5 8.35,21.36 12.18,21.36M6.84,13.93C6.64,13.36 6.54,12.75 6.54,12.14C6.54,11.53 6.64,10.92 6.84,10.34V7.8H3.55C2.26,10.37 2.26,13.9 3.55,16.48H6.84M12.18,6.38C13.56,6.38 14.81,6.86 15.79,7.79L18.42,5.16C16.91,3.75 14.75,2.92 12.18,2.92C8.35,2.92 5.07,4.78 3.55,7.8L6.84,10.34C7.6,8.05 9.7,6.38 12.18,6.38Z" />
                     </svg>
-                    Connect Gmail
+                    <span data-i18n="buttons.connectGmail">Connect Gmail</span>
                 </button>
             </div>
             
             <!-- WhatsApp Notification Toggle -->
             <div class="google-connect-card" style="margin-top: 16px; border-color: var(--whatsapp-green);">
                 <div class="google-info">
-                    <h3>WhatsApp Notifications</h3>
-                    <p>Get notified on WhatsApp when you receive new emails.</p>
+                    <h3 data-i18n="automation.whatsappNotifications">WhatsApp Notifications</h3>
+                    <p data-i18n="automation.whatsappDesc">Get notified on WhatsApp when you receive new emails.</p>
                     
                     <div id="whatsappStatus" class="connection-status status-disconnected">
                         <span class="status-dot"></span>
-                        <span>Not Connected</span>
+                        <span data-i18n="automation.notConnected">Not Connected</span>
                     </div>
                 </div>
                 
@@ -2338,77 +2433,77 @@
                     <svg style="width:18px; height:18px;" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M19.05 4.91A9.816 9.816 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.32a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.183 8.183 0 0 1 2.41 5.83c.02 4.54-3.68 8.24-8.22 8.24z"/>
                     </svg>
-                    Setup WhatsApp
+                    <span data-i18n="automation.setupWhatsApp">Setup WhatsApp</span>
                 </button>
             </div>
             
             <div class="email-list-section">
               <div class="select-all">
                 <input type="checkbox" id="selectAllEmails" class="select-all-checkbox" onchange="toggleAllEmails()" aria-label="Select all customers">
-                <label for="selectAllEmails" style="font-size: 14px; font-weight: 600;">Select All Customers</label>
+                <label for="selectAllEmails" style="font-size: 14px; font-weight: 600;" data-i18n="automation.selectAll">Select All Customers</label>
               </div>
               
               <div class="email-list" id="emailList">
-                <div style="padding: 24px; text-align: center;">Loading...</div>
+                <div style="padding: 24px; text-align: center;" data-i18n="customers.loading">Loading...</div>
               </div>
             </div>
             
             <div style="margin-top: 40px;">
-              <h3 style="font-size: 18px; margin-bottom: 16px;">Compose Message</h3>
+              <h3 style="font-size: 18px; margin-bottom: 16px;" data-i18n="automation.composeMessage">Compose Message</h3>
               
               <div class="template-selector" id="automationTemplateSelector">
-                <button class="template-btn" onclick="loadTemplate('custom')">Blank</button>
+                <button class="template-btn" onclick="loadTemplate('custom')" data-i18n="automation.blank">Blank</button>
               </div>
               
               <form id="messageForm" class="message-form" aria-label="Message composition form">
                 <div class="form-group">
-                  <label class="form-label required" for="campaignName">Campaign Name</label>
+                  <label class="form-label required" for="campaignName" data-i18n="automation.campaignName">Campaign Name</label>
                   <input type="text" class="form-control" id="campaignName" required placeholder="e.g. Q1 Newsletter">
                 </div>
                 
                 <div class="form-group">
-                  <label class="form-label" for="scheduleType">Schedule</label>
+                  <label class="form-label" for="scheduleType" data-i18n="automation.schedule">Schedule</label>
                   <select class="form-control" id="scheduleType">
-                    <option value="now">Send Immediately</option>
-                    <option value="scheduled">Schedule for later</option>
+                    <option value="now" data-i18n="automation.sendImmediately">Send Immediately</option>
+                    <option value="scheduled" data-i18n="automation.scheduleLater">Schedule for later</option>
                   </select>
                 </div>
                 
                 <div class="form-group">
-                  <label class="form-label required" for="fromName">From Name</label>
+                  <label class="form-label required" for="fromName" data-i18n="automation.fromName">From Name</label>
                   <input type="text" class="form-control" id="fromName" required placeholder="Your Name">
                 </div>
                 
                 <div class="form-group">
-                  <label class="form-label required" for="fromEmail">From Email</label>
+                  <label class="form-label required" for="fromEmail" data-i18n="automation.fromEmail">From Email</label>
                   <input type="email" class="form-control" id="fromEmail" required placeholder="you@company.com">
                 </div>
                 <div class="form-group" style="display: none;">
-                   <label class="form-label" for="replyToEmail">Reply To</label>
+                   <label class="form-label" for="replyToEmail" data-i18n="automation.replyTo">Reply To</label>
                    <input type="email" class="form-control" id="replyToEmail">
                 </div>
                 
                 <div class="form-group full-width">
-                  <label class="form-label required" for="emailSubject">Subject Line</label>
+                  <label class="form-label required" for="emailSubject" data-i18n="automation.subjectLine">Subject Line</label>
                   <input type="text" class="form-control" id="emailSubject" required placeholder="Enter a catchy subject">
                 </div>
                 
                 <div class="form-group full-width">
-                  <label class="form-label required" for="emailBody">Email Body</label>
+                  <label class="form-label required" for="emailBody" data-i18n="automation.emailBody">Email Body</label>
                   <textarea class="form-control" id="emailBody" required placeholder="Write your message..." style="min-height: 200px;"></textarea>
-                  <div style="margin-top: 8px; font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono);">
+                  <div style="margin-top: 8px; font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono);" data-i18n="automation.variables">
                     Variables: {name}, {email}, {company}
                   </div>
                 </div>
                 
                 <div class="form-group" id="scheduleDateGroup" style="display: none;">
-                  <label class="form-label" for="scheduleDateTime">Date & Time</label>
+                  <label class="form-label" for="scheduleDateTime" data-i18n="automation.dateTime">Date & Time</label>
                   <input type="datetime-local" class="form-control" id="scheduleDateTime">
                 </div>
                 
                 <div class="form-group full-width form-actions" style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-light); padding-top: 24px; margin-top: 10px;">
-                  <button type="button" class="btn btn-secondary" onclick="clearForm()">Reset</button>
-                  <button type="submit" class="btn btn-primary">Preview & Send</button>
+                  <button type="button" class="btn btn-secondary" onclick="clearForm()" data-i18n="buttons.reset">Reset</button>
+                  <button type="submit" class="btn btn-primary" data-i18n="buttons.previewSend">Preview & Send</button>
                 </div>
               </form>
             </div>
@@ -2419,13 +2514,13 @@
       <!-- WhatsApp Automation Section -->
       <section id="whatsappSection" class="section-content" aria-labelledby="whatsappTitle" style="display: none;">
         <div class="welcome-card">
-          <h1 id="whatsappTitle">WhatsApp Automation</h1>
-          <p>Receive email notifications directly on your WhatsApp.</p>
+          <h1 id="whatsappTitle" data-i18n="whatsapp.title">WhatsApp Automation</h1>
+          <p data-i18n="whatsapp.description">Receive email notifications directly on your WhatsApp.</p>
         </div>
         
         <div class="automation-card">
           <div class="automation-header">
-            <h2>Connect WhatsApp</h2>
+            <h2 data-i18n="whatsapp.connect">Connect WhatsApp</h2>
           </div>
           <div class="automation-content">
             
@@ -2434,8 +2529,8 @@
               <div id="whatsappNotConnected" style="display: block;">
                 <div class="whatsapp-connect-prompt">
                   <div class="whatsapp-connect-icon">📱</div>
-                  <div class="whatsapp-connect-title">Connect Your WhatsApp</div>
-                  <div class="whatsapp-connect-description">
+                  <div class="whatsapp-connect-title" data-i18n="whatsapp.connectTitle">Connect Your WhatsApp</div>
+                  <div class="whatsapp-connect-description" data-i18n="whatsapp.connectDesc">
                     Get instant notifications on WhatsApp whenever you receive a new email. 
                     Choose one of the methods below to connect.
                   </div>
@@ -2448,10 +2543,10 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M19.05 4.91A9.816 9.816 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.32a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.183 8.183 0 0 1 2.41 5.83c.02 4.54-3.68 8.24-8.22 8.24z"/>
                     </svg>
-                    <span style="font-weight: 600;">WhatsApp Connected</span>
+                    <span style="font-weight: 600;" data-i18n="whatsapp.connected">WhatsApp Connected</span>
                     <span style="font-size: 14px;" id="whatsappNumberDisplay"></span>
                   </div>
-                  <button class="btn-link" onclick="disconnectWhatsApp()">Disconnect</button>
+                  <button class="btn-link" onclick="disconnectWhatsApp()" data-i18n="whatsapp.disconnect">Disconnect</button>
                 </div>
               </div>
             </div>
@@ -2459,27 +2554,27 @@
             <!-- QR Code and Instructions -->
             <div class="whatsapp-instructions">
               <div class="instruction-card">
-                <h3>Option 1: Scan QR Code</h3>
+                <h3 data-i18n="whatsapp.option1">Option 1: Scan QR Code</h3>
                 <div class="qr-code">
                   <img src="https://seraphielspark.github.io/flowon/download.svg" alt="WhatsApp QR Code">
                 </div>
-                <p style="color: var(--text-secondary); font-size: 14px;">
+                <p style="color: var(--text-secondary); font-size: 14px;" data-i18n="whatsapp.option1Desc">
                   Open WhatsApp on your phone, tap Menu (Android) or Settings (iOS), then WhatsApp Web, and scan this QR code.
                 </p>
               </div>
               
               <div class="instruction-card">
-                <h3>Option 2: Send Message</h3>
+                <h3 data-i18n="whatsapp.option2">Option 2: Send Message</h3>
                 <div class="whatsapp-number">
                   <code>+14155238886</code>
                 </div>
-                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;" data-i18n="whatsapp.option2Desc">
                   Send this exact message to the number above:
                 </p>
                 <div class="message-example">
                   <code>join ride-image</code>
                 </div>
-                <p style="color: var(--text-secondary); font-size: 12px; margin-top: 15px;">
+                <p style="color: var(--text-secondary); font-size: 12px; margin-top: 15px;" data-i18n="whatsapp.option2Note">
                   After sending the message, your WhatsApp will be automatically connected.
                 </p>
               </div>
@@ -2487,20 +2582,20 @@
             
             <!-- Phone Number Form -->
             <div style="margin-top: 40px; border-top: 1px solid var(--border-light); padding-top: 30px;">
-              <h3 style="font-size: 18px; margin-bottom: 20px;">Or enter your WhatsApp number manually</h3>
+              <h3 style="font-size: 18px; margin-bottom: 20px;" data-i18n="whatsapp.manualTitle">Or enter your WhatsApp number manually</h3>
               <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 250px;">
-                  <label class="form-label" for="whatsappNumber">WhatsApp Number (with country code)</label>
+                  <label class="form-label" for="whatsappNumber" data-i18n="whatsapp.numberLabel">WhatsApp Number (with country code)</label>
                   <input type="tel" class="form-control" id="whatsappNumber" placeholder="e.g., +1234567890">
                 </div>
                 <button class="btn btn-whatsapp" onclick="registerWhatsApp()" style="height: 48px;">
                   <svg style="width:18px; height:18px; margin-right: 8px;" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19.05 4.91A9.816 9.816 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.32a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.183 8.183 0 0 1 2.41 5.83c.02 4.54-3.68 8.24-8.22 8.24z"/>
                   </svg>
-                  Register Number
+                  <span data-i18n="buttons.register">Register Number</span>
                 </button>
               </div>
-              <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 10px;">
+              <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 10px;" data-i18n="whatsapp.numberFormat">
                 Use international format: +[country code][number] (e.g., +1234567890)
               </p>
             </div>
@@ -2510,13 +2605,13 @@
         <!-- Test Notification Card -->
         <div class="automation-card" style="margin-top: 24px;">
           <div class="automation-header">
-            <h2>Test Notification</h2>
+            <h2 data-i18n="whatsapp.testTitle">Test Notification</h2>
           </div>
           <div class="automation-content">
-            <p style="margin-bottom: 20px; color: var(--text-secondary);">
+            <p style="margin-bottom: 20px; color: var(--text-secondary);" data-i18n="whatsapp.testDesc">
               Send a test WhatsApp notification to verify your connection is working.
             </p>
-            <button class="btn btn-secondary" onclick="testWhatsApp()" id="testWhatsAppBtn">
+            <button class="btn btn-secondary" onclick="testWhatsApp()" id="testWhatsAppBtn" data-i18n="buttons.sendTest">
               Send Test Notification
             </button>
           </div>
@@ -2526,30 +2621,30 @@
       <!-- Analytics Section -->
       <section id="analyticsSection" class="section-content" aria-labelledby="analyticsTitle" style="display: none;">
         <div class="welcome-card">
-          <h1 id="analyticsTitle">Analytics</h1>
-          <p>Campaign performance and engagement metrics.</p>
+          <h1 id="analyticsTitle" data-i18n="analytics.title">Analytics</h1>
+          <p data-i18n="analytics.description">Campaign performance and engagement metrics.</p>
         </div>
         
         <div class="analytics-summary">
             <div class="metric-box">
-                <div class="metric-label">Avg. Open Rate</div>
+                <div class="metric-label" data-i18n="analytics.avgOpenRate">Avg. Open Rate</div>
                 <div class="metric-value">42.5%</div>
-                <div class="metric-trend trend-up">↑ 5% vs last week</div>
+                <div class="metric-trend trend-up" data-i18n="analytics.trendUp">↑ 5% vs last week</div>
             </div>
             <div class="metric-box">
-                <div class="metric-label">Click Rate</div>
+                <div class="metric-label" data-i18n="analytics.clickRate">Click Rate</div>
                 <div class="metric-value">18.2%</div>
-                <div class="metric-trend trend-up">↑ 2% vs last week</div>
+                <div class="metric-trend trend-up" data-i18n="analytics.trendUp">↑ 2% vs last week</div>
             </div>
             <div class="metric-box">
-                <div class="metric-label">Bounce Rate</div>
+                <div class="metric-label" data-i18n="analytics.bounceRate">Bounce Rate</div>
                 <div class="metric-value">0.8%</div>
-                <div class="metric-trend trend-down">↓ 0.2% vs last week</div>
+                <div class="metric-trend trend-down" data-i18n="analytics.trendDown">↓ 0.2% vs last week</div>
             </div>
         </div>
         <div class="automation-card">
             <div class="automation-header">
-                <h2>Email Performance (Last 7 Days)</h2>
+                <h2 data-i18n="analytics.emailPerformance">Email Performance (Last 7 Days)</h2>
             </div>
             <div class="automation-content">
                 <div class="chart-container" id="analyticsChart"></div>
@@ -2562,11 +2657,11 @@
         <div class="welcome-card">
           <div style="display: flex; flex-direction: column; gap: 16px;">
             <div>
-                <h1 id="templatesTitle">Templates</h1>
-                <p>Manage your saved message layouts and quick responses.</p>
+                <h1 id="templatesTitle" data-i18n="templates.title">Templates</h1>
+                <p data-i18n="templates.description">Manage your saved message layouts and quick responses.</p>
             </div>
             <div class="action-buttons">
-                <button class="btn btn-primary" onclick="createNewTemplate()">+ New Template</button>
+                <button class="btn btn-primary" onclick="createNewTemplate()" data-i18n="templates.newTemplate">+ New Template</button>
              </div>
           </div>
         </div>
@@ -2577,23 +2672,23 @@
       <!-- Settings Section -->
       <section id="settingsSection" class="section-content" aria-labelledby="settingsTitle" style="display: none;">
         <div class="welcome-card">
-          <h1 id="settingsTitle">Settings</h1>
-          <p>Configure your account preferences and notifications.</p>
+          <h1 id="settingsTitle" data-i18n="settings.title">Settings</h1>
+          <p data-i18n="settings.description">Configure your account preferences and notifications.</p>
         </div>
         
         <div class="settings-container">
             <div class="automation-card">
                 <div class="automation-content">
                     <div class="settings-group">
-                        <div class="settings-title">Profile Information</div>
+                        <div class="settings-title" data-i18n="settings.profile">Profile Information</div>
                         <form id="profileForm" onsubmit="event.preventDefault(); saveSettings(this);">
                             <div class="message-form">
                                 <div class="form-group">
-                                    <label class="form-label">Full Name</label>
+                                    <label class="form-label" for="settingsName" data-i18n="settings.fullName">Full Name</label>
                                     <input type="text" class="form-control" id="settingsName">
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Email Address</label>
+                                    <label class="form-label" for="settingsEmail" data-i18n="settings.email">Email Address</label>
                                     <input type="email" class="form-control" id="settingsEmail">
                                 </div>
                             </div>
@@ -2601,11 +2696,11 @@
                     </div>
                     
                     <div class="settings-group">
-                        <div class="settings-title">WhatsApp Integration</div>
+                        <div class="settings-title" data-i18n="settings.whatsappIntegration">WhatsApp Integration</div>
                         <div class="toggle-row">
                             <div>
-                                <div class="toggle-label">Email Notifications on WhatsApp</div>
-                                <div class="toggle-desc">Receive WhatsApp notifications for new emails</div>
+                                <div class="toggle-label" data-i18n="settings.whatsappToggle">Email Notifications on WhatsApp</div>
+                                <div class="toggle-desc" data-i18n="settings.whatsappDesc">Receive WhatsApp notifications for new emails</div>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" id="whatsappToggle" onchange="toggleWhatsAppNotifications()">
@@ -2613,17 +2708,17 @@
                             </label>
                         </div>
                         <div id="whatsappSettingsNumber" style="margin-top: 16px; padding: 16px; background: var(--bg-subtle); border-radius: var(--radius-md); display: none;">
-                            <span style="font-weight: 600;">Connected Number: </span>
+                            <span style="font-weight: 600;" data-i18n="settings.connectedNumber">Connected Number: </span>
                             <span id="settingsWhatsAppNumber"></span>
                         </div>
                     </div>
                     
                     <div class="settings-group">
-                        <div class="settings-title">Notifications</div>
+                        <div class="settings-title" data-i18n="settings.notifications">Notifications</div>
                         <div class="toggle-row">
                             <div>
-                                <div class="toggle-label">Email Campaign Summary</div>
-                                <div class="toggle-desc">Receive a weekly summary of your campaign stats</div>
+                                <div class="toggle-label" data-i18n="settings.campaignSummary">Email Campaign Summary</div>
+                                <div class="toggle-desc" data-i18n="settings.campaignSummaryDesc">Receive a weekly summary of your campaign stats</div>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" checked>
@@ -2632,8 +2727,8 @@
                         </div>
                         <div class="toggle-row">
                             <div>
-                                <div class="toggle-label">New Customer Alert</div>
-                                <div class="toggle-desc">Get notified when a new customer is added</div>
+                                <div class="toggle-label" data-i18n="settings.newCustomerAlert">New Customer Alert</div>
+                                <div class="toggle-desc" data-i18n="settings.newCustomerAlertDesc">Get notified when a new customer is added</div>
                             </div>
                             <label class="switch">
                                 <input type="checkbox">
@@ -2643,15 +2738,15 @@
                     </div>
                     
                     <div class="settings-group">
-                        <div class="settings-title">Security</div>
+                        <div class="settings-title" data-i18n="settings.security">Security</div>
                         <div class="action-buttons">
-                            <button class="btn btn-secondary">Change Password</button>
-                            <button class="btn btn-danger-outline" onclick="confirmLogout()">Log Out Everywhere</button>
+                            <button class="btn btn-secondary" data-i18n="settings.changePassword">Change Password</button>
+                            <button class="btn btn-danger-outline" onclick="confirmLogout()" data-i18n="settings.logOutEverywhere">Log Out Everywhere</button>
                         </div>
                     </div>
                     
                     <div style="text-align: right;">
-                        <button class="btn btn-primary" onclick="saveSettings(this)">Save Changes</button>
+                        <button class="btn btn-primary" onclick="saveSettings(this)" data-i18n="buttons.saveChanges">Save Changes</button>
                     </div>
                 </div>
             </div>
@@ -2660,12 +2755,12 @@
       
       <footer style="text-align: center; padding: 40px 20px; color: var(--text-tertiary); font-size: 13px; margin-top: auto; border-top: 1px solid var(--border-light); background: #fafafa; border-radius: var(--radius-md);">
         <p style="margin-bottom: 8px;">
-            &copy; 2025 Flux On. All rights reserved.
+            &copy; 2025 Flux On. <span data-i18n="footer.allRightsReserved">All rights reserved.</span>
         </p>
         <p>
-            <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" style="color: var(--text-secondary); text-decoration: none; margin: 0 10px; font-weight: 500;">Privacy Policy</a>
+            <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" style="color: var(--text-secondary); text-decoration: none; margin: 0 10px; font-weight: 500;" data-i18n="legal.privacy">Privacy Policy</a>
             •
-            <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" style="color: var(--text-secondary); text-decoration: none; margin: 0 10px; font-weight: 500;">Terms of Service</a>
+            <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" style="color: var(--text-secondary); text-decoration: none; margin: 0 10px; font-weight: 500;" data-i18n="legal.terms">Terms of Service</a>
         </p>
       </footer>
     </div>
@@ -2676,11 +2771,11 @@
 <div class="modal login-required-modal" id="loginRequiredModal" role="dialog" aria-labelledby="loginRequiredTitle" aria-hidden="true">
   <div class="modal-content">
     <div class="login-required-icon">🔒</div>
-    <div class="login-required-title" id="loginRequiredTitle">Login Required</div>
-    <div class="login-required-text">Please sign in or create an account to access this feature.</div>
+    <div class="login-required-title" id="loginRequiredTitle" data-i18n="auth.loginRequired">Login Required</div>
+    <div class="login-required-text" data-i18n="auth.loginRequiredDesc">Please sign in or create an account to access this feature.</div>
     <div class="login-required-buttons">
-      <button class="btn btn-secondary" onclick="closeModal('loginRequiredModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="redirectToSignup()">Sign In / Sign Up</button>
+      <button class="btn btn-secondary" onclick="closeModal('loginRequiredModal')" data-i18n="buttons.cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="redirectToSignup()" data-i18n="auth.signInUp">Sign In / Sign Up</button>
     </div>
   </div>
 </div>
@@ -2689,36 +2784,36 @@
 <div class="modal" id="addCustomerModal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
   <div class="modal-content">
     <div class="modal-header">
-      <h3 id="modalTitle">Add Customer</h3>
+      <h3 id="modalTitle" data-i18n="customers.addCustomer">Add Customer</h3>
     </div>
     <form id="customerForm" onsubmit="event.preventDefault(); saveNewCustomer();">
       <div class="form-group">
-        <label class="form-label required" for="newCustomerName">Full Name</label>
+        <label class="form-label required" for="newCustomerName" data-i18n="customers.fullName">Full Name</label>
         <input type="text" class="form-control" id="newCustomerName" required placeholder="Jane Doe">
       </div>
       <div class="form-group">
-        <label class="form-label" for="newCustomerEmail">Email</label>
+        <label class="form-label" for="newCustomerEmail" data-i18n="customers.email">Email</label>
         <input type="email" class="form-control" id="newCustomerEmail" placeholder="jane@example.com">
       </div>
       <div class="form-group">
-        <label class="form-label" for="newCustomerPhone">Phone</label>
+        <label class="form-label" for="newCustomerPhone" data-i18n="customers.phone">Phone</label>
         <input type="tel" class="form-control" id="newCustomerPhone" placeholder="+1 (555) 000-0000">
       </div>
       <div class="form-group">
-        <label class="form-label" for="newCustomerCompany">Company</label>
+        <label class="form-label" for="newCustomerCompany" data-i18n="customers.company">Company</label>
         <input type="text" class="form-control" id="newCustomerCompany" placeholder="Acme Inc.">
       </div>
       <div class="form-group">
-        <label class="form-label" for="newCustomerStatus">Status</label>
+        <label class="form-label" for="newCustomerStatus" data-i18n="customers.status">Status</label>
         <select class="form-control" id="newCustomerStatus">
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-          <option value="Pending">Pending</option>
+          <option value="Active" data-i18n="customers.active">Active</option>
+          <option value="Inactive" data-i18n="customers.inactive">Inactive</option>
+          <option value="Pending" data-i18n="customers.pending">Pending</option>
         </select>
       </div>
       <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
-        <button type="button" class="btn btn-secondary" onclick="closeModal('addCustomerModal')">Cancel</button>
-        <button type="submit" id="btnSaveCustomer" class="btn btn-primary">Save Record</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('addCustomerModal')" data-i18n="buttons.cancel">Cancel</button>
+        <button type="submit" id="btnSaveCustomer" class="btn btn-primary" data-i18n="buttons.saveRecord">Save Record</button>
       </div>
     </form>
   </div>
@@ -2728,29 +2823,29 @@
 <div class="modal" id="templateModal" role="dialog" aria-labelledby="templateModalTitle" aria-hidden="true">
   <div class="modal-content">
     <div class="modal-header">
-      <h3 id="templateModalTitle">Add New Template</h3>
+      <h3 id="templateModalTitle" data-i18n="templates.addNew">Add New Template</h3>
     </div>
     <form id="templateForm" onsubmit="event.preventDefault(); saveTemplate();">
       <input type="hidden" id="templateIndex">
       <div class="form-group">
-        <label class="form-label required" for="templateName">Template Name</label>
+        <label class="form-label required" for="templateName" data-i18n="templates.name">Template Name</label>
         <input type="text" class="form-control" id="templateName" required placeholder="e.g. Welcome Series">
       </div>
       <div class="form-group">
-        <label class="form-label" for="templateTag">Tag (Category)</label>
+        <label class="form-label" for="templateTag" data-i18n="templates.tag">Tag (Category)</label>
         <input type="text" class="form-control" id="templateTag" placeholder="e.g. Sales, Onboarding">
       </div>
       <div class="form-group full-width">
-        <label class="form-label required" for="templateSubject">Subject Line</label>
+        <label class="form-label required" for="templateSubject" data-i18n="templates.subject">Subject Line</label>
         <input type="text" class="form-control" id="templateSubject" required placeholder="Email Subject">
       </div>
       <div class="form-group full-width">
-        <label class="form-label required" for="templateBody">Email Body</label>
+        <label class="form-label required" for="templateBody" data-i18n="templates.body">Email Body</label>
         <textarea class="form-control" id="templateBody" required placeholder="Hi {name}..." style="min-height: 200px;"></textarea>
       </div>
       <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
-        <button type="button" class="btn btn-secondary" onclick="closeModal('templateModal')">Cancel</button>
-        <button type="submit" id="btnSaveTemplate" class="btn btn-primary">Save Template</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('templateModal')" data-i18n="buttons.cancel">Cancel</button>
+        <button type="submit" id="btnSaveTemplate" class="btn btn-primary" data-i18n="buttons.saveTemplate">Save Template</button>
       </div>
     </form>
   </div>
@@ -2760,22 +2855,800 @@
 <div class="modal" id="previewModal" role="dialog" aria-labelledby="previewTitle" aria-hidden="true">
   <div class="modal-content">
     <div class="modal-header">
-      <h3 id="previewTitle">Message Preview</h3>
+      <h3 id="previewTitle" data-i18n="preview.title">Message Preview</h3>
     </div>
     <div style="margin-bottom: 24px; padding: 16px; background: var(--bg-subtle); border-radius: var(--radius-sm);">
-      <div style="font-size: 12px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px;">Subject</div>
+      <div style="font-size: 12px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px;" data-i18n="preview.subject">Subject</div>
       <div id="previewSubject" style="font-weight: 600; font-size: 16px;"></div>
     </div>
     <div style="padding: 24px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-family: var(--font-sans); min-height: 200px; max-height: 400px; overflow-y: auto; line-height: 1.6; white-space: pre-wrap;" id="previewBody">
     </div>
     <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
-      <button type="button" class="btn btn-secondary" onclick="closeModal('previewModal')">Back to Edit</button>
-      <button type="button" id="btnConfirmSend" class="btn btn-primary" onclick="sendAutomatedMessages()">Confirm & Send</button>
+      <button type="button" class="btn btn-secondary" onclick="closeModal('previewModal')" data-i18n="buttons.backToEdit">Back to Edit</button>
+      <button type="button" id="btnConfirmSend" class="btn btn-primary" onclick="sendAutomatedMessages()" data-i18n="buttons.confirmSend">Confirm & Send</button>
     </div>
   </div>
 </div>
 
 <script>
+// ============================================
+// TRANSLATION DICTIONARY - 50+ LANGUAGES
+// ============================================
+
+const translationResources = {
+  en: {
+    nav: {
+      dashboard: 'Dashboard',
+      customers: 'Customers',
+      inbox: 'Inbox',
+      automation: 'Automation',
+      whatsapp: 'WhatsApp',
+      analytics: 'Analytics',
+      templates: 'Templates',
+      settings: 'Settings'
+    },
+    auth: {
+      notSignedIn: 'Not signed in',
+      signIn: 'Sign in',
+      or: 'or',
+      register: 'Register',
+      logOut: 'Log Out',
+      login: 'Login To Existing Account',
+      loginRequired: 'Login Required',
+      loginRequiredDesc: 'Please sign in or create an account to access this feature.',
+      signInUp: 'Sign In / Sign Up'
+    },
+    status: {
+      gmailNotLinked: 'Gmail: Not Linked',
+      gmailLinked: '✓ Gmail Linked',
+      whatsappNotConnected: 'WhatsApp: Not Connected',
+      whatsappConnected: '📱 WhatsApp Connected'
+    },
+    legal: {
+      privacy: 'Privacy Policy',
+      terms: 'Terms of Service'
+    },
+    titles: {
+      dashboard: 'Dashboard',
+      customers: 'Customer Management',
+      inbox: 'Inbox',
+      automation: 'Automation Center',
+      whatsapp: 'WhatsApp Automation',
+      analytics: 'Analytics',
+      templates: 'Templates',
+      settings: 'Settings'
+    },
+    buttons: {
+      refresh: 'Refresh',
+      connectGmail: 'Connect Gmail',
+      back: '← Back',
+      reset: 'Reset',
+      previewSend: 'Preview & Send',
+      register: 'Register Number',
+      sendTest: 'Send Test Notification',
+      saveChanges: 'Save Changes',
+      cancel: 'Cancel',
+      saveRecord: 'Save Record',
+      saveTemplate: 'Save Template',
+      backToEdit: 'Back to Edit',
+      confirmSend: 'Confirm & Send'
+    },
+    dashboard: {
+      hello: 'Hello,',
+      description: 'Here is your overview. Manage customers and automate flows.',
+      startAutomation: 'Start Automation',
+      manageCustomers: 'Manage Customers',
+      totalCustomers: 'Total Customers',
+      activeInDatabase: 'Active in database',
+      inbox: 'Inbox',
+      unreadMessages: 'Unread messages',
+      activeCampaigns: 'Active Campaigns',
+      workflowsRunning: 'Workflows running',
+      responseRate: 'Response Rate',
+      averageEngagement: 'Average engagement',
+      quickActions: 'Quick Actions',
+      createWelcomeSeries: '🎉 Create Welcome Series',
+      sendFollowUp: '🔄 Send Follow-up'
+    },
+    customers: {
+      description: 'View and manage your subscriber database.',
+      exportCSV: 'Export CSV',
+      importCSV: 'Import CSV',
+      addCustomer: '+ Add Customer',
+      allRecords: 'All Records',
+      saveChanges: 'Save Changes',
+      loading: 'Loading data...',
+      fullName: 'Full Name',
+      email: 'Email',
+      phone: 'Phone',
+      company: 'Company',
+      status: 'Status',
+      active: 'Active',
+      inactive: 'Inactive',
+      pending: 'Pending'
+    },
+    inbox: {
+      title: 'Inbox',
+      description: 'Messages from your audience.',
+      connectGmail: 'Connect Your Gmail Account',
+      connectGmailDesc: 'To view and manage your inbox messages, you need to connect your Gmail account.',
+      disconnected: 'Disconnected',
+      connected: 'Connected',
+      loading: 'Loading messages...',
+      noMessages: 'No messages in your inbox',
+      selectMessage: 'Select a message to read',
+      readingMessage: 'Reading Message',
+      subject: 'Subject',
+      senderName: 'Sender Name',
+      today: 'Today',
+      sendToWhatsApp: 'Send to WhatsApp',
+      delete: 'Delete'
+    },
+    automation: {
+      title: 'Automation Center',
+      description: 'Compose and schedule email campaigns.',
+      newCampaign: 'New Campaign',
+      recipients: 'Recipients',
+      totalList: 'Total List',
+      connectGoogle: 'Connect Google Account',
+      connectGoogleDesc: 'Link your account to send automated emails directly via your Gmail.',
+      disconnected: 'Disconnected',
+      whatsappNotifications: 'WhatsApp Notifications',
+      whatsappDesc: 'Get notified on WhatsApp when you receive new emails.',
+      notConnected: 'Not Connected',
+      setupWhatsApp: 'Setup WhatsApp',
+      selectAll: 'Select All Customers',
+      composeMessage: 'Compose Message',
+      blank: 'Blank',
+      campaignName: 'Campaign Name',
+      schedule: 'Schedule',
+      sendImmediately: 'Send Immediately',
+      scheduleLater: 'Schedule for later',
+      fromName: 'From Name',
+      fromEmail: 'From Email',
+      replyTo: 'Reply To',
+      subjectLine: 'Subject Line',
+      emailBody: 'Email Body',
+      variables: 'Variables: {name}, {email}, {company}',
+      dateTime: 'Date & Time'
+    },
+    whatsapp: {
+      title: 'WhatsApp Automation',
+      description: 'Receive email notifications directly on your WhatsApp.',
+      connect: 'Connect WhatsApp',
+      connectTitle: 'Connect Your WhatsApp',
+      connectDesc: 'Get instant notifications on WhatsApp whenever you receive a new email. Choose one of the methods below to connect.',
+      connected: 'WhatsApp Connected',
+      disconnect: 'Disconnect',
+      option1: 'Option 1: Scan QR Code',
+      option1Desc: 'Open WhatsApp on your phone, tap Menu (Android) or Settings (iOS), then WhatsApp Web, and scan this QR code.',
+      option2: 'Option 2: Send Message',
+      option2Desc: 'Send this exact message to the number above:',
+      option2Note: 'After sending the message, your WhatsApp will be automatically connected.',
+      manualTitle: 'Or enter your WhatsApp number manually',
+      numberLabel: 'WhatsApp Number (with country code)',
+      numberFormat: 'Use international format: +[country code][number] (e.g., +1234567890)',
+      testTitle: 'Test Notification',
+      testDesc: 'Send a test WhatsApp notification to verify your connection is working.'
+    },
+    analytics: {
+      title: 'Analytics',
+      description: 'Campaign performance and engagement metrics.',
+      avgOpenRate: 'Avg. Open Rate',
+      clickRate: 'Click Rate',
+      bounceRate: 'Bounce Rate',
+      trendUp: '↑ 5% vs last week',
+      trendDown: '↓ 0.2% vs last week',
+      emailPerformance: 'Email Performance (Last 7 Days)'
+    },
+    templates: {
+      title: 'Templates',
+      description: 'Manage your saved message layouts and quick responses.',
+      newTemplate: '+ New Template',
+      addNew: 'Add New Template',
+      name: 'Template Name',
+      tag: 'Tag (Category)',
+      subject: 'Subject Line',
+      body: 'Email Body'
+    },
+    settings: {
+      title: 'Settings',
+      description: 'Configure your account preferences and notifications.',
+      profile: 'Profile Information',
+      fullName: 'Full Name',
+      email: 'Email Address',
+      whatsappIntegration: 'WhatsApp Integration',
+      whatsappToggle: 'Email Notifications on WhatsApp',
+      whatsappDesc: 'Receive WhatsApp notifications for new emails',
+      connectedNumber: 'Connected Number:',
+      notifications: 'Notifications',
+      campaignSummary: 'Email Campaign Summary',
+      campaignSummaryDesc: 'Receive a weekly summary of your campaign stats',
+      newCustomerAlert: 'New Customer Alert',
+      newCustomerAlertDesc: 'Get notified when a new customer is added',
+      security: 'Security',
+      changePassword: 'Change Password',
+      logOutEverywhere: 'Log Out Everywhere'
+    },
+    preview: {
+      title: 'Message Preview',
+      subject: 'Subject'
+    },
+    footer: {
+      allRightsReserved: 'All rights reserved.'
+    }
+  },
+  es: {
+    nav: {
+      dashboard: 'Panel',
+      customers: 'Clientes',
+      inbox: 'Bandeja',
+      automation: 'Automatización',
+      whatsapp: 'WhatsApp',
+      analytics: 'Analíticas',
+      templates: 'Plantillas',
+      settings: 'Ajustes'
+    },
+    auth: {
+      notSignedIn: 'No has iniciado sesión',
+      signIn: 'Iniciar sesión',
+      or: 'o',
+      register: 'Registrarse',
+      logOut: 'Cerrar sesión',
+      login: 'Iniciar sesión',
+      loginRequired: 'Inicio de sesión requerido',
+      loginRequiredDesc: 'Por favor inicia sesión o crea una cuenta para acceder a esta función.',
+      signInUp: 'Iniciar sesión / Registrarse'
+    },
+    status: {
+      gmailNotLinked: 'Gmail: No vinculado',
+      gmailLinked: '✓ Gmail Vinculado',
+      whatsappNotConnected: 'WhatsApp: No conectado',
+      whatsappConnected: '📱 WhatsApp Conectado'
+    },
+    legal: {
+      privacy: 'Política de Privacidad',
+      terms: 'Términos de Servicio'
+    },
+    titles: {
+      dashboard: 'Panel',
+      customers: 'Gestión de Clientes',
+      inbox: 'Bandeja de Entrada',
+      automation: 'Centro de Automatización',
+      whatsapp: 'Automatización WhatsApp',
+      analytics: 'Analíticas',
+      templates: 'Plantillas',
+      settings: 'Ajustes'
+    },
+    buttons: {
+      refresh: 'Actualizar',
+      connectGmail: 'Conectar Gmail',
+      back: '← Atrás',
+      reset: 'Reiniciar',
+      previewSend: 'Vista Previa y Enviar',
+      register: 'Registrar Número',
+      sendTest: 'Enviar Notificación de Prueba',
+      saveChanges: 'Guardar Cambios',
+      cancel: 'Cancelar',
+      saveRecord: 'Guardar Registro',
+      saveTemplate: 'Guardar Plantilla',
+      backToEdit: 'Volver a Editar',
+      confirmSend: 'Confirmar y Enviar'
+    },
+    dashboard: {
+      hello: 'Hola,',
+      description: 'Aquí está tu resumen. Gestiona clientes y automatiza flujos.',
+      startAutomation: 'Iniciar Automatización',
+      manageCustomers: 'Gestionar Clientes',
+      totalCustomers: 'Total Clientes',
+      activeInDatabase: 'Activos en base de datos',
+      inbox: 'Bandeja',
+      unreadMessages: 'Mensajes no leídos',
+      activeCampaigns: 'Campañas Activas',
+      workflowsRunning: 'Flujos activos',
+      responseRate: 'Tasa de Respuesta',
+      averageEngagement: 'Participación promedio',
+      quickActions: 'Acciones Rápidas',
+      createWelcomeSeries: '🎉 Crear Serie de Bienvenida',
+      sendFollowUp: '🔄 Enviar Seguimiento'
+    },
+    customers: {
+      description: 'Ver y gestionar tu base de datos de suscriptores.',
+      exportCSV: 'Exportar CSV',
+      importCSV: 'Importar CSV',
+      addCustomer: '+ Agregar Cliente',
+      allRecords: 'Todos los Registros',
+      saveChanges: 'Guardar Cambios',
+      loading: 'Cargando datos...',
+      fullName: 'Nombre Completo',
+      email: 'Correo Electrónico',
+      phone: 'Teléfono',
+      company: 'Empresa',
+      status: 'Estado',
+      active: 'Activo',
+      inactive: 'Inactivo',
+      pending: 'Pendiente'
+    },
+    inbox: {
+      title: 'Bandeja de Entrada',
+      description: 'Mensajes de tu audiencia.',
+      connectGmail: 'Conecta tu Cuenta de Gmail',
+      connectGmailDesc: 'Para ver y gestionar los mensajes de tu bandeja de entrada, necesitas conectar tu cuenta de Gmail.',
+      disconnected: 'Desconectado',
+      connected: 'Conectado',
+      loading: 'Cargando mensajes...',
+      noMessages: 'No hay mensajes en tu bandeja de entrada',
+      selectMessage: 'Selecciona un mensaje para leer',
+      readingMessage: 'Leyendo Mensaje',
+      subject: 'Asunto',
+      senderName: 'Nombre del Remitente',
+      today: 'Hoy',
+      sendToWhatsApp: 'Enviar a WhatsApp',
+      delete: 'Eliminar'
+    },
+    automation: {
+      title: 'Centro de Automatización',
+      description: 'Redacta y programa campañas de correo electrónico.',
+      newCampaign: 'Nueva Campaña',
+      recipients: 'Destinatarios',
+      totalList: 'Lista Total',
+      connectGoogle: 'Conectar Cuenta de Google',
+      connectGoogleDesc: 'Vincula tu cuenta para enviar correos automatizados directamente a través de Gmail.',
+      disconnected: 'Desconectado',
+      whatsappNotifications: 'Notificaciones de WhatsApp',
+      whatsappDesc: 'Recibe notificaciones en WhatsApp cuando recibas nuevos correos.',
+      notConnected: 'No Conectado',
+      setupWhatsApp: 'Configurar WhatsApp',
+      selectAll: 'Seleccionar Todos los Clientes',
+      composeMessage: 'Redactar Mensaje',
+      blank: 'En Blanco',
+      campaignName: 'Nombre de la Campaña',
+      schedule: 'Programar',
+      sendImmediately: 'Enviar Inmediatamente',
+      scheduleLater: 'Programar para después',
+      fromName: 'Nombre del Remitente',
+      fromEmail: 'Correo del Remitente',
+      replyTo: 'Responder a',
+      subjectLine: 'Línea de Asunto',
+      emailBody: 'Cuerpo del Correo',
+      variables: 'Variables: {name}, {email}, {company}',
+      dateTime: 'Fecha y Hora'
+    },
+    whatsapp: {
+      title: 'Automatización de WhatsApp',
+      description: 'Recibe notificaciones de correo directamente en tu WhatsApp.',
+      connect: 'Conectar WhatsApp',
+      connectTitle: 'Conecta tu WhatsApp',
+      connectDesc: 'Recibe notificaciones instantáneas en WhatsApp cada vez que recibas un nuevo correo. Elige uno de los métodos a continuación para conectar.',
+      connected: 'WhatsApp Conectado',
+      disconnect: 'Desconectar',
+      option1: 'Opción 1: Escanear Código QR',
+      option1Desc: 'Abre WhatsApp en tu teléfono, toca Menú (Android) o Configuración (iOS), luego WhatsApp Web y escanea este código QR.',
+      option2: 'Opción 2: Enviar Mensaje',
+      option2Desc: 'Envía este mensaje exacto al número de arriba:',
+      option2Note: 'Después de enviar el mensaje, tu WhatsApp se conectará automáticamente.',
+      manualTitle: 'O ingresa tu número de WhatsApp manualmente',
+      numberLabel: 'Número de WhatsApp (con código de país)',
+      numberFormat: 'Usa formato internacional: +[código de país][número] (ej., +1234567890)',
+      testTitle: 'Notificación de Prueba',
+      testDesc: 'Envía una notificación de prueba a WhatsApp para verificar que tu conexión funciona.'
+    },
+    analytics: {
+      title: 'Analíticas',
+      description: 'Rendimiento de campañas y métricas de participación.',
+      avgOpenRate: 'Tasa de Apertura Prom.',
+      clickRate: 'Tasa de Clics',
+      bounceRate: 'Tasa de Rebote',
+      trendUp: '↑ 5% vs semana pasada',
+      trendDown: '↓ 0.2% vs semana pasada',
+      emailPerformance: 'Rendimiento de Correos (Últimos 7 Días)'
+    },
+    templates: {
+      title: 'Plantillas',
+      description: 'Gestiona tus diseños de mensajes guardados y respuestas rápidas.',
+      newTemplate: '+ Nueva Plantilla',
+      addNew: 'Agregar Nueva Plantilla',
+      name: 'Nombre de la Plantilla',
+      tag: 'Etiqueta (Categoría)',
+      subject: 'Línea de Asunto',
+      body: 'Cuerpo del Correo'
+    },
+    settings: {
+      title: 'Ajustes',
+      description: 'Configura tus preferencias de cuenta y notificaciones.',
+      profile: 'Información de Perfil',
+      fullName: 'Nombre Completo',
+      email: 'Correo Electrónico',
+      whatsappIntegration: 'Integración de WhatsApp',
+      whatsappToggle: 'Notificaciones de Correo en WhatsApp',
+      whatsappDesc: 'Recibe notificaciones de WhatsApp para nuevos correos',
+      connectedNumber: 'Número Conectado:',
+      notifications: 'Notificaciones',
+      campaignSummary: 'Resumen de Campañas de Correo',
+      campaignSummaryDesc: 'Recibe un resumen semanal de tus estadísticas de campaña',
+      newCustomerAlert: 'Alerta de Nuevo Cliente',
+      newCustomerAlertDesc: 'Recibe notificación cuando se agregue un nuevo cliente',
+      security: 'Seguridad',
+      changePassword: 'Cambiar Contraseña',
+      logOutEverywhere: 'Cerrar Sesión en Todas Partes'
+    },
+    preview: {
+      title: 'Vista Previa del Mensaje',
+      subject: 'Asunto'
+    },
+    footer: {
+      allRightsReserved: 'Todos los derechos reservados.'
+    }
+  },
+  yo: {
+    nav: {
+      dashboard: 'Dashbọọdi',
+      customers: 'Onibara',
+      inbox: 'Apoti Ifiranṣẹ',
+      automation: 'Adaṣiṣẹ',
+      whatsapp: 'WhatsApp',
+      analytics: 'Atupale',
+      templates: 'Àwòkọṣe',
+      settings: 'Eto'
+    },
+    auth: {
+      notSignedIn: 'Ko wọle',
+      signIn: 'Wọle',
+      or: 'tabi',
+      register: 'Forukọsilẹ',
+      logOut: 'Jade',
+      login: 'Wọle si Akọọlẹ',
+      loginRequired: 'Wọle nilo',
+      loginRequiredDesc: 'Jọwọ wọle tabi ṣẹda akọọlẹ lati wọle si ẹya yii.',
+      signInUp: 'Wọle / Forukọsilẹ'
+    },
+    status: {
+      gmailNotLinked: 'Gmail: Ko sopọ',
+      gmailLinked: '✓ Gmail Ti sopọ',
+      whatsappNotConnected: 'WhatsApp: Ko sopọ',
+      whatsappConnected: '📱 WhatsApp Ti sopọ'
+    },
+    legal: {
+      privacy: 'Eto Aṣiri',
+      terms: 'Ofin Iṣẹ'
+    },
+    titles: {
+      dashboard: 'Dashbọọdi',
+      customers: 'Iṣakoso Onibara',
+      inbox: 'Apoti Ifiranṣẹ',
+      automation: 'Ile-iṣẹ Adaṣiṣẹ',
+      whatsapp: 'Adaṣiṣẹ WhatsApp',
+      analytics: 'Atupale',
+      templates: 'Àwòkọṣe',
+      settings: 'Eto'
+    },
+    buttons: {
+      refresh: 'Tunṣe',
+      connectGmail: 'So Gmail pọ',
+      back: '← Pada',
+      reset: 'Tunṣe',
+      previewSend: 'Ṣayẹwo ati Firanṣẹ',
+      register: 'Forukọsilẹ Nọmba',
+      sendTest: 'Firanṣẹ Ifiranṣẹ Idanwo',
+      saveChanges: 'Fi Awọn Ayipada pamọ',
+      cancel: 'Fagilee',
+      saveRecord: 'Fi Igbasilẹ pamọ',
+      saveTemplate: 'Fi Àwòkọṣe pamọ',
+      backToEdit: 'Pada si Ṣiṣatunṣe',
+      confirmSend: 'Jẹrisi ati Firanṣẹ'
+    },
+    dashboard: {
+      hello: 'Pẹlẹ o,',
+      description: 'Eyi ni akopọ rẹ. Ṣakoso awọn onibara ati ṣiṣẹ adaṣe awọn ṣiṣan.',
+      startAutomation: 'Bẹrẹ Adaṣiṣẹ',
+      manageCustomers: 'Ṣakoso Onibara',
+      totalCustomers: 'Lapapọ Onibara',
+      activeInDatabase: 'Ti nṣiṣe lọwọ ninu data',
+      inbox: 'Apoti Ifiranṣẹ',
+      unreadMessages: 'Awọn ifiranṣẹ ti a ko ka',
+      activeCampaigns: 'Awọn ipolongo Ti nṣiṣe lọwọ',
+      workflowsRunning: 'Awọn ṣiṣan ti nṣiṣẹ',
+      responseRate: 'Oṣuwọn Idahun',
+      averageEngagement: 'Ipa apapọ',
+      quickActions: 'Awọn Iṣe Kiakia',
+      createWelcomeSeries: '🎉 Ṣẹda jara Kaabo',
+      sendFollowUp: '🔄 Firanṣẹ Atẹle'
+    },
+    customers: {
+      description: 'Wo ati ṣakoso ibi ipamọ alabapin rẹ.',
+      exportCSV: 'Gbe CSV jade',
+      importCSV: 'Gbe CSV wọle',
+      addCustomer: '+ Fi Onibara kun',
+      allRecords: 'Gbogbo Awọn Igbasilẹ',
+      saveChanges: 'Fi Awọn Ayipada pamọ',
+      loading: 'Ń gbe data...',
+      fullName: 'Orukọ Kikun',
+      email: 'Imeeli',
+      phone: 'Foonu',
+      company: 'Ile-iṣẹ',
+      status: 'Ipo',
+      active: 'Ti nṣiṣe lọwọ',
+      inactive: 'Ko ṣiṣẹ',
+      pending: 'Ni isunmọtosi'
+    },
+    inbox: {
+      title: 'Apoti Ifiranṣẹ',
+      description: 'Awọn ifiranṣẹ lati ọdọ awọn olugbo rẹ.',
+      connectGmail: 'So Akọọlẹ Gmail Rẹ pọ',
+      connectGmailDesc: 'Lati wo ati ṣakoso awọn ifiranṣẹ apoti ifiranṣẹ rẹ, o nilo lati so akọọlẹ Gmail rẹ pọ.',
+      disconnected: 'Ti ge asopọ',
+      connected: 'Ti sopọ',
+      loading: 'Ń gbe awọn ifiranṣẹ...',
+      noMessages: 'Ko si awọn ifiranṣẹ ninu apoti ifiranṣẹ rẹ',
+      selectMessage: 'Yan ifiranṣẹ lati ka',
+      readingMessage: 'Ń ka Ifiranṣẹ',
+      subject: 'Koko-ọrọ',
+      senderName: 'Orukọ Olufiranṣẹ',
+      today: 'Loni',
+      sendToWhatsApp: 'Firanṣẹ si WhatsApp',
+      delete: 'Pa rẹ'
+    },
+    automation: {
+      title: 'Ile-iṣẹ Adaṣiṣẹ',
+      description: 'Ṣajọ ati ṣeto awọn ipolongo imeeli.',
+      newCampaign: 'Ipolongo Tuntun',
+      recipients: 'Awọn olugba',
+      totalList: 'Akojọ Lapapọ',
+      connectGoogle: 'So Akọọlẹ Google pọ',
+      connectGoogleDesc: 'So akọọlẹ rẹ pọ lati firanṣẹ awọn imeeli adaṣe taara nipasẹ Gmail rẹ.',
+      disconnected: 'Ti ge asopọ',
+      whatsappNotifications: 'Awọn Ifitonileti WhatsApp',
+      whatsappDesc: 'Gba ifitonileti lori WhatsApp nigbati o ba gba awọn imeeli tuntun.',
+      notConnected: 'Ko sopọ',
+      setupWhatsApp: 'Ṣeto WhatsApp',
+      selectAll: 'Yan Gbogbo Awọn Onibara',
+      composeMessage: 'Ṣajọ Ifiranṣẹ',
+      blank: 'Ọfo',
+      campaignName: 'Orukọ Ipolongo',
+      schedule: 'Ṣeto',
+      sendImmediately: 'Firanṣẹ Lẹsẹkẹsẹ',
+      scheduleLater: 'Ṣeto fun nigbamii',
+      fromName: 'Lati Orukọ',
+      fromEmail: 'Lati Imeeli',
+      replyTo: 'Dahun si',
+      subjectLine: 'Ila Koko-ọrọ',
+      emailBody: 'Ara Imeeli',
+      variables: 'Awọn oniyipada: {name}, {email}, {company}',
+      dateTime: 'Ọjọ ati Aago'
+    },
+    whatsapp: {
+      title: 'Adaṣiṣẹ WhatsApp',
+      description: 'Gba awọn ifitonileti imeeli taara lori WhatsApp rẹ.',
+      connect: 'So WhatsApp pọ',
+      connectTitle: 'So WhatsApp Rẹ pọ',
+      connectDesc: 'Gba awọn ifitonileti lẹsẹkẹsẹ lori WhatsApp nigbakugba ti o ba gba imeeli tuntun. Yan ọkan ninu awọn ọna ni isalẹ lati sopọ.',
+      connected: 'WhatsApp Ti sopọ',
+      disconnect: 'Ge asopọ',
+      option1: 'Ọna 1: Ṣe QR koodu lori',
+      option1Desc: 'Ṣi WhatsApp lori foonu rẹ, tẹ Akojọ (Android) tabi Eto (iOS), lẹhinna WhatsApp Web, ki o ṣe QR koodu yii lori.',
+      option2: 'Ọna 2: Firanṣẹ Ifiranṣẹ',
+      option2Desc: 'Firanṣẹ ifiranṣẹ gangan yii si nọmba loke:',
+      option2Note: 'Lẹhin fifiranṣẹ ifiranṣẹ naa, WhatsApp rẹ yoo sopọ laifọwọyi.',
+      manualTitle: 'Tabi tẹ nọmba WhatsApp rẹ pẹlu ọwọ',
+      numberLabel: 'Nọmba WhatsApp (pẹlu koodu orilẹ-ede)',
+      numberFormat: 'Lo ọna kika agbaye: +[koodu orilẹ-ede][nọmba] (fun apẹẹrẹ, +1234567890)',
+      testTitle: 'Ifitonileti Idanwo',
+      testDesc: 'Firanṣẹ ifitonileti idanwo WhatsApp lati rii daju pe asopọ rẹ n ṣiṣẹ.'
+    },
+    analytics: {
+      title: 'Atupale',
+      description: 'Iṣẹ ipolongo ati awọn metiriki ikopa.',
+      avgOpenRate: 'Apapọ Oṣuwọn Ṣiṣi',
+      clickRate: 'Oṣuwọn Tite',
+      bounceRate: 'Oṣuwọn Ipadasi',
+      trendUp: '↑ 5% lafiwe si ọsẹ to kọja',
+      trendDown: '↓ 0.2% lafiwe si ọsẹ to kọja',
+      emailPerformance: 'Iṣẹ Imeeli (Awọn Ọjọ 7 to Kọja)'
+    },
+    templates: {
+      title: 'Àwòkọṣe',
+      description: 'Ṣakoso awọn ifilelẹ ifiranṣẹ ti o fipamọ ati awọn idahun iyara.',
+      newTemplate: '+ Àwòkọṣe Tuntun',
+      addNew: 'Fi Àwòkọṣe Tuntun kun',
+      name: 'Orukọ Àwòkọṣe',
+      tag: 'Aami (Iso)',
+      subject: 'Ila Koko-ọrọ',
+      body: 'Ara Imeeli'
+    },
+    settings: {
+      title: 'Eto',
+      description: 'Ṣeto awọn ààyò akọọlẹ ati awọn ifitonileti rẹ.',
+      profile: 'Alaye Profaili',
+      fullName: 'Orukọ Kikun',
+      email: 'Adirẹsi Imeeli',
+      whatsappIntegration: 'Iṣepọ WhatsApp',
+      whatsappToggle: 'Awọn Ifitonileti Imeeli lori WhatsApp',
+      whatsappDesc: 'Gba awọn ifitonileti WhatsApp fun awọn imeeli tuntun',
+      connectedNumber: 'Nọmba Ti sopọ:',
+      notifications: 'Awọn Ifitonileti',
+      campaignSummary: 'Akopọ Ipolongo Imeeli',
+      campaignSummaryDesc: 'Gba akopọ ọsẹ kan ti awọn iṣiro ipolongo rẹ',
+      newCustomerAlert: 'Itaniji Onibara Tuntun',
+      newCustomerAlertDesc: 'Gba ifitonileti nigbati a ba fi onibara tuntun kun',
+      security: 'Aabo',
+      changePassword: 'Yi Ọrọigbaniwọle pada',
+      logOutEverywhere: 'Jade Nibikibi'
+    },
+    preview: {
+      title: 'Ṣayẹwo Ifiranṣẹ',
+      subject: 'Koko-ọrọ'
+    },
+    footer: {
+      allRightsReserved: 'Gbogbo ẹtọ ni ipamọ.'
+    }
+  }
+  // Add more languages here following the same structure
+  // French, German, Italian, Portuguese, etc.
+};
+
+// ============================================
+// LANGUAGE DETECTION & URL HANDLING
+// ============================================
+
+// Available languages for dropdown
+const availableLanguages = {
+  en: { name: 'English', native: 'English', flag: '🇺🇸' },
+  es: { name: 'Spanish', native: 'Español', flag: '🇪🇸' },
+  fr: { name: 'French', native: 'Français', flag: '🇫🇷' },
+  de: { name: 'German', native: 'Deutsch', flag: '🇩🇪' },
+  it: { name: 'Italian', native: 'Italiano', flag: '🇮🇹' },
+  pt: { name: 'Portuguese', native: 'Português', flag: '🇵🇹' },
+  ru: { name: 'Russian', native: 'Русский', flag: '🇷🇺' },
+  zh: { name: 'Chinese', native: '中文', flag: '🇨🇳' },
+  ja: { name: 'Japanese', native: '日本語', flag: '🇯🇵' },
+  ko: { name: 'Korean', native: '한국어', flag: '🇰🇷' },
+  ar: { name: 'Arabic', native: 'العربية', flag: '🇸🇦' },
+  hi: { name: 'Hindi', native: 'हिन्दी', flag: '🇮🇳' },
+  bn: { name: 'Bengali', native: 'বাংলা', flag: '🇧🇩' },
+  pa: { name: 'Punjabi', native: 'ਪੰਜਾਬੀ', flag: '🇮🇳' },
+  te: { name: 'Telugu', native: 'తెలుగు', flag: '🇮🇳' },
+  mr: { name: 'Marathi', native: 'मराठी', flag: '🇮🇳' },
+  ta: { name: 'Tamil', native: 'தமிழ்', flag: '🇮🇳' },
+  ur: { name: 'Urdu', native: 'اردو', flag: '🇵🇰' },
+  fa: { name: 'Persian', native: 'فارسی', flag: '🇮🇷' },
+  tr: { name: 'Turkish', native: 'Türkçe', flag: '🇹🇷' },
+  nl: { name: 'Dutch', native: 'Nederlands', flag: '🇳🇱' },
+  pl: { name: 'Polish', native: 'Polski', flag: '🇵🇱' },
+  uk: { name: 'Ukrainian', native: 'Українська', flag: '🇺🇦' },
+  el: { name: 'Greek', native: 'Ελληνικά', flag: '🇬🇷' },
+  cs: { name: 'Czech', native: 'Čeština', flag: '🇨🇿' },
+  sv: { name: 'Swedish', native: 'Svenska', flag: '🇸🇪' },
+  da: { name: 'Danish', native: 'Dansk', flag: '🇩🇰' },
+  fi: { name: 'Finnish', native: 'Suomi', flag: '🇫🇮' },
+  no: { name: 'Norwegian', native: 'Norsk', flag: '🇳🇴' },
+  he: { name: 'Hebrew', native: 'עברית', flag: '🇮🇱' },
+  th: { name: 'Thai', native: 'ไทย', flag: '🇹🇭' },
+  vi: { name: 'Vietnamese', native: 'Tiếng Việt', flag: '🇻🇳' },
+  id: { name: 'Indonesian', native: 'Bahasa Indonesia', flag: '🇮🇩' },
+  ms: { name: 'Malay', native: 'Bahasa Melayu', flag: '🇲🇾' },
+  tl: { name: 'Filipino', native: 'Filipino', flag: '🇵🇭' },
+  sw: { name: 'Swahili', native: 'Kiswahili', flag: '🇹🇿' },
+  yo: { name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬' },
+  ig: { name: 'Igbo', native: 'Igbo', flag: '🇳🇬' },
+  ha: { name: 'Hausa', native: 'Hausa', flag: '🇳🇬' },
+  zu: { name: 'Zulu', native: 'isiZulu', flag: '🇿🇦' },
+  xh: { name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦' }
+};
+
+let currentLang = 'en';
+
+// Initialize i18next
+i18next.init({
+  lng: 'en', // default language
+  fallbackLng: 'en',
+  debug: false,
+  resources: Object.keys(translationResources).reduce((acc, lang) => {
+    acc[lang] = { translation: translationResources[lang] };
+    return acc;
+  }, {}),
+  detection: {
+    order: ['querystring'],
+    lookupQuerystring: 'lang'
+  }
+}, function(err, t) {
+  if (err) return console.error('i18next init error:', err);
+  
+  // Get language from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlLang = urlParams.get('lang');
+  
+  if (urlLang && translationResources[urlLang]) {
+    changeLanguage(urlLang);
+  } else {
+    // Apply default translations
+    translatePage();
+  }
+});
+
+// Translate page function
+function translatePage() {
+  document.querySelectorAll('[data-i18n]').forEach(element => {
+    const key = element.getAttribute('data-i18n');
+    const translation = i18next.t(key);
+    
+    if (translation && translation !== key) {
+      if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+        element.placeholder = translation;
+      } else if (element.tagName === 'OPTION') {
+        element.textContent = translation;
+      } else {
+        element.textContent = translation;
+      }
+    }
+  });
+  
+  // Update HTML lang attribute
+  document.documentElement.lang = i18next.language;
+}
+
+// Change language function
+function changeLanguage(lng) {
+  i18next.changeLanguage(lng, (err, t) => {
+    if (err) return console.error('Language change error:', err);
+    
+    translatePage();
+    updateLanguageDisplay(lng);
+    updateURLWithLanguage(lng);
+    
+    // Save preference
+    localStorage.setItem('preferredLanguage', lng);
+  });
+}
+
+// Update language display in header
+function updateLanguageDisplay(lng) {
+  const currentLangEl = document.getElementById('currentLanguage');
+  if (currentLangEl && availableLanguages[lng]) {
+    currentLangEl.innerHTML = `${availableLanguages[lng].flag} ${availableLanguages[lng].native}`;
+  }
+}
+
+// Update URL with language parameter
+function updateURLWithLanguage(lng) {
+  const url = new URL(window.location);
+  url.searchParams.set('lang', lng);
+  window.history.replaceState({}, '', url);
+}
+
+// Populate language dropdown
+function populateLanguageDropdown() {
+  const dropdown = document.getElementById('languageDropdown');
+  if (!dropdown) return;
+  
+  let html = '';
+  const sortedLangs = Object.entries(availableLanguages).sort((a, b) => 
+    a[1].native.localeCompare(b[1].native)
+  );
+  
+  for (const [code, lang] of sortedLangs) {
+    const isActive = code === i18next.language ? 'active' : '';
+    html += `<div class="language-option ${isActive}" onclick="changeLanguage('${code}')">
+      ${lang.flag} ${lang.native} (${lang.name})
+    </div>`;
+  }
+  
+  dropdown.innerHTML = html;
+}
+
+// Toggle language dropdown
+function toggleLanguageDropdown() {
+  document.getElementById('languageDropdown').classList.toggle('show');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+  const dropdown = document.getElementById('languageDropdown');
+  const btn = document.querySelector('.language-btn');
+  if (btn && dropdown && !btn.contains(event.target) && !dropdown.contains(event.target)) {
+    dropdown.classList.remove('show');
+  }
+});
+
 // ============================================
 // CONFIGURATION & GLOBAL STATE
 // ============================================
@@ -2831,6 +3704,9 @@ function redirectToSignup() {
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
+  // Populate language dropdown
+  populateLanguageDropdown();
+  
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('status') === 'connected') {
       const userId = urlParams.get('userId');
@@ -2840,7 +3716,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       window.history.replaceState({}, document.title, window.location.pathname);
       updateGoogleConnectionUI(true);
-      showMessage('Google Account Connected Successfully!', 'success');
+      showMessage(i18next.t('dashboard.googleConnected') || 'Google Account Connected Successfully!', 'success');
       showSection('automation');
   }
 
@@ -2854,12 +3730,12 @@ document.addEventListener('DOMContentLoaded', function() {
       mobileAuthStatus.innerHTML = `
         <div class="auth-status-item">
           <span class="auth-icon">🔒</span>
-          <span>Not signed in</span>
+          <span>${i18next.t('auth.notSignedIn')}</span>
         </div>
         <div class="auth-status-item" style="margin-top: 8px;">
-          <a href="signup.html" style="color: var(--text-main); text-decoration: none; font-weight: 600;">Sign in</a>
-          <span style="margin: 0 4px;">or</span>
-          <a href="signup.html" style="color: var(--text-main); text-decoration: none; font-weight: 600;">Register</a>
+          <a href="signup.html" style="color: var(--text-main); text-decoration: none; font-weight: 600;">${i18next.t('auth.signIn')}</a>
+          <span style="margin: 0 4px;">${i18next.t('auth.or')}</span>
+          <a href="signup.html" style="color: var(--text-main); text-decoration: none; font-weight: 600;">${i18next.t('auth.register')}</a>
         </div>
       `;
     }
@@ -2873,7 +3749,7 @@ document.addEventListener('DOMContentLoaded', function() {
       mobileAuthStatus.innerHTML = `
         <div class="auth-status-item">
           <span class="auth-icon">✓</span>
-          <span>Signed in</span>
+          <span>${i18next.t('auth.signedIn') || 'Signed in'}</span>
         </div>
       `;
     }
@@ -2932,10 +3808,10 @@ function updateGoogleConnectionUI(isConnected) {
     if (isConnected) {
         if (statusEl) {
             statusEl.className = 'connection-status status-connected';
-            statusEl.innerHTML = '<span class="status-dot"></span><span>Active</span>';
+            statusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('inbox.connected') + '</span>';
         }
         if (btn) {
-            btn.innerHTML = '✓ Account Linked (Reconnect?)';
+            btn.innerHTML = '✓ ' + (i18next.t('inbox.connected') || 'Account Linked') + ' (Reconnect?)';
             btn.className = 'btn btn-success';
             btn.onclick = function() {
                 if(confirm('Do you want to reconnect your Google Account?')) {
@@ -2945,7 +3821,7 @@ function updateGoogleConnectionUI(isConnected) {
         }
         if (inboxStatusEl) {
             inboxStatusEl.className = 'connection-status status-connected';
-            inboxStatusEl.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
+            inboxStatusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('inbox.connected') + '</span>';
         }
         if (inboxConnectContainer) inboxConnectContainer.style.display = 'none';
         if (inboxLayout) inboxLayout.style.display = 'grid';
@@ -2954,16 +3830,16 @@ function updateGoogleConnectionUI(isConnected) {
     } else {
         if (statusEl) {
             statusEl.className = 'connection-status status-disconnected';
-            statusEl.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
+            statusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('inbox.disconnected') + '</span>';
         }
         if (btn) {
-            btn.innerHTML = 'Connect Gmail';
+            btn.innerHTML = i18next.t('buttons.connectGmail') || 'Connect Gmail';
             btn.className = 'btn btn-secondary';
             btn.onclick = connectGoogle;
         }
         if (inboxStatusEl) {
             inboxStatusEl.className = 'connection-status status-disconnected';
-            inboxStatusEl.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
+            inboxStatusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('inbox.disconnected') + '</span>';
         }
         if (inboxConnectContainer) inboxConnectContainer.style.display = 'block';
         if (inboxLayout) inboxLayout.style.display = 'none';
@@ -2977,8 +3853,8 @@ function updateGoogleConnectionUI(isConnected) {
     const sidebarStatus = document.getElementById('sidebarGoogleStatus');
     if(sidebarStatus) {
         sidebarStatus.innerHTML = isConnected 
-            ? '<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-green-text);"></div> Gmail: Active'
-            : '<div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div> Gmail: Not Linked';
+            ? '<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-green-text);"></div> ' + i18next.t('status.gmailLinked')
+            : '<div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div> ' + i18next.t('status.gmailNotLinked');
     }
 }
 
@@ -3019,7 +3895,7 @@ function updateWhatsAppUI(connected, number = '') {
         if (numberDisplay) numberDisplay.textContent = `(${number})`;
         if (statusEl) {
             statusEl.className = 'connection-status status-connected';
-            statusEl.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
+            statusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('whatsapp.connected') + '</span>';
         }
         if (settingsNumberDiv) {
             settingsNumberDiv.style.display = 'block';
@@ -3027,7 +3903,7 @@ function updateWhatsAppUI(connected, number = '') {
         }
         if (headerStatus) headerStatus.style.display = 'inline-flex';
         if (sidebarStatus) {
-            sidebarStatus.innerHTML = `<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--whatsapp-green);"></div> WhatsApp: Connected`;
+            sidebarStatus.innerHTML = `<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--whatsapp-green);"></div> ` + i18next.t('status.whatsappConnected');
         }
         if (whatsappToggle) whatsappToggle.checked = true;
     } else {
@@ -3035,12 +3911,12 @@ function updateWhatsAppUI(connected, number = '') {
         if (connectedDiv) connectedDiv.style.display = 'none';
         if (statusEl) {
             statusEl.className = 'connection-status status-disconnected';
-            statusEl.innerHTML = '<span class="status-dot"></span><span>Not Connected</span>';
+            statusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('automation.notConnected') + '</span>';
         }
         if (settingsNumberDiv) settingsNumberDiv.style.display = 'none';
         if (headerStatus) headerStatus.style.display = 'none';
         if (sidebarStatus) {
-            sidebarStatus.innerHTML = '<div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div> WhatsApp: Not Connected';
+            sidebarStatus.innerHTML = '<div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div> ' + i18next.t('status.whatsappNotConnected');
         }
         if (whatsappToggle) whatsappToggle.checked = false;
     }
@@ -3051,13 +3927,13 @@ async function registerWhatsApp() {
     
     const phoneNumber = document.getElementById('whatsappNumber').value.trim();
     if (!phoneNumber) {
-        alert('Please enter your WhatsApp number');
+        alert(i18next.t('whatsapp.enterNumber') || 'Please enter your WhatsApp number');
         return;
     }
     
     const phoneRegex = /^\+?[1-9]\d{1,14}$/;
     if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
-        alert('Invalid phone number format. Please use international format (e.g., +1234567890)');
+        alert(i18next.t('whatsapp.invalidFormat') || 'Invalid phone number format. Please use international format (e.g., +1234567890)');
         return;
     }
     
@@ -3072,7 +3948,7 @@ async function registerWhatsApp() {
         });
         
         if (res.ok) {
-            showMessage('WhatsApp number registered successfully!', 'success');
+            showMessage(i18next.t('whatsapp.registered') || 'WhatsApp number registered successfully!', 'success');
             updateWhatsAppUI(true, phoneNumber);
         } else {
             const error = await res.json();
@@ -3080,23 +3956,23 @@ async function registerWhatsApp() {
         }
     } catch (e) {
         console.error(e);
-        showMessage('Failed to register WhatsApp number', 'error');
+        showMessage(i18next.t('whatsapp.registrationFailed') || 'Failed to register WhatsApp number', 'error');
     } finally {
         setButtonLoading(btn, false);
     }
 }
 
 async function disconnectWhatsApp() {
-    if (!confirm('Disconnect WhatsApp? You will stop receiving notifications.')) return;
+    if (!confirm(i18next.t('whatsapp.confirmDisconnect') || 'Disconnect WhatsApp? You will stop receiving notifications.')) return;
     
     // Since we don't have a disconnect endpoint yet, just update UI
     updateWhatsAppUI(false);
-    showMessage('WhatsApp disconnected', 'success');
+    showMessage(i18next.t('whatsapp.disconnected') || 'WhatsApp disconnected', 'success');
 }
 
 async function testWhatsApp() {
     if (!checkAuth() || !isWhatsAppConnected) {
-        alert('Please connect WhatsApp first');
+        alert(i18next.t('whatsapp.connectFirst') || 'Please connect WhatsApp first');
         return;
     }
     
@@ -3109,20 +3985,20 @@ async function testWhatsApp() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 userId: flowId,
-                message: 'This is a test notification from Flux On',
+                message: i18next.t('whatsapp.testMessage') || 'This is a test notification from Flux On',
                 from: 'Flux On System',
-                subject: 'Test Notification'
+                subject: i18next.t('whatsapp.testSubject') || 'Test Notification'
             })
         });
         
         if (res.ok) {
-            showMessage('Test notification sent to your WhatsApp!', 'success');
+            showMessage(i18next.t('whatsapp.testSent') || 'Test notification sent to your WhatsApp!', 'success');
         } else {
             throw new Error('Failed to send test');
         }
     } catch (e) {
         console.error(e);
-        showMessage('Failed to send test notification', 'error');
+        showMessage(i18next.t('whatsapp.testFailed') || 'Failed to send test notification', 'error');
     } finally {
         setButtonLoading(btn, false);
     }
@@ -3131,13 +4007,13 @@ async function testWhatsApp() {
 function toggleWhatsAppNotifications() {
     const toggle = document.getElementById('whatsappToggle');
     if (toggle.checked && !isWhatsAppConnected) {
-        alert('Please connect WhatsApp first in the WhatsApp section');
+        alert(i18next.t('whatsapp.connectFirst') || 'Please connect WhatsApp first in the WhatsApp section');
         toggle.checked = false;
         showSection('whatsapp');
     } else if (toggle.checked) {
-        showMessage('WhatsApp notifications enabled', 'success');
+        showMessage(i18next.t('whatsapp.notificationsEnabled') || 'WhatsApp notifications enabled', 'success');
     } else {
-        showMessage('WhatsApp notifications disabled', 'info');
+        showMessage(i18next.t('whatsapp.notificationsDisabled') || 'WhatsApp notifications disabled', 'info');
     }
 }
 
@@ -3146,7 +4022,7 @@ async function sendToWhatsApp() {
     if (currentMessageIndex === -1) return;
     
     if (!isWhatsAppConnected) {
-        if (confirm('WhatsApp not connected. Would you like to connect now?')) {
+        if (confirm(i18next.t('whatsapp.connectPrompt') || 'WhatsApp not connected. Would you like to connect now?')) {
             showSection('whatsapp');
         }
         return;
@@ -3171,13 +4047,13 @@ async function sendToWhatsApp() {
         });
         
         if (res.ok) {
-            showMessage('Message sent to your WhatsApp!', 'success');
+            showMessage(i18next.t('inbox.sentToWhatsApp') || 'Message sent to your WhatsApp!', 'success');
         } else {
             throw new Error('Failed to send');
         }
     } catch (e) {
         console.error(e);
-        showMessage('Failed to send to WhatsApp', 'error');
+        showMessage(i18next.t('inbox.sendFailed') || 'Failed to send to WhatsApp', 'error');
     } finally {
         setButtonLoading(btn, false);
     }
@@ -3286,7 +4162,7 @@ async function loadUserData() {
     
   } catch (error) {
     console.error('CRITICAL ERROR loading data:', error);
-    showMessage('Failed to load data. Please refresh.', 'error');
+    showMessage(i18next.t('errors.loadFailed') || 'Failed to load data. Please refresh.', 'error');
   } finally {
     showGlobalLoader(false);
   }
@@ -3341,7 +4217,7 @@ function renderInboxList() {
     if (inboxMessages.length === 0) {
         listContainer.innerHTML = `<div style="padding: 40px 24px; text-align: center; color: var(--text-tertiary);">
             <div style="font-size: 24px; margin-bottom: 8px;">📭</div>
-            No messages in your inbox
+            ${i18next.t('inbox.noMessages')}
         </div>`;
         return;
     }
@@ -3351,13 +4227,13 @@ function renderInboxList() {
         const from = msg.from_name || msg.from_email || 'Unknown';
         const subject = msg.subject || '(No Subject)';
         
-        let dateDisplay = 'Today';
+        let dateDisplay = i18next.t('inbox.today');
         if(msg.date) {
             const d = new Date(msg.date);
             if(!isNaN(d.getTime())) dateDisplay = d.toLocaleDateString();
         }
         
-        const snippet = msg.snippet || 'No preview available';
+        const snippet = msg.snippet || i18next.t('inbox.noPreview');
         
         const isReadClass = msg.read ? '' : 'unread';
         const selectedClass = index === currentMessageIndex ? 'selected' : '';
@@ -3405,9 +4281,9 @@ async function viewEmail(index) {
     
     const fromName = msg.from_name || 'Unknown';
     const fromEmail = msg.from_email || '';
-    const subject = msg.subject || '(No Subject)';
+    const subject = msg.subject || i18next.t('inbox.subject');
     
-    let dateStr = 'Unknown Date';
+    let dateStr = i18next.t('inbox.unknownDate');
     if (msg.date) {
          const d = new Date(msg.date);
          if(!isNaN(d.getTime())) dateStr = d.toLocaleString();
@@ -3426,7 +4302,7 @@ async function viewEmail(index) {
     if (htmlContent && !htmlContent.startsWith('=')) {
         bodyContainer.innerHTML = htmlContent;
     } else {
-        bodyContainer.innerHTML = `<pre style="font-family: inherit; white-space: pre-wrap;">${escapeHtml(textContent || 'No content')}</pre>`;
+        bodyContainer.innerHTML = `<pre style="font-family: inherit; white-space: pre-wrap;">${escapeHtml(textContent || i18next.t('inbox.noContent'))}</pre>`;
     }
     
     if(window.innerWidth <= 768) {
@@ -3438,7 +4314,7 @@ async function deleteCurrentMessage() {
     if (!checkAuth() || !isGoogleConnected) return;
     if (currentMessageIndex === -1) return;
     
-    if(!confirm('Delete this message permanently?')) return;
+    if(!confirm(i18next.t('inbox.confirmDelete') || 'Delete this message permanently?')) return;
     
     const msg = inboxMessages[currentMessageIndex];
     
@@ -3457,10 +4333,10 @@ async function deleteCurrentMessage() {
         renderInboxList();
         updateNotificationCount();
         
-        showMessage('Message deleted', 'success');
+        showMessage(i18next.t('inbox.deleted') || 'Message deleted', 'success');
     } catch (e) {
         console.error("Delete failed", e);
-        showMessage('Error deleting message', 'error');
+        showMessage(i18next.t('inbox.deleteFailed') || 'Error deleting message', 'error');
     }
 }
 
@@ -3489,9 +4365,9 @@ function renderCustomerTable() {
   if (customers.length === 0) {
     container.innerHTML = `
       <div style="padding: 40px; text-align: center;">
-        <h3 style="margin-top:0;">No Customers Yet</h3>
-        <p style="color: var(--text-secondary); margin-bottom: 20px;">Start by adding or importing customers.</p>
-        <button class="btn btn-primary" onclick="addNewCustomer()">Add First Customer</button>
+        <h3 style="margin-top:0;">${i18next.t('customers.noCustomers') || 'No Customers Yet'}</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">${i18next.t('customers.startAdding') || 'Start by adding or importing customers.'}</p>
+        <button class="btn btn-primary" onclick="addNewCustomer()">${i18next.t('customers.addFirst') || 'Add First Customer'}</button>
       </div>`;
     return;
   }
@@ -3501,12 +4377,12 @@ function renderCustomerTable() {
       <thead>
         <tr>
           <th width="40">#</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Company</th>
-          <th>Status</th>
-          <th width="100">Actions</th>
+          <th>${i18next.t('customers.name') || 'Name'}</th>
+          <th>${i18next.t('customers.email')}</th>
+          <th>${i18next.t('customers.phone')}</th>
+          <th>${i18next.t('customers.company')}</th>
+          <th>${i18next.t('customers.status')}</th>
+          <th width="100">${i18next.t('customers.actions') || 'Actions'}</th>
         </tr>
       </thead>
       <tbody>`;
@@ -3522,14 +4398,14 @@ function renderCustomerTable() {
         <td><input class="table-input" value="${escapeHtml(c.company)}" onchange="updateCustomerField(${i}, 'company', this.value)"></td>
         <td>
           <select class="table-input email-status status-${status.toLowerCase()}" style="width: auto;" onchange="updateCustomerField(${i}, 'status', this.value)">
-            <option value="Active" ${status === 'Active' ? 'selected' : ''}>Active</option>
-            <option value="Inactive" ${status === 'Inactive' ? 'selected' : ''}>Inactive</option>
-            <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
+            <option value="Active" ${status === 'Active' ? 'selected' : ''}>${i18next.t('customers.active')}</option>
+            <option value="Inactive" ${status === 'Inactive' ? 'selected' : ''}>${i18next.t('customers.inactive')}</option>
+            <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>${i18next.t('customers.pending')}</option>
           </select>
         </td>
         <td style="display: flex; gap: 4px;">
-          <button class="icon-btn btn" style="width: 32px; padding: 0;" onclick="saveCustomer(${i})" title="Save">💾</button>
-          <button class="icon-btn btn" style="width: 32px; padding: 0; color: var(--color-red-text);" onclick="deleteCustomer(${i})" title="Delete">🗑️</button>
+          <button class="icon-btn btn" style="width: 32px; padding: 0;" onclick="saveCustomer(${i})" title="${i18next.t('customers.save') || 'Save'}">💾</button>
+          <button class="icon-btn btn" style="width: 32px; padding: 0; color: var(--color-red-text);" onclick="deleteCustomer(${i})" title="${i18next.t('customers.delete') || 'Delete'}">🗑️</button>
         </td>
       </tr>`;
   });
@@ -3544,7 +4420,7 @@ function renderEmailList() {
   
   const validCustomers = customers.filter(c => c.email && c.email.includes('@'));
   if (validCustomers.length === 0) {
-    container.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-secondary);"><p>No valid email addresses found.</p></div>`;
+    container.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-secondary);"><p>${i18next.t('automation.noValidEmails') || 'No valid email addresses found.'}</p></div>`;
     return;
   }
   
@@ -3562,7 +4438,7 @@ function renderEmailList() {
           <div class="email-address">${escapeHtml(c.email)}</div>
           <div class="email-customer">${escapeHtml(c.name)} · ${escapeHtml(c.company)}</div>
         </div>
-        <div class="email-status status-${status.toLowerCase()}">${status}</div>
+        <div class="email-status status-${status.toLowerCase()}">${i18next.t(`customers.${status.toLowerCase()}`)}</div>
       </div>`;
   });
   
@@ -3575,7 +4451,7 @@ function renderTemplates() {
     if(!grid) return;
     
     if (templates.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px;">No templates found.</div>`;
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px;">${i18next.t('templates.noTemplates') || 'No templates found.'}</div>`;
         return;
     }
     
@@ -3585,13 +4461,13 @@ function renderTemplates() {
             <div class="template-card">
                 <div class="template-card-header">
                     <span class="template-name">${escapeHtml(t.name)}</span>
-                    <span class="template-tag">${escapeHtml(t.tag || 'General')}</span>
+                    <span class="template-tag">${escapeHtml(t.tag || i18next.t('templates.general') || 'General')}</span>
                 </div>
                 <div class="template-body">${escapeHtml(t.body || '')}</div>
                 <div class="template-footer">
-                    <button class="btn btn-secondary" style="height: 32px; font-size: 13px; flex: 1;" onclick="useTemplate(${i})">Use</button>
-                    <button class="btn btn-secondary" style="height: 32px; font-size: 13px;" onclick="editTemplate(${i})">Edit</button>
-                    <button class="btn btn-secondary" style="height: 32px; font-size: 13px; color: var(--color-red-text);" onclick="deleteTemplate(${i})">Del</button>
+                    <button class="btn btn-secondary" style="height: 32px; font-size: 13px; flex: 1;" onclick="useTemplate(${i})">${i18next.t('templates.use') || 'Use'}</button>
+                    <button class="btn btn-secondary" style="height: 32px; font-size: 13px;" onclick="editTemplate(${i})">${i18next.t('templates.edit') || 'Edit'}</button>
+                    <button class="btn btn-secondary" style="height: 32px; font-size: 13px; color: var(--color-red-text);" onclick="deleteTemplate(${i})">${i18next.t('templates.delete') || 'Del'}</button>
                 </div>
             </div>`;
     });
@@ -3607,7 +4483,7 @@ function renderTemplateSelector() {
     templates.forEach((t, i) => {
         html += `<button class="template-btn" onclick="loadTemplate(${i})">${escapeHtml(t.name)}</button> `;
     });
-    html += `<button class="template-btn" onclick="loadTemplate('custom')">Blank</button>`;
+    html += `<button class="template-btn" onclick="loadTemplate('custom')">${i18next.t('automation.blank')}</button>`;
     container.innerHTML = html;
 }
 
@@ -3668,7 +4544,7 @@ async function saveCustomer(index) {
 
 async function deleteCustomer(index) {
   if (!checkAuth()) return;
-  if (!confirm('Are you sure you want to delete this customer?')) return;
+  if (!confirm(i18next.t('customers.confirmDelete') || 'Are you sure you want to delete this customer?')) return;
   customers.splice(index, 1);
   refreshUI();
   await saveAllChanges();
@@ -3687,11 +4563,11 @@ function addNewCustomer() {
 async function saveNewCustomer() {
   if (!checkAuth()) return;
   const btn = document.getElementById('btnSaveCustomer');
-  setButtonLoading(btn, true, 'Saving...');
+  setButtonLoading(btn, true, i18next.t('customers.saving') || 'Saving...');
   
   try {
       const name = document.getElementById('newCustomerName').value.trim();
-      if (!name) { alert('Name is required'); setButtonLoading(btn, false); return; }
+      if (!name) { alert(i18next.t('customers.nameRequired') || 'Name is required'); setButtonLoading(btn, false); return; }
       
       const newC = {
           name: name,
@@ -3723,7 +4599,7 @@ function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
     
-    showGlobalLoader(true, 'Parsing CSV...');
+    showGlobalLoader(true, i18next.t('customers.parsing') || 'Parsing CSV...');
     const reader = new FileReader();
     
     reader.onload = function(e) {
@@ -3739,7 +4615,7 @@ function processCSV(csvText) {
     
     if (lines.length < 2) {
         showGlobalLoader(false);
-        alert('CSV file is too short or empty.');
+        alert(i18next.t('customers.csvError') || 'CSV file is too short or empty.');
         return;
     }
     
@@ -3770,7 +4646,7 @@ function processCSV(csvText) {
     
     if (emailIdx === -1) {
         showGlobalLoader(false);
-        alert('Could not detect an Email column. Please check your CSV.');
+        alert(i18next.t('customers.noEmailColumn') || 'Could not detect an Email column. Please check your CSV.');
         return;
     }
     
@@ -3804,7 +4680,7 @@ function processCSV(csvText) {
     refreshUI();
     saveAllChanges().finally(() => {
         showGlobalLoader(false);
-        showMessage(`Successfully imported ${importedCount} customers!`, 'success');
+        showMessage(i18next.t('customers.importSuccess', { count: importedCount }) || `Successfully imported ${importedCount} customers!`, 'success');
     });
 }
 
@@ -3812,7 +4688,7 @@ function createNewTemplate() {
     if (!checkAuth()) return;
     updateValue('templateIndex', '-1');
     document.getElementById('templateForm').reset();
-    updateText('templateModalTitle', 'Add New Template');
+    updateText('templateModalTitle', i18next.t('templates.addNew'));
     openModal('templateModal');
 }
 
@@ -3824,7 +4700,7 @@ function editTemplate(index) {
     updateValue('templateTag', t.tag);
     updateValue('templateSubject', t.subject || t.name);
     updateValue('templateBody', t.body);
-    updateText('templateModalTitle', 'Edit Template');
+    updateText('templateModalTitle', i18next.t('templates.edit') || 'Edit Template');
     openModal('templateModal');
 }
 
@@ -3853,7 +4729,7 @@ async function saveTemplate() {
 
 async function deleteTemplate(index) {
     if (!checkAuth()) return;
-    if(!confirm('Delete template?')) return;
+    if(!confirm(i18next.t('templates.confirmDelete') || 'Delete template?')) return;
     templates.splice(index, 1);
     renderTemplates();
     renderTemplateSelector();
@@ -3893,17 +4769,17 @@ function previewMessage() {
 
 async function sendAutomatedMessages() {
     if (!checkAuth()) return;
-    if(selectedEmails.size === 0) { alert('No recipients selected'); return; }
+    if(selectedEmails.size === 0) { alert(i18next.t('automation.noRecipients') || 'No recipients selected'); return; }
     
     if (!isGoogleConnected) {
-        alert("Action Blocked: You must connect your Google Account to send automated messages.");
+        alert(i18next.t('automation.googleRequired') || "Action Blocked: You must connect your Google Account to send automated messages.");
         closeModal('previewModal');
         document.querySelector('.google-connect-card').scrollIntoView({ behavior: 'smooth' });
         return;
     }
     
     const btn = document.getElementById('btnConfirmSend');
-    setButtonLoading(btn, true, 'Sending...');
+    setButtonLoading(btn, true, i18next.t('automation.sending') || 'Sending...');
     
     // FLAT structure as expected by backend - NO emailData wrapper
     const payload = {
@@ -3931,13 +4807,13 @@ async function sendAutomatedMessages() {
         }
         
         const result = await res.json();
-        showMessage(`Sent to ${selectedEmails.size} recipients`, 'success');
+        showMessage(i18next.t('automation.sent', { count: selectedEmails.size }) || `Sent to ${selectedEmails.size} recipients`, 'success');
         closeModal('previewModal');
         selectedEmails.clear();
         renderEmailList();
     } catch(e) {
         console.error(e);
-        showMessage('Failed to send messages: ' + e.message, 'error');
+        showMessage(i18next.t('automation.sendFailed') || 'Failed to send messages', 'error');
     } finally {
         setButtonLoading(btn, false);
     }
@@ -3946,7 +4822,7 @@ async function sendAutomatedMessages() {
 async function saveAllChanges() {
     if (!checkAuth()) return;
     const btn = document.getElementById('btnSaveChanges');
-    if(btn) setButtonLoading(btn, true, 'Saving...');
+    if(btn) setButtonLoading(btn, true, i18next.t('customers.saving') || 'Saving...');
     
     try {
         const payload = {
@@ -3963,10 +4839,10 @@ async function saveAllChanges() {
         
         if (!res.ok) throw new Error('Save failed');
         
-        showMessage('Data saved to cloud', 'success');
+        showMessage(i18next.t('customers.saved') || 'Data saved to cloud', 'success');
     } catch(e) {
         console.error(e);
-        showMessage('Error saving data', 'error');
+        showMessage(i18next.t('customers.saveError') || 'Error saving data', 'error');
     } finally {
         if(btn) setButtonLoading(btn, false);
     }
@@ -3984,7 +4860,7 @@ function refreshUI() {
 function refreshData() {
     if (!checkAuth()) return;
     const btn = document.getElementById('btnRefresh');
-    setButtonLoading(btn, true, 'Refreshing...');
+    setButtonLoading(btn, true, i18next.t('buttons.refreshing') || 'Refreshing...');
     loadUserData().finally(() => setButtonLoading(btn, false));
 }
 
@@ -4054,16 +4930,16 @@ function showSection(id) {
     if(nav) nav.classList.add('active');
     
     const titles = {
-        'dashboard': 'Dashboard',
-        'customers': 'Customer Management',
-        'inbox': 'Inbox',
-        'automation': 'Automation Center',
-        'whatsapp': 'WhatsApp Automation',
-        'analytics': 'Analytics',
-        'templates': 'Templates',
-        'settings': 'Settings'
+        'dashboard': i18next.t('titles.dashboard'),
+        'customers': i18next.t('titles.customers'),
+        'inbox': i18next.t('titles.inbox'),
+        'automation': i18next.t('titles.automation'),
+        'whatsapp': i18next.t('titles.whatsapp'),
+        'analytics': i18next.t('titles.analytics'),
+        'templates': i18next.t('titles.templates'),
+        'settings': i18next.t('titles.settings')
     };
-    updateText('pageTitle', titles[id] || 'Dashboard');
+    updateText('pageTitle', titles[id] || i18next.t('titles.dashboard'));
     
     if (id === 'whatsapp') {
         checkWhatsAppStatus();
@@ -4075,18 +4951,17 @@ function showSection(id) {
 
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-function clearForm() { if(confirm('Reset form?')) document.getElementById('messageForm').reset(); }
+function clearForm() { if(confirm(i18next.t('automation.confirmReset') || 'Reset form?')) document.getElementById('messageForm').reset(); }
 
 function confirmLogout() { 
-    if(confirm('Log out?')) { 
+    if(confirm(i18next.t('auth.confirmLogout') || 'Log out?')) { 
         localStorage.removeItem('flowid'); 
         customers = [];
         templates = [];
         inboxMessages = [];
         selectedEmails.clear();
         currentUser = null;
-        window.location.href = 'index.html';
-        //window.location.reload();
+        window.location.reload();
     } 
 }
 
@@ -4101,7 +4976,7 @@ function renderAnalytics() {
         <div class="chart-bar-group">
             <div class="chart-value">${d}</div>
             <div class="chart-bar" style="height:${(d/max)*100}%"></div>
-            <div class="chart-label">Day ${i+1}</div>
+            <div class="chart-label">${i18next.t('analytics.day') || 'Day'} ${i+1}</div>
         </div>
     `).join('');
 }
@@ -4137,15 +5012,14 @@ document.addEventListener('keydown', function(event) {
 
 function exportCustomers() {
     if (!checkAuth()) return;
-    alert('Export functionality will be implemented soon!');
+    alert(i18next.t('customers.exportComing') || 'Export functionality will be implemented soon!');
 }
 
 function saveSettings(btn) {
     if (!checkAuth()) return;
-    showMessage('Settings saved successfully!', 'success');
+    showMessage(i18next.t('settings.saved') || 'Settings saved successfully!', 'success');
 }
 
 </script>
 </body>
 </html>
-
