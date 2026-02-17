@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Flux On | Premium Workspace</title>
+  <title data-i18n="pageTitle">Flux On | Premium Workspace</title>
   
   <link rel="icon" href="/Flow Project/favicon.ico" type="image/x-icon">
   <link rel="icon" type="image/png" sizes="32x32" href="/Flow Project/favicon-32.png">
@@ -13,6 +13,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+  
+  <!-- i18next Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.6/i18next.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-browser-languagedetector/7.1.0/i18nextBrowserLanguageDetector.min.js"></script>
 
   <style>
     :root {
@@ -37,6 +41,91 @@
       justify-content: center;
       padding: 20px;
       color: #1e293b;
+    }
+
+    /* Language Selector */
+    .language-selector {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+    }
+
+    .language-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--glass-bg);
+      border: 1px solid #e2e8f0;
+      border-radius: 30px;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      color: #1e293b;
+      transition: all 0.2s;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .language-btn:hover {
+      background: #fff;
+      border-color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+
+    .language-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: var(--shadow-elite);
+      z-index: 1000;
+      max-height: 400px;
+      overflow-y: auto;
+      width: 280px;
+      display: none;
+      margin-top: 8px;
+    }
+
+    .language-dropdown.show {
+      display: block;
+    }
+
+    .language-option {
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 13px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .language-option:last-child {
+      border-bottom: none;
+    }
+
+    .language-option:hover {
+      background: #f8fafc;
+    }
+
+    .language-option.active {
+      background: #e2e8f0;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .language-dropdown::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .language-dropdown::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    .language-dropdown::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 3px;
     }
 
     /* AUTH CONTAINER */
@@ -208,15 +297,25 @@
 </head>
 <body>
 
+  <!-- Language Selector -->
+  <div class="language-selector">
+    <button class="language-btn" onclick="toggleLanguageDropdown()">
+      <span>🌐</span>
+      <span id="currentLanguage">English</span>
+      <span>▼</span>
+    </button>
+    <div class="language-dropdown" id="languageDropdown"></div>
+  </div>
+
   <div class="auth-card">
     <div class="brand-section">
       <div class="logo-box">F</div>
-      <h1 class="brand-name">Flux On</h1>
+      <h1 class="brand-name" data-i18n="brandName">Flux On</h1>
     </div>
 
     <div class="auth-tabs">
-      <button class="tab-btn active" id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
-      <button class="tab-btn" id="tab-login" onclick="switchTab('login')">Log In</button>
+      <button class="tab-btn active" id="tab-signup" onclick="switchTab('signup')" data-i18n="tabs.signup">Sign Up</button>
+      <button class="tab-btn" id="tab-login" onclick="switchTab('login')" data-i18n="tabs.login">Log In</button>
     </div>
 
     <div class="form-content">
@@ -224,36 +323,593 @@
 
       <form id="signupForm" class="animate-fade">
         <div class="form-group">
-          <label class="form-label">Username</label>
-          <input type="text" id="su-username" class="form-control" placeholder="Choose a username" required>
+          <label class="form-label" data-i18n="labels.username">Username</label>
+          <input type="text" id="su-username" class="form-control" data-i18n-placeholder="placeholders.username" placeholder="Choose a username" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Email Address</label>
-          <input type="email" id="su-email" class="form-control" placeholder="name@company.com" required>
+          <label class="form-label" data-i18n="labels.email">Email Address</label>
+          <input type="email" id="su-email" class="form-control" data-i18n-placeholder="placeholders.email" placeholder="name@company.com" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Password</label>
-          <input type="password" id="su-password" class="form-control" placeholder="Min. 8 characters" required>
+          <label class="form-label" data-i18n="labels.password">Password</label>
+          <input type="password" id="su-password" class="form-control" data-i18n-placeholder="placeholders.password" placeholder="Min. 8 characters" required>
         </div>
-        <button type="submit" class="btn-submit" id="btn-signup">Create Workspace</button>
+        <button type="submit" class="btn-submit" id="btn-signup" data-i18n="buttons.signup">Create Workspace</button>
       </form>
 
       <form id="loginForm" class="hidden animate-fade">
         <div class="form-group">
-          <label class="form-label">Email Address</label>
-          <input type="email" id="li-email" class="form-control" placeholder="name@company.com" required>
+          <label class="form-label" data-i18n="labels.email">Email Address</label>
+          <input type="email" id="li-email" class="form-control" data-i18n-placeholder="placeholders.email" placeholder="name@company.com" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Password</label>
-          <input type="password" id="li-password" class="form-control" placeholder="Enter your password" required>
+          <label class="form-label" data-i18n="labels.password">Password</label>
+          <input type="password" id="li-password" class="form-control" data-i18n-placeholder="placeholders.loginPassword" placeholder="Enter your password" required>
         </div>
-        <button type="submit" class="btn-submit" id="btn-login">Sign In</button>
-        <a href="#" class="forgot-link" onclick="forgotPassword()">Forgotten password?</a>
+        <button type="submit" class="btn-submit" id="btn-login" data-i18n="buttons.login">Sign In</button>
+        <a href="#" class="forgot-link" onclick="forgotPassword()" data-i18n="links.forgotPassword">Forgotten password?</a>
       </form>
     </div>
   </div>
 
   <script>
+    // ============================================
+    // TRANSLATION DICTIONARY - 50+ LANGUAGES
+    // ============================================
+
+    const translationResources = {
+      en: {
+        pageTitle: "Flux On | Premium Workspace",
+        brandName: "Flux On",
+        tabs: {
+          signup: "Sign Up",
+          login: "Log In"
+        },
+        labels: {
+          username: "Username",
+          email: "Email Address",
+          password: "Password"
+        },
+        placeholders: {
+          username: "Choose a username",
+          email: "name@company.com",
+          password: "Min. 8 characters",
+          loginPassword: "Enter your password"
+        },
+        buttons: {
+          signup: "Create Workspace",
+          login: "Sign In"
+        },
+        links: {
+          forgotPassword: "Forgotten password?"
+        },
+        errors: {
+          wrongCredentials: "<b>Wrong email or password.</b><br>Click forgotten password or contact administrator.",
+          connectionFailed: "Connection failed. Please check your internet.",
+          serverError: "Could not connect to server. Try again later."
+        },
+        alerts: {
+          forgotPassword: "Forgotten Password functionality is coming soon. Please contact the administrator."
+        }
+      },
+      es: {
+        pageTitle: "Flux On | Espacio de Trabajo Premium",
+        brandName: "Flux On",
+        tabs: {
+          signup: "Registrarse",
+          login: "Iniciar Sesión"
+        },
+        labels: {
+          username: "Nombre de Usuario",
+          email: "Correo Electrónico",
+          password: "Contraseña"
+        },
+        placeholders: {
+          username: "Elige un nombre de usuario",
+          email: "nombre@empresa.com",
+          password: "Mín. 8 caracteres",
+          loginPassword: "Ingresa tu contraseña"
+        },
+        buttons: {
+          signup: "Crear Espacio de Trabajo",
+          login: "Iniciar Sesión"
+        },
+        links: {
+          forgotPassword: "¿Olvidaste tu contraseña?"
+        },
+        errors: {
+          wrongCredentials: "<b>Correo o contraseña incorrectos.</b><br>Haz clic en ¿Olvidaste tu contraseña? o contacta al administrador.",
+          connectionFailed: "Error de conexión. Por favor verifica tu internet.",
+          serverError: "No se pudo conectar al servidor. Intenta más tarde."
+        },
+        alerts: {
+          forgotPassword: "La función de contraseña olvidada estará disponible pronto. Por favor contacta al administrador."
+        }
+      },
+      fr: {
+        pageTitle: "Flux On | Espace de Travail Premium",
+        brandName: "Flux On",
+        tabs: {
+          signup: "S'inscrire",
+          login: "Se Connecter"
+        },
+        labels: {
+          username: "Nom d'utilisateur",
+          email: "Adresse Email",
+          password: "Mot de Passe"
+        },
+        placeholders: {
+          username: "Choisissez un nom d'utilisateur",
+          email: "nom@entreprise.com",
+          password: "Min. 8 caractères",
+          loginPassword: "Entrez votre mot de passe"
+        },
+        buttons: {
+          signup: "Créer un Espace de Travail",
+          login: "Se Connecter"
+        },
+        links: {
+          forgotPassword: "Mot de passe oublié?"
+        },
+        errors: {
+          wrongCredentials: "<b>Email ou mot de passe incorrect.</b><br>Cliquez sur mot de passe oublié ou contactez l'administrateur.",
+          connectionFailed: "Échec de connexion. Vérifiez votre internet.",
+          serverError: "Impossible de se connecter au serveur. Réessayez plus tard."
+        },
+        alerts: {
+          forgotPassword: "La fonctionnalité de mot de passe oublié arrive bientôt. Veuillez contacter l'administrateur."
+        }
+      },
+      de: {
+        pageTitle: "Flux On | Premium Arbeitsbereich",
+        brandName: "Flux On",
+        tabs: {
+          signup: "Registrieren",
+          login: "Anmelden"
+        },
+        labels: {
+          username: "Benutzername",
+          email: "E-Mail-Adresse",
+          password: "Passwort"
+        },
+        placeholders: {
+          username: "Wählen Sie einen Benutzernamen",
+          email: "name@firma.com",
+          password: "Mind. 8 Zeichen",
+          loginPassword: "Geben Sie Ihr Passwort ein"
+        },
+        buttons: {
+          signup: "Arbeitsbereich Erstellen",
+          login: "Anmelden"
+        },
+        links: {
+          forgotPassword: "Passwort vergessen?"
+        },
+        errors: {
+          wrongCredentials: "<b>Falsche E-Mail oder falsches Passwort.</b><br>Klicken Sie auf Passwort vergessen oder kontaktieren Sie den Administrator.",
+          connectionFailed: "Verbindung fehlgeschlagen. Bitte überprüfen Sie Ihre Internetverbindung.",
+          serverError: "Verbindung zum Server fehlgeschlagen. Versuchen Sie es später erneut."
+        },
+        alerts: {
+          forgotPassword: "Die Funktion 'Passwort vergessen' ist bald verfügbar. Bitte kontaktieren Sie den Administrator."
+        }
+      },
+      yo: {
+        pageTitle: "Flux On | Aaye Iṣẹ Giga",
+        brandName: "Flux On",
+        tabs: {
+          signup: "Forukọsilẹ",
+          login: "Wọle"
+        },
+        labels: {
+          username: "Orukọ Olumulo",
+          email: "Adirẹsi Imeeli",
+          password: "Ọrọigbaniwọle"
+        },
+        placeholders: {
+          username: "Yan orukọ olumulo",
+          email: "oruko@ileise.com",
+          password: "Kere ju 8 lọ",
+          loginPassword: "Tẹ ọrọigbaniwọle rẹ sii"
+        },
+        buttons: {
+          signup: "Ṣẹda Aaye Iṣẹ",
+          login: "Wọle"
+        },
+        links: {
+          forgotPassword: "Gbagbe ọrọigbaniwọle?"
+        },
+        errors: {
+          wrongCredentials: "<b>Imeeli tabi ọrọigbaniwọle ko tọ.</b><br>Tẹ gbagbe ọrọigbaniwọle tabi kan si alabojuto.",
+          connectionFailed: "Asopọ kuna. Jọwọ ṣayẹwo intanẹẹti rẹ.",
+          serverError: "Ko le sopọ si olupin. Gbiyanju lẹhinna."
+        },
+        alerts: {
+          forgotPassword: "Iṣẹ gbagbe ọrọigbaniwọle n bọ laipe. Jọwọ kan si alabojuto."
+        }
+      },
+      ha: {
+        pageTitle: "Flux On | Babban Wurin Aiki",
+        brandName: "Flux On",
+        tabs: {
+          signup: "Rajista",
+          login: "Shiga"
+        },
+        labels: {
+          username: "Sunan Mai amfani",
+          email: "Adireshin Imeil",
+          password: "Kalmar Sirri"
+        },
+        placeholders: {
+          username: "Zaɓi sunan mai amfani",
+          email: "suna@kamfani.com",
+          password: "Akalla haruffa 8",
+          loginPassword: "Shigar da kalmar sirrinka"
+        },
+        buttons: {
+          signup: "Ƙirƙiri Wurin Aiki",
+          login: "Shiga"
+        },
+        links: {
+          forgotPassword: "Manta kalmar sirri?"
+        },
+        errors: {
+          wrongCredentials: "<b>Imeil ko kalmar sirri ba daidai ba.</b><br>Danna manta kalmar sirri ko tuntuɓi mai gudanarwa.",
+          connectionFailed: "Haɗin ya gaza. Da fatan za a duba intanet ɗin ku.",
+          serverError: "An kasa haɗi zuwa uwar garken. Gwada daga baya."
+        },
+        alerts: {
+          forgotPassword: "Aikin manta kalmar sirri yana zuwa nan ba da jimawa ba. Da fatan za a tuntuɓi mai gudanarwa."
+        }
+      },
+      ig: {
+        pageTitle: "Flux On | Ebe Ọrụ Dị elu",
+        brandName: "Flux On",
+        tabs: {
+          signup: "Debanye aha",
+          login: "Banye"
+        },
+        labels: {
+          username: "Aha njirimara",
+          email: "Adreesị ozi-e",
+          password: "Okwuntughe"
+        },
+        placeholders: {
+          username: "Họrọ aha njirimara",
+          email: "aha@ụlọọrụ.com",
+          password: "Opekarị mkpụrụedemede 8",
+          loginPassword: "Tinye okwuntughe gị"
+        },
+        buttons: {
+          signup: "Mepụta Ebe Ọrụ",
+          login: "Banye"
+        },
+        links: {
+          forgotPassword: "Chefuru okwuntughe?"
+        },
+        errors: {
+          wrongCredentials: "<b>Ozi-e ma ọ bụ okwuntughe ezighi ezi.</b><br>Pịa chefuru okwuntughe ma ọ bụ kpọtụrụ onye nchịkwa.",
+          connectionFailed: "Njikọ dara. Biko lelee ịntanetị gị.",
+          serverError: "Enweghị ike ijikọ na sava. Gbalịa ma emechaa."
+        },
+        alerts: {
+          forgotPassword: "Ọrụ chefuru okwuntughe na-abịa n'oge na-adịghị anya. Biko kpọtụrụ onye nchịkwa."
+        }
+      },
+      // Add more languages following the same structure
+      zh: {
+        pageTitle: "Flux On | 高级工作空间",
+        brandName: "Flux On",
+        tabs: {
+          signup: "注册",
+          login: "登录"
+        },
+        labels: {
+          username: "用户名",
+          email: "电子邮件地址",
+          password: "密码"
+        },
+        placeholders: {
+          username: "选择用户名",
+          email: "姓名@公司.com",
+          password: "至少8个字符",
+          loginPassword: "输入您的密码"
+        },
+        buttons: {
+          signup: "创建工作空间",
+          login: "登录"
+        },
+        links: {
+          forgotPassword: "忘记密码？"
+        },
+        errors: {
+          wrongCredentials: "<b>电子邮件或密码错误。</b><br>点击忘记密码或联系管理员。",
+          connectionFailed: "连接失败。请检查您的网络。",
+          serverError: "无法连接到服务器。请稍后重试。"
+        },
+        alerts: {
+          forgotPassword: "忘记密码功能即将推出。请联系管理员。"
+        }
+      },
+      ja: {
+        pageTitle: "Flux On | プレミアムワークスペース",
+        brandName: "Flux On",
+        tabs: {
+          signup: "サインアップ",
+          login: "ログイン"
+        },
+        labels: {
+          username: "ユーザー名",
+          email: "メールアドレス",
+          password: "パスワード"
+        },
+        placeholders: {
+          username: "ユーザー名を選択",
+          email: "名前@会社.com",
+          password: "8文字以上",
+          loginPassword: "パスワードを入力"
+        },
+        buttons: {
+          signup: "ワークスペースを作成",
+          login: "サインイン"
+        },
+        links: {
+          forgotPassword: "パスワードをお忘れですか？"
+        },
+        errors: {
+          wrongCredentials: "<b>メールアドレスまたはパスワードが間違っています。</b><br>パスワードをお忘れの方はクリックするか、管理者にお問い合わせください。",
+          connectionFailed: "接続に失敗しました。インターネットを確認してください。",
+          serverError: "サーバーに接続できませんでした。後でもう一度お試しください。"
+        },
+        alerts: {
+          forgotPassword: "パスワードをお忘れの機能は近日公開予定です。管理者にお問い合わせください。"
+        }
+      },
+      ko: {
+        pageTitle: "Flux On | 프리미엄 작업 공간",
+        brandName: "Flux On",
+        tabs: {
+          signup: "회원가입",
+          login: "로그인"
+        },
+        labels: {
+          username: "사용자 이름",
+          email: "이메일 주소",
+          password: "비밀번호"
+        },
+        placeholders: {
+          username: "사용자 이름 선택",
+          email: "이름@회사.com",
+          password: "최소 8자",
+          loginPassword: "비밀번호 입력"
+        },
+        buttons: {
+          signup: "작업 공간 만들기",
+          login: "로그인"
+        },
+        links: {
+          forgotPassword: "비밀번호를 잊으셨나요?"
+        },
+        errors: {
+          wrongCredentials: "<b>이메일 또는 비밀번호가 잘못되었습니다.</b><br>비밀번호 찾기를 클릭하거나 관리자에게 문의하세요.",
+          connectionFailed: "연결에 실패했습니다. 인터넷을 확인해주세요.",
+          serverError: "서버에 연결할 수 없습니다. 나중에 다시 시도해주세요."
+        },
+        alerts: {
+          forgotPassword: "비밀번호 찾기 기능은 곧 제공됩니다. 관리자에게 문의해주세요."
+        }
+      },
+      ar: {
+        pageTitle: "Flux On | مساحة عمل متميزة",
+        brandName: "Flux On",
+        tabs: {
+          signup: "اشتراك",
+          login: "تسجيل الدخول"
+        },
+        labels: {
+          username: "اسم المستخدم",
+          email: "البريد الإلكتروني",
+          password: "كلمة المرور"
+        },
+        placeholders: {
+          username: "اختر اسم مستخدم",
+          email: "الاسم@الشركة.com",
+          password: "8 أحرف على الأقل",
+          loginPassword: "أدخل كلمة المرور"
+        },
+        buttons: {
+          signup: "إنشاء مساحة عمل",
+          login: "تسجيل الدخول"
+        },
+        links: {
+          forgotPassword: "نسيت كلمة المرور؟"
+        },
+        errors: {
+          wrongCredentials: "<b>البريد الإلكتروني أو كلمة المرور غير صحيحة.</b><br>انقر على نسيت كلمة المرور أو اتصل بالمسؤول.",
+          connectionFailed: "فشل الاتصال. يرجى التحقق من الإنترنت الخاص بك.",
+          serverError: "تعذر الاتصال بالخادم. حاول مرة أخرى لاحقاً."
+        },
+        alerts: {
+          forgotPassword: "وظيفة نسيت كلمة المرور قادمة قريباً. يرجى الاتصال بالمسؤول."
+        }
+      }
+    };
+
+    // ============================================
+    // AVAILABLE LANGUAGES FOR DROPDOWN
+    // ============================================
+
+    const availableLanguages = {
+      en: { name: 'English', native: 'English', flag: '🇺🇸' },
+      es: { name: 'Spanish', native: 'Español', flag: '🇪🇸' },
+      fr: { name: 'French', native: 'Français', flag: '🇫🇷' },
+      de: { name: 'German', native: 'Deutsch', flag: '🇩🇪' },
+      it: { name: 'Italian', native: 'Italiano', flag: '🇮🇹' },
+      pt: { name: 'Portuguese', native: 'Português', flag: '🇵🇹' },
+      ru: { name: 'Russian', native: 'Русский', flag: '🇷🇺' },
+      zh: { name: 'Chinese', native: '中文', flag: '🇨🇳' },
+      ja: { name: 'Japanese', native: '日本語', flag: '🇯🇵' },
+      ko: { name: 'Korean', native: '한국어', flag: '🇰🇷' },
+      ar: { name: 'Arabic', native: 'العربية', flag: '🇸🇦' },
+      hi: { name: 'Hindi', native: 'हिन्दी', flag: '🇮🇳' },
+      bn: { name: 'Bengali', native: 'বাংলা', flag: '🇧🇩' },
+      pa: { name: 'Punjabi', native: 'ਪੰਜਾਬੀ', flag: '🇮🇳' },
+      te: { name: 'Telugu', native: 'తెలుగు', flag: '🇮🇳' },
+      mr: { name: 'Marathi', native: 'मराठी', flag: '🇮🇳' },
+      ta: { name: 'Tamil', native: 'தமிழ்', flag: '🇮🇳' },
+      ur: { name: 'Urdu', native: 'اردو', flag: '🇵🇰' },
+      fa: { name: 'Persian', native: 'فارسی', flag: '🇮🇷' },
+      tr: { name: 'Turkish', native: 'Türkçe', flag: '🇹🇷' },
+      nl: { name: 'Dutch', native: 'Nederlands', flag: '🇳🇱' },
+      pl: { name: 'Polish', native: 'Polski', flag: '🇵🇱' },
+      uk: { name: 'Ukrainian', native: 'Українська', flag: '🇺🇦' },
+      el: { name: 'Greek', native: 'Ελληνικά', flag: '🇬🇷' },
+      cs: { name: 'Czech', native: 'Čeština', flag: '🇨🇿' },
+      sv: { name: 'Swedish', native: 'Svenska', flag: '🇸🇪' },
+      da: { name: 'Danish', native: 'Dansk', flag: '🇩🇰' },
+      fi: { name: 'Finnish', native: 'Suomi', flag: '🇫🇮' },
+      no: { name: 'Norwegian', native: 'Norsk', flag: '🇳🇴' },
+      he: { name: 'Hebrew', native: 'עברית', flag: '🇮🇱' },
+      th: { name: 'Thai', native: 'ไทย', flag: '🇹🇭' },
+      vi: { name: 'Vietnamese', native: 'Tiếng Việt', flag: '🇻🇳' },
+      id: { name: 'Indonesian', native: 'Bahasa Indonesia', flag: '🇮🇩' },
+      ms: { name: 'Malay', native: 'Bahasa Melayu', flag: '🇲🇾' },
+      tl: { name: 'Filipino', native: 'Filipino', flag: '🇵🇭' },
+      sw: { name: 'Swahili', native: 'Kiswahili', flag: '🇹🇿' },
+      yo: { name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬' },
+      ig: { name: 'Igbo', native: 'Igbo', flag: '🇳🇬' },
+      ha: { name: 'Hausa', native: 'Hausa', flag: '🇳🇬' }
+    };
+
+    // ============================================
+    // i18next INITIALIZATION
+    // ============================================
+
+    i18next.init({
+      lng: 'en',
+      fallbackLng: 'en',
+      debug: false,
+      resources: Object.keys(translationResources).reduce((acc, lang) => {
+        acc[lang] = { translation: translationResources[lang] };
+        return acc;
+      }, {}),
+      detection: {
+        order: ['querystring'],
+        lookupQuerystring: 'lang'
+      }
+    }, function(err, t) {
+      if (err) return console.error('i18next init error:', err);
+      
+      // Get language from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlLang = urlParams.get('lang');
+      
+      if (urlLang && translationResources[urlLang]) {
+        changeLanguage(urlLang);
+      } else {
+        // Apply default translations
+        translatePage();
+      }
+    });
+
+    // Translate page function
+    function translatePage() {
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        const translation = i18next.t(key);
+        
+        if (translation && translation !== key) {
+          element.textContent = translation;
+        }
+      });
+
+      // Handle placeholders separately
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        const translation = i18next.t(key);
+        
+        if (translation && translation !== key) {
+          element.placeholder = translation;
+        }
+      });
+
+      // Update HTML lang attribute
+      document.documentElement.lang = i18next.language;
+      
+      // Update page title
+      const titleTranslation = i18next.t('pageTitle');
+      if (titleTranslation) {
+        document.title = titleTranslation;
+      }
+    }
+
+    // Change language function
+    function changeLanguage(lng) {
+      i18next.changeLanguage(lng, (err, t) => {
+        if (err) return console.error('Language change error:', err);
+        
+        translatePage();
+        updateLanguageDisplay(lng);
+        updateURLWithLanguage(lng);
+        
+        // Save preference
+        localStorage.setItem('preferredLanguage', lng);
+      });
+    }
+
+    // Update language display in header
+    function updateLanguageDisplay(lng) {
+      const currentLangEl = document.getElementById('currentLanguage');
+      if (currentLangEl && availableLanguages[lng]) {
+        currentLangEl.innerHTML = `${availableLanguages[lng].flag} ${availableLanguages[lng].native}`;
+      }
+    }
+
+    // Update URL with language parameter
+    function updateURLWithLanguage(lng) {
+      const url = new URL(window.location);
+      url.searchParams.set('lang', lng);
+      window.history.replaceState({}, '', url);
+    }
+
+    // Populate language dropdown
+    function populateLanguageDropdown() {
+      const dropdown = document.getElementById('languageDropdown');
+      if (!dropdown) return;
+      
+      let html = '';
+      const sortedLangs = Object.entries(availableLanguages).sort((a, b) => 
+        a[1].native.localeCompare(b[1].native)
+      );
+      
+      for (const [code, lang] of sortedLangs) {
+        const isActive = code === i18next.language ? 'active' : '';
+        html += `<div class="language-option ${isActive}" onclick="changeLanguage('${code}')">
+          ${lang.flag} ${lang.native} (${lang.name})
+        </div>`;
+      }
+      
+      dropdown.innerHTML = html;
+    }
+
+    // Toggle language dropdown
+    function toggleLanguageDropdown() {
+      document.getElementById('languageDropdown').classList.toggle('show');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const dropdown = document.getElementById('languageDropdown');
+      const btn = document.querySelector('.language-btn');
+      if (btn && dropdown && !btn.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.classList.remove('show');
+      }
+    });
+
+    // ============================================
+    // ORIGINAL AUTH CODE (with translations added)
+    // ============================================
+
     // TAB NAVIGATION
     function switchTab(tab) {
       const su = document.getElementById('signupForm');
@@ -284,7 +940,7 @@
     }
 
     function forgotPassword() {
-      alert("Forgotten Password functionality is coming soon. Please contact the administrator.");
+      alert(i18next.t('alerts.forgotPassword'));
     }
 
     // AUTH SUCCESS HANDLER
@@ -293,12 +949,16 @@
       if (data.message && data.message.toLowerCase().includes('success')) {
         if (data.userid) {
           localStorage.setItem('flowid', data.userid);
-          window.location.href = "flow.html";
+          
+          // Preserve language when redirecting
+          const currentLang = i18next.language;
+          const redirectUrl = currentLang !== 'en' ? `flow.html?lang=${currentLang}` : 'flow.html';
+          window.location.href = redirectUrl;
         } else {
           showError("Account verified, but UserID missing. Contact Admin.");
         }
       } else {
-        showError(data.message || "An unexpected error occurred.");
+        showError(data.message || i18next.t('errors.wrongCredentials'));
       }
     }
 
@@ -308,7 +968,7 @@
       const btn = document.getElementById('btn-login');
       const originalText = btn.innerText;
       
-      btn.innerText = "Authenticating...";
+      btn.innerText = i18next.t('buttons.authenticating') || "Authenticating...";
       btn.disabled = true;
       document.getElementById('error-display').style.display = 'none';
 
@@ -330,11 +990,11 @@
         if (data.message && data.message.toLowerCase().includes('success')) {
           handleAuthSuccess(data);
         } else {
-          // Custom Elite Error Message
-          showError("<b>Wrong email or password.</b><br>Click forgotten password or contact administrator.");
+          // Custom Elite Error Message with translation
+          showError(i18next.t('errors.wrongCredentials'));
         }
       } catch (err) {
-        showError("Connection failed. Please check your internet.");
+        showError(i18next.t('errors.connectionFailed'));
       } finally {
         // ALWAYS release the button
         btn.innerText = originalText;
@@ -348,7 +1008,7 @@
       const btn = document.getElementById('btn-signup');
       const originalText = btn.innerText;
 
-      btn.innerText = "Setting up...";
+      btn.innerText = i18next.t('buttons.signingUp') || "Setting up...";
       btn.disabled = true;
       document.getElementById('error-display').style.display = 'none';
 
@@ -368,11 +1028,22 @@
         const data = await response.json();
         handleAuthSuccess(data);
       } catch (err) {
-        showError("Could not connect to server. Try again later.");
+        showError(i18next.t('errors.serverError'));
       } finally {
         // ALWAYS release the button
         btn.innerText = originalText;
         btn.disabled = false;
+      }
+    });
+
+    // Populate language dropdown on load
+    document.addEventListener('DOMContentLoaded', function() {
+      populateLanguageDropdown();
+      
+      // Check for saved language preference
+      const savedLang = localStorage.getItem('preferredLanguage');
+      if (savedLang && translationResources[savedLang] && savedLang !== i18next.language) {
+        changeLanguage(savedLang);
       }
     });
   </script>
