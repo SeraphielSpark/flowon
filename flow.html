@@ -6,21 +6,16 @@
 <title>Flux On Customer Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="icon" href="favicon.ico" type="image/x-icon">
-<!-- Standard favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
-<!-- ICO fallback -->
-<link rel="shortcut icon" href="favicon.ico">
-<!-- Apple -->
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<!-- Android / Chrome -->
-<link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
+<link rel="icon" href="/Flow Project/favicon.ico" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="32x32" href="/Flow Project/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/Flow Project/favicon-16.png">
+<link rel="shortcut icon" href="/Flow Project/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/Flow Project/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/Flow Project/android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/Flow Project/android-chrome-512x512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* Modern Palette */
     --bg-body: #ffffff;
     --bg-surface: #ffffff;
     --bg-subtle: #f7f7f7;
@@ -41,6 +36,8 @@
     --color-red-text: #991b1b;
     --color-blue-bg: #dbeafe;
     --color-blue-text: #1e40af;
+    --whatsapp-green: #25D366;
+    --whatsapp-dark: #075E54;
     --accent-blue: #2563eb;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'Space Mono', monospace;
@@ -64,13 +61,11 @@
     flex-direction: column;
     min-height: 100vh;
   }
-  /* --- Layout --- */
   .app-container {
     display: flex;
     min-height: 100vh;
     width: 100%;
   }
-  /* --- Sidebar (Desktop) --- */
   .sidebar {
     width: var(--sidebar-width);
     background: var(--bg-surface);
@@ -138,7 +133,6 @@
   
   .nav-item.active .nav-icon { color: var(--text-main); }
   .nav-icon { font-size: 16px; color: var(--text-tertiary); width: 20px; text-align: center; }
-  /* LEGAL SIDEBAR SECTION */
   .sidebar-legal {
     margin-top: auto;
     padding-top: 12px;
@@ -155,7 +149,6 @@
   }
   .legal-link:hover { color: var(--text-main); text-decoration: underline; }
   
-  /* Sidebar Google Status */
   .sidebar-status-indicator {
       font-size: 12px;
       padding: 0 12px;
@@ -166,7 +159,6 @@
       gap: 8px;
       font-weight: 500;
   }
-  /* --- Main Content --- */
   .main-content {
     flex: 1;
     margin-left: var(--sidebar-width);
@@ -175,7 +167,6 @@
     background: var(--bg-body);
     min-height: 100vh;
   }
-  /* --- Header --- */
   .top-header {
     height: var(--header-height);
     border-bottom: 1px solid var(--border-light);
@@ -191,9 +182,8 @@
   }
   .header-title span { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
   .header-actions { display: flex; align-items: center; gap: 20px; }
-  /* LEGAL HEADER PILLS (Removed from view but class kept for structure if needed later) */
   .legal-header-pills {
-    display: none; /* HIDDEN AS REQUESTED */
+    display: none;
     gap: 8px;
     margin-right: 12px;
   }
@@ -215,7 +205,6 @@
       border-color: var(--color-green-text) !important;
       cursor: default !important;
   }
-  /* --- Notification Bell --- */
   .notification-btn {
     position: relative; cursor: pointer; padding: 8px; border-radius: 50%;
     color: var(--text-secondary); transition: background 0.2s; display: flex; align-items: center; justify-content: center;
@@ -245,18 +234,15 @@
   }
   .profile-info { text-align: left; }
   .profile-name { font-size: 13px; font-weight: 600; line-height: 1.2; }
-  /* --- Page Structure --- */
   .page-content { padding: 40px; max-width: 1200px; margin: 0 auto; width: 100%; flex: 1; }
   .section-content { animation: fadeIn 0.3s ease-out; }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  /* --- Cards --- */
   .welcome-card { margin-bottom: 40px; }
   .welcome-card h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; color: var(--text-main); }
   .welcome-card p { color: var(--text-secondary); font-size: 16px; max-width: 600px; margin-bottom: 24px; }
-  /* --- Dashboard Grid --- */
   .dashboard-cards {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 40px;
   }
@@ -270,7 +256,6 @@
   .card-count { font-size: 36px; font-weight: 800; line-height: 1; margin-bottom: 8px; letter-spacing: -1px; }
   .card-desc { font-size: 13px; color: var(--text-tertiary); }
   
-  /* --- Buttons --- */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     padding: 0 20px; height: 48px; border-radius: 4px; font-weight: 600; font-size: 15px;
@@ -289,10 +274,13 @@
   .btn-danger-outline { background: #fff; color: var(--color-red-text); border: 1px solid var(--color-red-bg); }
   .btn-danger-outline:hover { background: var(--color-red-bg); border-color: var(--color-red-text); }
   
+  .btn-whatsapp { background: var(--whatsapp-green); color: #fff; border-color: var(--whatsapp-green); }
+  .btn-whatsapp:hover { background: var(--whatsapp-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3); }
+  
   .btn-icon-only { width: 36px; height: 36px; padding: 0; font-size: 16px; color: var(--text-secondary); border: none; background: transparent; }
   .btn-icon-only:hover { color: var(--color-red-text); background: var(--bg-subtle); border-radius: 4px; }
   .action-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
-  /* --- Tables & Lists --- */
+  
   .automation-card { border: 1px solid var(--border-light); border-radius: var(--radius-md); background: #fff; overflow: hidden; }
   .automation-header { padding: 24px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; background: #fff; }
   .automation-content { padding: 24px; }
@@ -302,14 +290,14 @@
   .table-input { width: 100%; border: 1px solid transparent; background: transparent; padding: 6px; border-radius: 4px; font-family: inherit; font-size: 14px; }
   .table-input:hover { border-color: #ddd; background: #fff; }
   .table-input:focus { border-color: #000; background: #fff; }
-  /* --- Forms --- */
+  
   .message-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
   .form-group { margin-bottom: 20px; }
   .form-group.full-width { grid-column: 1 / -1; }
   .form-label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--text-main); }
   .form-control { width: 100%; padding: 12px 16px; font-size: 15px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: #fff; color: var(--text-main); font-family: var(--font-sans); }
   .form-control:focus { border-color: #000; box-shadow: 0 0 0 1px #000; }
-  /* --- Email List --- */
+  
   .email-list-section { border: 1px solid var(--border-light); border-radius: var(--radius-md); background: #fff; }
   .select-all { padding: 16px 20px; border-bottom: 1px solid var(--border-light); background: var(--bg-subtle); display: flex; align-items: center; gap: 12px; }
   .email-list { max-height: 400px; overflow-y: auto; }
@@ -318,12 +306,11 @@
   .email-info { flex: 1; }
   .email-address { font-weight: 500; font-size: 14px; word-break: break-all; }
   .email-customer { font-size: 12px; color: var(--text-secondary); }
-  /* Status Badges */
   .email-status { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; text-transform: uppercase; }
   .status-active, [value="Active"] { background: var(--color-green-bg); color: var(--color-green-text); }
   .status-inactive, [value="Inactive"] { background: var(--color-red-bg); color: var(--color-red-text); }
   .status-pending, [value="Pending"] { background: var(--color-yellow-bg); color: var(--color-yellow-text); }
-  /* --- Templates Section Styles --- */
+  
   .template-selector { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
   .template-btn { padding: 8px 16px; background: #fff; border: 1px solid var(--border-light); border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
   .template-btn:hover { border-color: #999; }
@@ -336,7 +323,7 @@
   .template-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e5e7eb; color: #374151; font-weight: 600; }
   .template-body { padding: 16px; flex: 1; font-size: 14px; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .template-footer { padding: 16px; border-top: 1px solid var(--border-light); display: flex; gap: 8px; }
-  /* --- Analytics Charts Styles --- */
+  
   .chart-container { margin-top: 24px; height: 200px; display: flex; align-items: flex-end; gap: 12px; padding-bottom: 24px; border-bottom: 1px solid var(--border-light); }
   .chart-bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
   .chart-bar { width: 100%; background: #000; border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.5s ease-out; position: relative; }
@@ -350,7 +337,7 @@
   .metric-trend { font-size: 12px; font-weight: 600; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
   .trend-up { color: var(--color-green-text); }
   .trend-down { color: var(--color-red-text); }
-  /* --- Google Integration Card CSS --- */
+  
   .google-connect-card {
       background: #fff;
       border: 1px solid var(--border-light);
@@ -372,105 +359,13 @@
       align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px;
   }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: currentColor; }
-  
-  /* Status Variations */
   .status-disconnected { background: var(--color-red-bg); color: var(--color-red-text); }
   .status-connected { background: var(--color-green-bg); color: var(--color-green-text); }
   
-  /* --- INBOX CONNECT PROMPT STYLES --- */
-  .inbox-connect-prompt {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 40px;
-      text-align: center;
-      background: #fff;
-      border-radius: var(--radius-lg);
-      border: 1px dashed var(--border-light);
-      margin-bottom: 24px;
-  }
-  
-  .inbox-connect-icon {
-      font-size: 64px;
-      margin-bottom: 24px;
-      opacity: 0.7;
-  }
-  
-  .inbox-connect-title {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: var(--text-main);
-  }
-  
-  .inbox-connect-description {
-      color: var(--text-secondary);
-      margin-bottom: 32px;
-      max-width: 500px;
-      line-height: 1.6;
-  }
-  
-  .inbox-connect-button {
-      background: #000;
-      color: #fff;
-      border: none;
-      padding: 14px 32px;
-      border-radius: 40px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  
-  .inbox-connect-button:hover {
-      background: #333;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-  }
-  
-  .inbox-connect-button svg {
-      width: 20px;
-      height: 20px;
-  }
-  
-  .inbox-header-connected {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding: 16px 20px;
-      background: var(--color-green-bg);
-      border-radius: var(--radius-md);
-      color: var(--color-green-text);
-  }
-  
-  .inbox-header-connected .btn-link {
-      background: transparent;
-      border: 1px solid currentColor;
-      color: var(--color-green-text);
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-  }
-  
-  .inbox-header-connected .btn-link:hover {
-      background: var(--color-green-text);
-      color: white;
-  }
-  
-  /* --- INBOX STYLES (ELITE STRUCTURE) --- */
   .inbox-layout {
       display: grid;
       grid-template-columns: 320px 1fr;
-      height: calc(100vh - 180px); /* Adjust based on header/padding */
+      height: calc(100vh - 180px);
       border: 1px solid var(--border-light);
       border-radius: var(--radius-md);
       background: #fff;
@@ -478,7 +373,6 @@
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   }
   
-  /* Inbox List (Left) */
   .inbox-list {
       border-right: 1px solid var(--border-light);
       overflow-y: auto;
@@ -496,7 +390,6 @@
   .inbox-item:hover { background: var(--bg-hover); }
   .inbox-item.selected { background: var(--bg-subtle); border-left: 3px solid #000; padding-left: 17px; }
   
-  /* Read vs Unread Styling */
   .inbox-item.unread .inbox-sender, .inbox-item.unread .inbox-subject { font-weight: 700; color: #000; }
   .inbox-item.unread::after { content: ''; position: absolute; top: 20px; right: 20px; width: 8px; height: 8px; background: var(--accent-blue); border-radius: 50%; }
   .inbox-item-header { display: flex; justify-content: space-between; margin-bottom: 6px; align-items: baseline; }
@@ -505,7 +398,7 @@
   
   .inbox-subject { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .inbox-snippet { font-size: 12px; color: var(--text-tertiary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
-  /* Inbox View (Right) */
+  
   .inbox-view {
       display: flex;
       flex-direction: column;
@@ -523,7 +416,6 @@
       gap: 16px;
   }
   .empty-icon { font-size: 48px; opacity: 0.5; }
-  /* Toolbar */
   .inbox-toolbar { padding: 12px 24px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; background: #fff; }
   
   .inbox-view-content { overflow-y: auto; flex: 1; }
@@ -543,7 +435,7 @@
   .inbox-view-body img { max-width: 100%; height: auto; border-radius: 4px; }
   .inbox-view-body a { color: var(--accent-blue); text-decoration: none; }
   .inbox-view-body a:hover { text-decoration: underline; }
-  /* --- Settings Styles --- */
+  
   .settings-container { max-width: 800px; }
   .settings-group { margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid var(--border-light); }
   .settings-group:last-child { border-bottom: none; }
@@ -552,21 +444,19 @@
   .toggle-label { font-weight: 500; font-size: 15px; }
   .toggle-desc { font-size: 13px; color: var(--text-tertiary); }
   
-  /* Toggle Switch */
   .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
   .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
   input:checked + .slider { background-color: #000; }
   input:checked + .slider:before { transform: translateX(20px); }
-  /* --- Modal --- */
+  
   .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
   .modal-content { background: #fff; width: 90%; max-width: 550px; padding: 40px; border: 1px solid var(--border-light); border-radius: var(--radius-lg); box-shadow: 0 20px 40px rgba(0,0,0,0.1); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; overflow-y: auto; }
   @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  /* --- LOADING ANIMATIONS --- */
+  
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   
-  /* Button Spinner */
   .btn-spinner {
     width: 16px; height: 16px;
     border: 2px solid rgba(255,255,255,0.3);
@@ -583,7 +473,6 @@
       border-top-color: #000;
   }
   
-  /* Global Loader Overlay */
   .loader-overlay {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -610,103 +499,150 @@
       color: var(--text-main);
   }
   
-  /* --- MOBILE RESPONSIVE STYLES --- */
-  
-  /* 1. Mobile Menu Button (Hidden on Desktop) */
-  .mobile-menu-btn {
-      display: none;
-      background: transparent;
-      border: none;
-      padding: 8px;
-      margin-right: 12px;
-      cursor: pointer;
-      color: var(--text-main);
-  }
-  
-  /* 2. Mobile Close Button (Inside Sidebar) */
-  .mobile-close-btn {
-      display: none;
-      background: transparent;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      margin-left: auto; /* Push to right */
-      color: var(--text-secondary);
-  }
-  
-  /* 3. Overlay (Dark background) */
-  .mobile-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s;
-      backdrop-filter: blur(2px);
-  }
-  .mobile-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-  }
-  
-  /* Login Required Modal */
-  .login-required-modal .modal-content {
-      max-width: 400px;
+  /* WhatsApp Connect Styles */
+  .whatsapp-connect-prompt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 40px;
       text-align: center;
-  }
-  
-  .login-required-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
-  }
-  
-  .login-required-title {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 12px;
-  }
-  
-  .login-required-text {
-      color: var(--text-secondary);
+      background: #fff;
+      border-radius: var(--radius-lg);
+      border: 1px dashed var(--border-light);
       margin-bottom: 24px;
   }
   
-  .login-required-buttons {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
+  .whatsapp-connect-icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+      opacity: 0.7;
+      color: var(--whatsapp-green);
   }
   
-  .login-required-buttons .btn {
-      flex: 1;
+  .whatsapp-connect-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text-main);
+  }
+  
+  .whatsapp-connect-description {
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      max-width: 500px;
+      line-height: 1.6;
+  }
+  
+  .whatsapp-instructions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-top: 40px;
+  }
+  
+  .instruction-card {
+      background: var(--bg-subtle);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      text-align: center;
+  }
+  
+  .instruction-card h3 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: var(--text-main);
+  }
+  
+  .qr-code {
+      background: #fff;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      display: inline-block;
+      margin-bottom: 15px;
+      border: 1px solid var(--border-light);
+  }
+  
+  .qr-code img {
+      width: 200px;
+      height: 200px;
+  }
+  
+  .whatsapp-number {
+      background: #fff;
+      padding: 15px;
+      border-radius: var(--radius-md);
+      margin: 15px 0;
+      border: 1px solid var(--border-light);
+  }
+  
+  .whatsapp-number code {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--whatsapp-dark);
+  }
+  
+  .message-example {
+      background: #e5f5e9;
+      border-left: 4px solid var(--whatsapp-green);
+      padding: 15px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      margin-top: 10px;
+      word-break: break-all;
+  }
+  
+  .whatsapp-header-connected {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 16px 20px;
+      background: #e5f5e9;
+      border-radius: var(--radius-md);
+      color: var(--whatsapp-dark);
+      border: 1px solid var(--whatsapp-green);
+  }
+  
+  .whatsapp-header-connected .btn-link {
+      background: transparent;
+      border: 1px solid var(--whatsapp-dark);
+      color: var(--whatsapp-dark);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+  
+  .whatsapp-header-connected .btn-link:hover {
+      background: var(--whatsapp-dark);
+      color: white;
   }
   
   @media (max-width: 768px) {
-    /* Layout Reset */
     .app-container { flex-direction: column; }
     .main-content { margin-left: 0; width: 100%; }
     
-    /* Header Adjustments */
     .top-header { 
         padding: 0 16px; 
         height: 60px; 
-        position: sticky; /* Keep header sticky on mobile too */
+        position: sticky;
         top: 0;
         background: rgba(255,255,255,0.95);
         z-index: 900;
     }
     
     .mobile-menu-btn { display: block; }
-    
-    /* Hide non-essential header items on mobile */
     #btnRefresh, .profile-info, #headerGoogleStatus { display: none !important; }
     
-    /* SIDEBAR TRANSFORMATION (Off-canvas) */
     .sidebar { 
       position: fixed;
       top: 0;
-      left: -280px; /* Hide off-screen left */
+      left: -280px;
       width: 280px;
       height: 100vh;
       z-index: 2000;
@@ -714,28 +650,26 @@
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       border-right: none;
       padding-top: 20px;
-      flex-direction: column; /* Reset direction */
-      align-items: stretch; /* Reset alignment */
+      flex-direction: column;
+      align-items: stretch;
       background: #fff;
     }
     
     .sidebar.active {
-      transform: translateX(280px); /* Slide in */
+      transform: translateX(280px);
     }
     
-    /* Mobile Sidebar Internals */
     .logo-area {
         display: flex;
         align-items: center;
         margin-bottom: 20px;
         justify-content: space-between;
-        padding: 0 16px; /* Restore padding */
+        padding: 0 16px;
         flex-shrink: 0;
     }
     .mobile-close-btn { display: block; }
-    .sidebar-legal { display: block; } /* Show legal links on mobile sidebar */
+    .sidebar-legal { display: block; }
     
-    /* Restore Nav Items for Vertical List */
     .nav-menu { 
       flex-direction: column; 
       overflow-x: hidden;
@@ -754,7 +688,7 @@
     .nav-item.active { background: var(--bg-subtle); color: var(--text-main); }
     .nav-item.active .nav-icon { color: var(--text-main); }
     
-    .sidebar-status-indicator { margin-top: auto; } /* Push to bottom before legal */
+    .sidebar-status-indicator { margin-top: auto; }
 
     .page-content { padding: 20px 16px; }
     .welcome-card h1 { font-size: 24px; }
@@ -786,7 +720,6 @@
     .modal-content .form-actions .btn { margin-left: 0 !important; }
     .templates-grid { grid-template-columns: 1fr; }
     
-    /* Mobile Inbox Adjustment */
     .inbox-layout { grid-template-columns: 1fr; border: none; height: calc(100vh - 120px); box-shadow: none; }
     .inbox-list { border-right: none; height: 100%; }
     .inbox-view { position: fixed; top: 60px; left: 0; width: 100%; height: calc(100vh - 60px); z-index: 950; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; }
@@ -797,11 +730,9 @@
     .google-connect-card { flex-direction: column; align-items: flex-start; gap: 20px; }
     .google-connect-card .btn { width: 100%; justify-content: center; }
     
-    .inbox-connect-prompt { padding: 40px 20px; }
-    .inbox-connect-title { font-size: 20px; }
+    .whatsapp-instructions { grid-template-columns: 1fr; }
   }
 
-  /* Auth Status Indicator Styles - Preserving your exact styling */
   .auth-status {
     display: flex;
     flex-direction: column;
@@ -836,16 +767,14 @@
 
 <div class="app-container">
   
-  <!-- MOBILE OVERLAY -->
   <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
 
   <aside class="sidebar" id="mainSidebar" aria-label="Main navigation">
     <div class="logo-area">
       <div class="logo" style="column-gap: 2px;">
-        <div style="background-color: transparent; width: fit-content;" aria-hidden="true"><img src="favicon.ico"></div>
+        <div style="background-color: transparent; width: fit-content;" aria-hidden="true"><img src="/Flow Project/favicon.ico"></div>
         <span>Flux On</span>
       </div>
-      <!-- MOBILE CLOSE BUTTON -->
       <button class="mobile-close-btn" onclick="toggleMobileMenu()">×</button>
     </div>
     
@@ -866,6 +795,10 @@
         <span class="nav-icon">⚡</span>
         <span>Automation</span>
       </a>
+      <a href="#whatsapp" class="nav-item" onclick="showSection('whatsapp'); closeMobileMenu();">
+        <span class="nav-icon">📱</span>
+        <span>WhatsApp</span>
+      </a>
       <a href="#analytics" class="nav-item" onclick="showSection('analytics'); closeMobileMenu();">
         <span class="nav-icon">📈</span>
         <span>Analytics</span>
@@ -880,7 +813,6 @@
       </a>
     </nav>
     
-    <!-- Auth Status Indicator - Shows login status in sidebar (visible on mobile) -->
     <div class="auth-status" id="mobileAuthStatus">
       <div class="auth-status-item">
         <span class="auth-icon">🔒</span>
@@ -892,6 +824,12 @@
         <div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div>
         Gmail: Not Linked
     </div>
+    
+    <div id="sidebarWhatsAppStatus" class="sidebar-status-indicator" style="margin-top: 5px;">
+        <div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div>
+        WhatsApp: Not Connected
+    </div>
+    
     <div class="sidebar-legal">
         <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" class="legal-link">Privacy Policy</a>
         <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" class="legal-link">Terms of Service</a>
@@ -913,10 +851,10 @@
       </div>
     </div>
   </aside>
+  
   <main class="main-content">
     
     <header class="top-header" role="banner">
-      <!-- HAMBURGER BUTTON (Mobile Only) -->
       <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Open menu">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -932,6 +870,9 @@
       <div class="header-actions">
         <div id="headerGoogleStatus" class="legal-pill status-pill-connected" style="display: none;">
             ✓ Gmail Linked
+        </div>
+        <div id="headerWhatsAppStatus" class="legal-pill" style="display: none; background: #e5f5e9; color: var(--whatsapp-dark);">
+            📱 WhatsApp Connected
         </div>
         <div class="notification-btn" onclick="showSection('inbox')" title="Notifications">
             <svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -954,6 +895,7 @@
     
     <div class="page-content">
       
+      <!-- Dashboard Section -->
       <section id="dashboardSection" class="section-content" aria-labelledby="dashboardTitle">
         <div class="welcome-card">
           <h1 id="dashboardTitle">Hello, <span id="userGreeting">User</span>.</h1>
@@ -1023,6 +965,7 @@
         </div>
       </section>
       
+      <!-- Customers Section -->
       <section id="customersSection" class="section-content" aria-labelledby="customersTitle" style="display: none;">
         <div class="welcome-card">
           <div style="display: flex; flex-direction: column; gap: 16px;">
@@ -1055,48 +998,37 @@
         </div>
       </section>
       
-      <!-- UPDATED INBOX SECTION WITH CONNECT PROMPT -->
+      <!-- Inbox Section -->
       <section id="inboxSection" class="section-content" aria-labelledby="inboxTitle" style="display: none;">
         <div class="welcome-card" style="margin-bottom: 24px;">
            <h1 id="inboxTitle">Inbox</h1>
            <p>Messages from your audience.</p>
         </div>
         
-        <!-- Google Connection Status & Prompt (Shown when disconnected) -->
+        <!-- Google Connection Status & Prompt -->
         <div id="inboxConnectContainer" style="display: none;">
-          <div class="inbox-connect-prompt">
-            <div class="inbox-connect-icon">📧</div>
-            <div class="inbox-connect-title">Connect Your Gmail Account</div>
-            <div class="inbox-connect-description">
-              To view and manage your inbox messages, you need to connect your Gmail account. 
-              This allows you to read, reply, and manage emails directly from Flux On.
+          <div class="google-connect-card" style="border-color: var(--color-red-bg);">
+            <div class="google-info">
+              <h3>Connect Your Gmail Account</h3>
+              <p>To view and manage your inbox messages, you need to connect your Gmail account.</p>
+              
+              <div id="inboxConnectionStatus" class="connection-status status-disconnected">
+                <span class="status-dot"></span>
+                <span>Disconnected</span>
+              </div>
             </div>
-            <button class="inbox-connect-button" onclick="connectGoogle()">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M21.35,11.1H12.18V13.83H17.45C17.19,15.3 16.34,16.58 15.19,17.38V19.51H18.38C20.25,17.79 21.33,15.24 21.33,12.28C21.33,11.9 21.27,11.5 21.18,11.13V11.1M12.18,21.36C14.75,21.36 16.91,20.5 18.38,19.14L15.19,17.01C14.33,17.58 13.25,17.9 12.18,17.9C9.7,17.9 7.6,16.22 6.84,13.93H3.55V16.48C5.07,19.5 8.35,21.36 12.18,21.36M6.84,13.93C6.64,13.36 6.54,12.75 6.54,12.14C6.54,11.53 6.64,10.92 6.84,10.34V7.8H3.55C2.26,10.37 2.26,13.9 3.55,16.48H6.84M12.18,6.38C13.56,6.38 14.81,6.86 15.79,7.79L18.42,5.16C16.91,3.75 14.75,2.92 12.18,2.92C8.35,2.92 5.07,4.78 3.55,7.8L6.84,10.34C7.6,8.05 9.7,6.38 12.18,6.38Z" />
+            
+            <button id="btnConnectGmailInbox" class="btn btn-secondary" onclick="connectGoogle()">
+              <svg style="width:18px; height:18px;" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M21.35,11.1H12.18V13.83H17.45C17.19,15.3 16.34,16.58 15.19,17.38V19.51H18.38C20.25,17.79 21.33,15.24 21.33,12.28C21.33,11.9 21.27,11.5 21.18,11.13V11.1M12.18,21.36C14.75,21.36 16.91,20.5 18.38,19.14L15.19,17.01C14.33,17.58 13.25,17.9 12.18,17.9C9.7,17.9 7.6,16.22 6.84,13.93H3.55V16.48C5.07,19.5 8.35,21.36 12.18,21.36M6.84,13.93C6.64,13.36 6.54,12.75 6.54,12.14C6.54,11.53 6.64,10.92 6.84,10.34V7.8H3.55C2.26,10.37 2.26,13.9 3.55,16.48H6.84M12.18,6.38C13.56,6.38 14.81,6.86 15.79,7.79L18.42,5.16C16.91,3.75 14.75,2.92 12.18,2.92C8.35,2.92 5.07,4.78 3.55,7.8L6.84,10.34C7.6,8.05 9.7,6.38 12.18,6.38Z" />
               </svg>
-              Connect Gmail Account
+              Connect Gmail
             </button>
-            <p style="margin-top: 24px; font-size: 12px; color: var(--text-tertiary);">
-              We'll only access your emails to display them in your inbox. Your data is secure.
-            </p>
           </div>
         </div>
         
-        <!-- Connected Header (Shown when connected) -->
-        <div id="inboxConnectedHeader" class="inbox-header-connected" style="display: none;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-            <span style="font-weight: 600;">Gmail Connected</span>
-            <span style="font-size: 12px;" id="inboxEmailDisplay"></span>
-          </div>
-          <button class="btn-link" onclick="refreshInbox()">⟳ Refresh Inbox</button>
-        </div>
-        
-        <!-- Inbox Layout (Hidden until connected) -->
-        <div class="inbox-layout" id="inboxLayout" style="display: none;">
+        <!-- Inbox Layout -->
+        <div class="inbox-layout" id="inboxLayout">
            <div class="inbox-list" id="inboxList">
                <div style="padding: 32px; text-align: center; color: var(--text-tertiary);">Loading messages...</div>
            </div>
@@ -1109,19 +1041,18 @@
                <div id="inboxContent" style="display: none; height: 100%; flex-direction: column;">
                    <div class="inbox-toolbar">
                        <div style="display: flex; align-items: center;">
-                           <button class="btn btn-secondary mobile-back-btn" style="display:none; height: 32px; padding: 0 10px;" onclick="closeMobileInbox()">← Back</button>
+                           <button class="btn btn-secondary mobile-back-btn" style="display:none; height: 32px; padding: 0 10px;" onclick="closeMobileInbox()">←</button>
                            <span style="font-size: 13px; color: var(--text-tertiary);" id="viewMetaToolbar">Reading Message</span>
                        </div>
                        <div style="display: flex; gap: 8px;">
-                           <button class="btn btn-icon-only" onclick="archiveCurrentMessage()" title="Archive Message">
-                               <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                           <button class="btn btn-icon-only" onclick="sendToWhatsApp()" title="Send to WhatsApp" id="whatsappNotifyBtn" style="color: var(--whatsapp-green);">
+                               <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="currentColor">
+                                   <path d="M19.05 4.91A9.816 9.816 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.32a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.183 8.183 0 0 1 2.41 5.83c.02 4.54-3.68 8.24-8.22 8.24z"/>
+                                   <path d="M16.5 13.5c-.25-.12-1.48-.73-1.71-.81-.23-.08-.4-.12-.56.12-.16.25-.64.81-.78.98-.15.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.15-.25-.02-.38.11-.5.11-.11.25-.29.37-.44.12-.15.16-.25.25-.41.08-.16.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.49-.4-.42-.56-.43-.14-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.12.17 1.77 2.71 4.29 3.8.6.26 1.07.41 1.43.53.6.19 1.15.16 1.58.1.48-.07 1.48-.61 1.69-1.19.21-.58.21-1.08.15-1.19-.06-.1-.22-.16-.47-.28z"/>
                                </svg>
                            </button>
                            <button class="btn btn-icon-only" onclick="deleteCurrentMessage()" title="Delete Message">
-                               <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                               </svg>
+                               <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                            </button>
                        </div>
                    </div>
@@ -1138,14 +1069,14 @@
                                <div class="view-timestamp" id="viewDate">Today</div>
                            </div>
                        </div>
-                       <div class="inbox-view-body" id="viewBody">
-                       </div>
+                       <div class="inbox-view-body" id="viewBody"></div>
                    </div>
                </div>
            </div>
         </div>
       </section>
       
+      <!-- Automation Section -->
       <section id="automationSection" class="section-content" aria-labelledby="automationTitle" style="display: none;">
         <div class="welcome-card">
            <h1>Automation Center</h1>
@@ -1157,11 +1088,11 @@
             <h2>New Campaign</h2>
             <div class="stats-grid">
               <div class="stat-item">
-                <div class="stat-value" id="selectedCount" aria-live="polite">0</div>
+                <div class="stat-value" id="selectedCount">0</div>
                 <div class="stat-label">Recipients</div>
               </div>
               <div class="stat-item">
-                <div class="stat-value" id="totalEmails" aria-live="polite">0</div>
+                <div class="stat-value" id="totalEmails">0</div>
                 <div class="stat-label">Total List</div>
               </div>
             </div>
@@ -1187,6 +1118,27 @@
                     Connect Gmail
                 </button>
             </div>
+            
+            <!-- WhatsApp Notification Toggle -->
+            <div class="google-connect-card" style="margin-top: 16px; border-color: var(--whatsapp-green);">
+                <div class="google-info">
+                    <h3>WhatsApp Notifications</h3>
+                    <p>Get notified on WhatsApp when you receive new emails.</p>
+                    
+                    <div id="whatsappStatus" class="connection-status status-disconnected">
+                        <span class="status-dot"></span>
+                        <span>Not Connected</span>
+                    </div>
+                </div>
+                
+                <button id="btnSetupWhatsApp" class="btn btn-whatsapp" onclick="showSection('whatsapp')">
+                    <svg style="width:18px; height:18px;" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.05 4.91A9.816 9.816 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.32a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.183 8.183 0 0 1 2.41 5.83c.02 4.54-3.68 8.24-8.22 8.24z"/>
+                    </svg>
+                    Setup WhatsApp
+                </button>
+            </div>
+            
             <div class="email-list-section">
               <div class="select-all">
                 <input type="checkbox" id="selectAllEmails" class="select-all-checkbox" onchange="toggleAllEmails()" aria-label="Select all customers">
@@ -1261,6 +1213,114 @@
         </div>
       </section>
       
+      <!-- WhatsApp Automation Section -->
+      <section id="whatsappSection" class="section-content" aria-labelledby="whatsappTitle" style="display: none;">
+        <div class="welcome-card">
+          <h1 id="whatsappTitle">WhatsApp Automation</h1>
+          <p>Receive email notifications directly on your WhatsApp.</p>
+        </div>
+        
+        <div class="automation-card">
+          <div class="automation-header">
+            <h2>Connect WhatsApp</h2>
+          </div>
+          <div class="automation-content">
+            
+            <!-- Connection Status Card -->
+            <div id="whatsappStatusCard">
+              <div id="whatsappNotConnected" style="display: block;">
+                <div class="whatsapp-connect-prompt">
+                  <div class="whatsapp-connect-icon">📱</div>
+                  <div class="whatsapp-connect-title">Connect Your WhatsApp</div>
+                  <div class="whatsapp-connect-description">
+                    Get instant notifications on WhatsApp whenever you receive a new email. 
+                    Choose one of the methods below to connect.
+                  </div>
+                </div>
+              </div>
+              
+              <div id="whatsappConnected" style="display: none;">
+                <div class="whatsapp-header-connected">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19.05 4.91A9.816 9.816 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.32a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.183 8.183 0 0 1 2.41 5.83c.02 4.54-3.68 8.24-8.22 8.24z"/>
+                    </svg>
+                    <span style="font-weight: 600;">WhatsApp Connected</span>
+                    <span style="font-size: 14px;" id="whatsappNumberDisplay"></span>
+                  </div>
+                  <button class="btn-link" onclick="disconnectWhatsApp()">Disconnect</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- QR Code and Instructions -->
+            <div class="whatsapp-instructions">
+              <div class="instruction-card">
+                <h3>Option 1: Scan QR Code</h3>
+                <div class="qr-code">
+                  <img src="https://seraphielspark.github.io/flowon/download.svg" alt="WhatsApp QR Code">
+                </div>
+                <p style="color: var(--text-secondary); font-size: 14px;">
+                  Open WhatsApp on your phone, tap Menu (Android) or Settings (iOS), then WhatsApp Web, and scan this QR code.
+                </p>
+              </div>
+              
+              <div class="instruction-card">
+                <h3>Option 2: Send Message</h3>
+                <div class="whatsapp-number">
+                  <code>+14155238886</code>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">
+                  Send this exact message to the number above:
+                </p>
+                <div class="message-example">
+                  <code>join ride-image</code>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 12px; margin-top: 15px;">
+                  After sending the message, your WhatsApp will be automatically connected.
+                </p>
+              </div>
+            </div>
+            
+            <!-- Phone Number Form -->
+            <div style="margin-top: 40px; border-top: 1px solid var(--border-light); padding-top: 30px;">
+              <h3 style="font-size: 18px; margin-bottom: 20px;">Or enter your WhatsApp number manually</h3>
+              <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                  <label class="form-label" for="whatsappNumber">WhatsApp Number (with country code)</label>
+                  <input type="tel" class="form-control" id="whatsappNumber" placeholder="e.g., +1234567890">
+                </div>
+                <button class="btn btn-whatsapp" onclick="registerWhatsApp()" style="height: 48px;">
+                  <svg style="width:18px; height:18px; margin-right: 8px;" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.05 4.91A9.816 9.816 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.32a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.183 8.183 0 0 1 2.41 5.83c.02 4.54-3.68 8.24-8.22 8.24z"/>
+                  </svg>
+                  Register Number
+                </button>
+              </div>
+              <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 10px;">
+                Use international format: +[country code][number] (e.g., +1234567890)
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Test Notification Card -->
+        <div class="automation-card" style="margin-top: 24px;">
+          <div class="automation-header">
+            <h2>Test Notification</h2>
+          </div>
+          <div class="automation-content">
+            <p style="margin-bottom: 20px; color: var(--text-secondary);">
+              Send a test WhatsApp notification to verify your connection is working.
+            </p>
+            <button class="btn btn-secondary" onclick="testWhatsApp()" id="testWhatsAppBtn">
+              Send Test Notification
+            </button>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Analytics Section -->
       <section id="analyticsSection" class="section-content" aria-labelledby="analyticsTitle" style="display: none;">
         <div class="welcome-card">
           <h1 id="analyticsTitle">Analytics</h1>
@@ -1289,12 +1349,12 @@
                 <h2>Email Performance (Last 7 Days)</h2>
             </div>
             <div class="automation-content">
-                <div class="chart-container" id="analyticsChart">
-                    </div>
+                <div class="chart-container" id="analyticsChart"></div>
             </div>
         </div>
       </section>
       
+      <!-- Templates Section -->
       <section id="templatesSection" class="section-content" aria-labelledby="templatesTitle" style="display: none;">
         <div class="welcome-card">
           <div style="display: flex; flex-direction: column; gap: 16px;">
@@ -1308,10 +1368,10 @@
           </div>
         </div>
         
-        <div class="templates-grid" id="templatesGrid">
-            </div>
+        <div class="templates-grid" id="templatesGrid"></div>
       </section>
       
+      <!-- Settings Section -->
       <section id="settingsSection" class="section-content" aria-labelledby="settingsTitle" style="display: none;">
         <div class="welcome-card">
           <h1 id="settingsTitle">Settings</h1>
@@ -1327,15 +1387,34 @@
                             <div class="message-form">
                                 <div class="form-group">
                                     <label class="form-label">Full Name</label>
-                                    <input type="text" class="form-control" id="settingsName" value="Admin User">
+                                    <input type="text" class="form-control" id="settingsName">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Email Address</label>
-                                    <input type="email" class="form-control" id="settingsEmail" value="admin@example.com">
+                                    <input type="email" class="form-control" id="settingsEmail">
                                 </div>
                             </div>
                         </form>
                     </div>
+                    
+                    <div class="settings-group">
+                        <div class="settings-title">WhatsApp Integration</div>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label">Email Notifications on WhatsApp</div>
+                                <div class="toggle-desc">Receive WhatsApp notifications for new emails</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="whatsappToggle" onchange="toggleWhatsAppNotifications()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div id="whatsappSettingsNumber" style="margin-top: 16px; padding: 16px; background: var(--bg-subtle); border-radius: var(--radius-md); display: none;">
+                            <span style="font-weight: 600;">Connected Number: </span>
+                            <span id="settingsWhatsAppNumber"></span>
+                        </div>
+                    </div>
+                    
                     <div class="settings-group">
                         <div class="settings-title">Notifications</div>
                         <div class="toggle-row">
@@ -1359,6 +1438,7 @@
                             </label>
                         </div>
                     </div>
+                    
                     <div class="settings-group">
                         <div class="settings-title">Security</div>
                         <div class="action-buttons">
@@ -1402,6 +1482,7 @@
   </div>
 </div>
 
+<!-- Add Customer Modal -->
 <div class="modal" id="addCustomerModal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
   <div class="modal-content">
     <div class="modal-header">
@@ -1440,6 +1521,7 @@
   </div>
 </div>
 
+<!-- Template Modal -->
 <div class="modal" id="templateModal" role="dialog" aria-labelledby="templateModalTitle" aria-hidden="true">
   <div class="modal-content">
     <div class="modal-header">
@@ -1471,6 +1553,7 @@
   </div>
 </div>
 
+<!-- Preview Modal -->
 <div class="modal" id="previewModal" role="dialog" aria-labelledby="previewTitle" aria-hidden="true">
   <div class="modal-content">
     <div class="modal-header">
@@ -1504,6 +1587,8 @@ let inboxMessages = [];
 let currentMessageIndex = -1;
 let selectedEmails = new Set();
 let isGoogleConnected = false;
+let isWhatsAppConnected = false;
+let whatsAppNumber = '';
 let userEmail = '';
 
 const defaultTemplates = [
@@ -1543,7 +1628,6 @@ function redirectToSignup() {
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
-  // Check URL params for OAuth callback
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('status') === 'connected') {
       const userId = urlParams.get('userId');
@@ -1552,12 +1636,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       window.history.replaceState({}, document.title, window.location.pathname);
-      updateConnectionUI(true);
+      updateGoogleConnectionUI(true);
       showMessage('Google Account Connected Successfully!', 'success');
       showSection('automation');
   }
 
-  // Check if user is logged in
   if (!flowId) {
     document.getElementById('logoutauth').style.display = 'none';
     document.getElementById('signupauth').style.display = 'flex';
@@ -1578,8 +1661,7 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
     }
     return;
-  }
-  else{
+  } else {
     document.getElementById('logoutauth').style.display = 'flex';
     document.getElementById('signupauth').style.display = 'none';
     
@@ -1594,10 +1676,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Initial Load
   loadUserData();
+  checkWhatsAppStatus();
   setupEventListeners();
-  // Poll for new emails every 30 seconds
   setInterval(loadInboxMessages, 30000);
 });
 
@@ -1636,90 +1717,267 @@ function connectGoogle() {
    window.location.href = targetUrl;
 }
 
-function updateConnectionUI(isConnected, email = '') {
+function updateGoogleConnectionUI(isConnected) {
     isGoogleConnected = isConnected;
-    userEmail = email;
     
-    // Update automation section
     const statusEl = document.getElementById('connectionStatus');
     const btn = document.getElementById('btnConnectGoogle');
+    const inboxStatusEl = document.getElementById('inboxConnectionStatus');
+    const inboxConnectContainer = document.getElementById('inboxConnectContainer');
+    const inboxLayout = document.getElementById('inboxLayout');
     
     if (isConnected) {
-        statusEl.className = 'connection-status status-connected';
-        statusEl.innerHTML = '<span class="status-dot"></span><span>Active</span>';
+        if (statusEl) {
+            statusEl.className = 'connection-status status-connected';
+            statusEl.innerHTML = '<span class="status-dot"></span><span>Active</span>';
+        }
+        if (btn) {
+            btn.innerHTML = '✓ Account Linked (Reconnect?)';
+            btn.className = 'btn btn-success';
+            btn.onclick = function() {
+                if(confirm('Do you want to reconnect your Google Account?')) {
+                    connectGoogle();
+                }
+            };
+        }
+        if (inboxStatusEl) {
+            inboxStatusEl.className = 'connection-status status-connected';
+            inboxStatusEl.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
+        }
+        if (inboxConnectContainer) inboxConnectContainer.style.display = 'none';
+        if (inboxLayout) inboxLayout.style.display = 'grid';
         
-        btn.innerHTML = '✓ Account Linked (Reconnect?)';
-        btn.className = 'btn btn-success';
-        btn.onclick = function() {
-            if(confirm('Do you want to reconnect your Google Account?')) {
-                connectGoogle();
-            }
-        };
-        btn.disabled = false;
+        loadInboxMessages();
     } else {
-        statusEl.className = 'connection-status status-disconnected';
-        statusEl.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
-        
-        btn.innerHTML = 'Connect Gmail';
-        btn.className = 'btn btn-secondary';
-        btn.onclick = connectGoogle;
-        btn.disabled = false;
+        if (statusEl) {
+            statusEl.className = 'connection-status status-disconnected';
+            statusEl.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
+        }
+        if (btn) {
+            btn.innerHTML = 'Connect Gmail';
+            btn.className = 'btn btn-secondary';
+            btn.onclick = connectGoogle;
+        }
+        if (inboxStatusEl) {
+            inboxStatusEl.className = 'connection-status status-disconnected';
+            inboxStatusEl.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
+        }
+        if (inboxConnectContainer) inboxConnectContainer.style.display = 'block';
+        if (inboxLayout) inboxLayout.style.display = 'none';
     }
     
-    // Update header
     const headerStatus = document.getElementById('headerGoogleStatus');
     if(headerStatus) {
         headerStatus.style.display = isConnected ? 'inline-flex' : 'none';
     }
     
-    // Update sidebar
     const sidebarStatus = document.getElementById('sidebarGoogleStatus');
     if(sidebarStatus) {
         sidebarStatus.innerHTML = isConnected 
-            ? `<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-green-text);"></div> Gmail: Active (${email.split('@')[0]})`
+            ? '<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-green-text);"></div> Gmail: Active'
             : '<div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div> Gmail: Not Linked';
     }
-    
-    // Update inbox UI based on connection status
-    updateInboxUI();
 }
 
 // ============================================
-// INBOX UI MANAGEMENT
+// WHATSAPP INTEGRATION LOGIC
 // ============================================
-function updateInboxUI() {
-    const connectContainer = document.getElementById('inboxConnectContainer');
-    const connectedHeader = document.getElementById('inboxConnectedHeader');
-    const inboxLayout = document.getElementById('inboxLayout');
+async function checkWhatsAppStatus() {
+    if (!checkAuth()) return;
     
-    if (!isGoogleConnected) {
-        // Show connect prompt, hide inbox
-        connectContainer.style.display = 'block';
-        connectedHeader.style.display = 'none';
-        inboxLayout.style.display = 'none';
-    } else {
-        // Show inbox, hide connect prompt
-        connectContainer.style.display = 'none';
-        connectedHeader.style.display = 'flex';
-        inboxLayout.style.display = 'grid';
-        
-        // Update email display
-        const emailDisplay = document.getElementById('inboxEmailDisplay');
-        if (emailDisplay && userEmail) {
-            emailDisplay.textContent = `(${userEmail})`;
+    try {
+        const res = await fetch(`${API_BASE_URL}/whatsapp/status?userId=${encodeURIComponent(flowId)}`);
+        if (res.ok) {
+            const data = await res.json();
+            updateWhatsAppUI(data.connected, data.phoneNumber);
         }
-        
-        // Load inbox messages
-        loadInboxMessages();
+    } catch (e) {
+        console.error("Failed to check WhatsApp status", e);
     }
 }
 
-async function refreshInbox() {
-    if (!isGoogleConnected) return;
-    showGlobalLoader(true, 'Refreshing inbox...');
-    await loadInboxMessages();
-    showGlobalLoader(false);
-    showMessage('Inbox refreshed', 'success');
+function updateWhatsAppUI(connected, number = '') {
+    isWhatsAppConnected = connected;
+    whatsAppNumber = number;
+    
+    const notConnectedDiv = document.getElementById('whatsappNotConnected');
+    const connectedDiv = document.getElementById('whatsappConnected');
+    const numberDisplay = document.getElementById('whatsappNumberDisplay');
+    const statusEl = document.getElementById('whatsappStatus');
+    const settingsNumberDiv = document.getElementById('whatsappSettingsNumber');
+    const settingsNumberSpan = document.getElementById('settingsWhatsAppNumber');
+    const headerStatus = document.getElementById('headerWhatsAppStatus');
+    const sidebarStatus = document.getElementById('sidebarWhatsAppStatus');
+    const whatsappToggle = document.getElementById('whatsappToggle');
+    
+    if (connected) {
+        if (notConnectedDiv) notConnectedDiv.style.display = 'none';
+        if (connectedDiv) connectedDiv.style.display = 'block';
+        if (numberDisplay) numberDisplay.textContent = `(${number})`;
+        if (statusEl) {
+            statusEl.className = 'connection-status status-connected';
+            statusEl.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
+        }
+        if (settingsNumberDiv) {
+            settingsNumberDiv.style.display = 'block';
+            if (settingsNumberSpan) settingsNumberSpan.textContent = number;
+        }
+        if (headerStatus) headerStatus.style.display = 'inline-flex';
+        if (sidebarStatus) {
+            sidebarStatus.innerHTML = `<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--whatsapp-green);"></div> WhatsApp: Connected`;
+        }
+        if (whatsappToggle) whatsappToggle.checked = true;
+    } else {
+        if (notConnectedDiv) notConnectedDiv.style.display = 'block';
+        if (connectedDiv) connectedDiv.style.display = 'none';
+        if (statusEl) {
+            statusEl.className = 'connection-status status-disconnected';
+            statusEl.innerHTML = '<span class="status-dot"></span><span>Not Connected</span>';
+        }
+        if (settingsNumberDiv) settingsNumberDiv.style.display = 'none';
+        if (headerStatus) headerStatus.style.display = 'none';
+        if (sidebarStatus) {
+            sidebarStatus.innerHTML = '<div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div> WhatsApp: Not Connected';
+        }
+        if (whatsappToggle) whatsappToggle.checked = false;
+    }
+}
+
+async function registerWhatsApp() {
+    if (!checkAuth()) return;
+    
+    const phoneNumber = document.getElementById('whatsappNumber').value.trim();
+    if (!phoneNumber) {
+        alert('Please enter your WhatsApp number');
+        return;
+    }
+    
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
+        alert('Invalid phone number format. Please use international format (e.g., +1234567890)');
+        return;
+    }
+    
+    const btn = document.getElementById('testWhatsAppBtn') || document.querySelector('.btn-whatsapp');
+    setButtonLoading(btn, true, 'Registering...');
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/whatsapp/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: flowId, phoneNumber })
+        });
+        
+        if (res.ok) {
+            showMessage('WhatsApp number registered successfully!', 'success');
+            updateWhatsAppUI(true, phoneNumber);
+        } else {
+            const error = await res.json();
+            throw new Error(error.error || 'Registration failed');
+        }
+    } catch (e) {
+        console.error(e);
+        showMessage('Failed to register WhatsApp number', 'error');
+    } finally {
+        setButtonLoading(btn, false);
+    }
+}
+
+async function disconnectWhatsApp() {
+    if (!confirm('Disconnect WhatsApp? You will stop receiving notifications.')) return;
+    
+    // Since we don't have a disconnect endpoint yet, just update UI
+    updateWhatsAppUI(false);
+    showMessage('WhatsApp disconnected', 'success');
+}
+
+async function testWhatsApp() {
+    if (!checkAuth() || !isWhatsAppConnected) {
+        alert('Please connect WhatsApp first');
+        return;
+    }
+    
+    const btn = document.getElementById('testWhatsAppBtn');
+    setButtonLoading(btn, true, 'Sending...');
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/whatsapp/notify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: flowId,
+                message: 'This is a test notification from Flux On',
+                from: 'Flux On System',
+                subject: 'Test Notification'
+            })
+        });
+        
+        if (res.ok) {
+            showMessage('Test notification sent to your WhatsApp!', 'success');
+        } else {
+            throw new Error('Failed to send test');
+        }
+    } catch (e) {
+        console.error(e);
+        showMessage('Failed to send test notification', 'error');
+    } finally {
+        setButtonLoading(btn, false);
+    }
+}
+
+function toggleWhatsAppNotifications() {
+    const toggle = document.getElementById('whatsappToggle');
+    if (toggle.checked && !isWhatsAppConnected) {
+        alert('Please connect WhatsApp first in the WhatsApp section');
+        toggle.checked = false;
+        showSection('whatsapp');
+    } else if (toggle.checked) {
+        showMessage('WhatsApp notifications enabled', 'success');
+    } else {
+        showMessage('WhatsApp notifications disabled', 'info');
+    }
+}
+
+async function sendToWhatsApp() {
+    if (!checkAuth()) return;
+    if (currentMessageIndex === -1) return;
+    
+    if (!isWhatsAppConnected) {
+        if (confirm('WhatsApp not connected. Would you like to connect now?')) {
+            showSection('whatsapp');
+        }
+        return;
+    }
+    
+    const msg = inboxMessages[currentMessageIndex];
+    
+    const btn = document.getElementById('whatsappNotifyBtn');
+    setButtonLoading(btn, true, '');
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/whatsapp/notify-new-message`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: flowId,
+                messageId: msg.id,
+                from: msg.from_name || msg.from_email,
+                subject: msg.subject,
+                snippet: msg.snippet
+            })
+        });
+        
+        if (res.ok) {
+            showMessage('Message sent to your WhatsApp!', 'success');
+        } else {
+            throw new Error('Failed to send');
+        }
+    } catch (e) {
+        console.error(e);
+        showMessage('Failed to send to WhatsApp', 'error');
+    } finally {
+        setButtonLoading(btn, false);
+    }
 }
 
 // ============================================
@@ -1799,11 +2057,10 @@ async function loadUserData() {
     updateText('userInitials', getInitials(username));
     updateValue('settingsName', username);
     updateValue('settingsEmail', userData.email || '');
+    userEmail = userData.email || '';
     
-    // Check Google connection status
     const hasTokens = userData.google_access_token && userData.google_refresh_token;
-    const userEmail = userData.email || '';
-    updateConnectionUI(hasTokens, userEmail);
+    updateGoogleConnectionUI(hasTokens);
     
     const rawFlattened = parseAndFlattenCustomers(userData.customers);
     customers = normalizeCustomerData(rawFlattened);
@@ -1818,10 +2075,11 @@ async function loadUserData() {
     renderTemplateSelector();
     renderAnalytics();
     
-    // Load inbox if connected
     if (hasTokens) {
         await loadInboxMessages();
     }
+    
+    await checkWhatsAppStatus();
     
   } catch (error) {
     console.error('CRITICAL ERROR loading data:', error);
@@ -1852,8 +2110,7 @@ async function loadInboxMessages() {
             updateNotificationCount();
             renderInboxList();
         } else if (res.status === 401) {
-            // Token expired or invalid
-            updateConnectionUI(false);
+            updateGoogleConnectionUI(false);
         }
     } catch (e) {
         console.error("Failed to load inbox", e);
@@ -1924,12 +2181,10 @@ async function viewEmail(index) {
     
     currentMessageIndex = index;
     
-    // Mark as read if unread
     if (!msg.read) {
         msg.read = true;
         updateNotificationCount();
         
-        // Call API to mark as read
         try {
             await fetch(`${API_BASE_URL}/inbox/read/${msg.id}?userId=${encodeURIComponent(flowId)}`, { 
                 method: 'POST' 
@@ -1941,7 +2196,6 @@ async function viewEmail(index) {
     
     renderInboxList();
     
-    // Update view
     document.getElementById('inboxEmptyState').style.display = 'none';
     const content = document.getElementById('inboxContent');
     content.style.display = 'flex';
@@ -2004,34 +2258,6 @@ async function deleteCurrentMessage() {
     } catch (e) {
         console.error("Delete failed", e);
         showMessage('Error deleting message', 'error');
-    }
-}
-
-async function archiveCurrentMessage() {
-    if (!checkAuth() || !isGoogleConnected) return;
-    if (currentMessageIndex === -1) return;
-    
-    const msg = inboxMessages[currentMessageIndex];
-    
-    try {
-        await fetch(`${API_BASE_URL}/inbox/archive/${msg.id}?userId=${encodeURIComponent(flowId)}`, { 
-            method: 'POST' 
-        });
-        
-        inboxMessages.splice(currentMessageIndex, 1);
-        currentMessageIndex = -1;
-        
-        document.getElementById('inboxContent').style.display = 'none';
-        document.getElementById('inboxEmptyState').style.display = 'flex';
-        
-        if(window.innerWidth <= 768) closeMobileInbox();
-        renderInboxList();
-        updateNotificationCount();
-        
-        showMessage('Message archived', 'success');
-    } catch (e) {
-        console.error("Archive failed", e);
-        showMessage('Error archiving message', 'error');
     }
 }
 
@@ -2476,17 +2702,18 @@ async function sendAutomatedMessages() {
     const btn = document.getElementById('btnConfirmSend');
     setButtonLoading(btn, true, 'Sending...');
     
+    // FLAT structure as expected by backend - NO emailData wrapper
     const payload = {
         userId: flowId,
-        emailData: {
-            campaignName: document.getElementById('campaignName').value,
-            recipients: Array.from(selectedEmails),
-            subject: document.getElementById('emailSubject').value,
-            body: document.getElementById('emailBody').value,
-            fromName: document.getElementById('fromName').value,
-            fromEmail: document.getElementById('fromEmail').value
-        }
+        campaignName: document.getElementById('campaignName').value,
+        recipients: Array.from(selectedEmails),
+        subject: document.getElementById('emailSubject').value,
+        body: document.getElementById('emailBody').value,
+        fromName: document.getElementById('fromName').value,
+        fromEmail: document.getElementById('fromEmail').value
     };
+    
+    console.log('Sending payload:', payload); // Debug log
     
     try {
         const res = await fetch(`${API_BASE_URL}/send-automated-messages`, {
@@ -2495,15 +2722,19 @@ async function sendAutomatedMessages() {
             body: JSON.stringify(payload)
         });
         
-        if(!res.ok) throw new Error('Send failed');
+        if(!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Send failed');
+        }
         
+        const result = await res.json();
         showMessage(`Sent to ${selectedEmails.size} recipients`, 'success');
         closeModal('previewModal');
         selectedEmails.clear();
         renderEmailList();
     } catch(e) {
         console.error(e);
-        showMessage('Failed to send messages', 'error');
+        showMessage('Failed to send messages: ' + e.message, 'error');
     } finally {
         setButtonLoading(btn, false);
     }
@@ -2518,13 +2749,16 @@ async function saveAllChanges() {
         const payload = {
             userId: flowId,
             customers: customers,
+            templates: templates
         };
         
-        await fetch(`${API_BASE_URL}/updatecustomers`, {
+        const res = await fetch(`${API_BASE_URL}/updatecustomers`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
         });
+        
+        if (!res.ok) throw new Error('Save failed');
         
         showMessage('Data saved to cloud', 'success');
     } catch(e) {
@@ -2621,15 +2855,18 @@ function showSection(id) {
         'customers': 'Customer Management',
         'inbox': 'Inbox',
         'automation': 'Automation Center',
+        'whatsapp': 'WhatsApp Automation',
         'analytics': 'Analytics',
         'templates': 'Templates',
         'settings': 'Settings'
     };
     updateText('pageTitle', titles[id] || 'Dashboard');
     
-    // Special handling for inbox section
-    if (id === 'inbox') {
-        updateInboxUI();
+    if (id === 'whatsapp') {
+        checkWhatsAppStatus();
+    }
+    if (id === 'inbox' && isGoogleConnected) {
+        loadInboxMessages();
     }
 }
 
@@ -2665,7 +2902,6 @@ function renderAnalytics() {
     `).join('');
 }
 
-// --- MOBILE MENU LOGIC ---
 function toggleMobileMenu() {
     const sidebar = document.getElementById('mainSidebar');
     const overlay = document.getElementById('mobileOverlay');
