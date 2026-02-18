@@ -43,6 +43,7 @@
     --whatsapp-green: #25D366;
     --whatsapp-dark: #075E54;
     --accent-blue: #2563eb;
+    --email-sent: #8b5cf6;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'Space Mono', monospace;
     
@@ -1291,6 +1292,80 @@
     border-radius: 4px; 
   }
   
+  /* --- Sent Emails Styles --- */
+  .sent-emails-list {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+  }
+  
+  .sent-email-item {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.2s;
+  }
+  
+  .sent-email-item:last-child {
+    border-bottom: none;
+  }
+  
+  .sent-email-item:hover {
+    background: var(--bg-subtle);
+  }
+  
+  .sent-email-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  
+  .sent-email-subject {
+    color: var(--text-main);
+  }
+  
+  .sent-email-date {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  
+  .sent-email-recipients {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .recipient-tag {
+    background: var(--bg-subtle);
+    padding: 2px 8px;
+    border-radius: 16px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-light);
+  }
+  
+  .sent-email-campaign {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    display: inline-block;
+    background: var(--color-blue-bg);
+    color: var(--color-blue-text);
+    padding: 2px 8px;
+    border-radius: 16px;
+    margin-top: 4px;
+  }
+  
+  .empty-sent {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+  
   /* --- Settings --- */
   .settings-container { 
     max-width: 800px; 
@@ -2087,6 +2162,10 @@
         <span class="nav-icon">📱</span>
         <span>WhatsApp</span>
       </a>
+      <a href="#sent" class="nav-item" onclick="showSection('sent'); closeMobileMenu();" data-i18n="nav.sent">
+        <span class="nav-icon">📤</span>
+        <span>Sent Emails</span>
+      </a>
       <a href="#analytics" class="nav-item" onclick="showSection('analytics'); closeMobileMenu();" data-i18n="nav.analytics">
         <span class="nav-icon">📈</span>
         <span>Analytics</span>
@@ -2116,6 +2195,11 @@
     <div id="sidebarWhatsAppStatus" class="sidebar-status-indicator" style="margin-top: 5px;">
         <div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div>
         <span data-i18n="status.whatsappNotConnected">WhatsApp: Not Connected</span>
+    </div>
+    
+    <div id="sidebarSentCount" class="sidebar-status-indicator" style="margin-top: 5px; background: var(--color-blue-bg); color: var(--color-blue-text);">
+        <span class="nav-icon">📤</span>
+        <span id="sentCountDisplay">0 Sent</span>
     </div>
     
     <div class="sidebar-legal">
@@ -2236,13 +2320,13 @@
             <div class="card-desc" data-i18n="dashboard.workflowsRunning">Workflows running</div>
           </div>
           
-          <div class="dashboard-card" onclick="requireAuth('analytics')" style="cursor: pointer;">
+          <div class="dashboard-card" onclick="requireAuth('sent')" style="cursor: pointer;">
             <div class="card-header">
-              <div class="card-title" data-i18n="dashboard.responseRate">Response Rate</div>
-              <div class="card-icon">📈</div>
+              <div class="card-title" data-i18n="dashboard.sentEmails">Sent Emails</div>
+              <div class="card-icon">📤</div>
             </div>
-            <div class="card-count" id="responseRate" aria-live="polite">0%</div>
-            <div class="card-desc" data-i18n="dashboard.averageEngagement">Average engagement</div>
+            <div class="card-count" id="sentEmailsCount" aria-live="polite">0</div>
+            <div class="card-desc" data-i18n="dashboard.totalSent">Total sent</div>
           </div>
         </div>
         
@@ -2618,6 +2702,26 @@
         </div>
       </section>
       
+      <!-- Sent Emails Section -->
+      <section id="sentSection" class="section-content" aria-labelledby="sentTitle" style="display: none;">
+        <div class="welcome-card">
+          <h1 id="sentTitle" data-i18n="sent.title">Sent Emails</h1>
+          <p data-i18n="sent.description">View all emails you've sent through automation.</p>
+        </div>
+        
+        <div class="automation-card">
+          <div class="automation-header">
+            <h2 data-i18n="sent.history">Email History</h2>
+            <span class="data-count" id="totalSentCount" style="color: var(--text-tertiary);">0 total</span>
+          </div>
+          <div class="automation-content">
+            <div id="sentEmailsList" class="sent-emails-list">
+              <div class="empty-sent" data-i18n="sent.noEmails">No sent emails yet. Start sending automated messages!</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       <!-- Analytics Section -->
       <section id="analyticsSection" class="section-content" aria-labelledby="analyticsTitle" style="display: none;">
         <div class="welcome-card">
@@ -2872,7 +2976,7 @@
 
 <script>
 // ============================================
-// TRANSLATION DICTIONARY - 50+ LANGUAGES
+// TRANSLATION DICTIONARY - 50+ LANGUAGES (ADD SENT SECTION)
 // ============================================
 
 const translationResources = {
@@ -2883,6 +2987,7 @@ const translationResources = {
       inbox: 'Inbox',
       automation: 'Automation',
       whatsapp: 'WhatsApp',
+      sent: 'Sent Emails',
       analytics: 'Analytics',
       templates: 'Templates',
       settings: 'Settings'
@@ -2914,6 +3019,7 @@ const translationResources = {
       inbox: 'Inbox',
       automation: 'Automation Center',
       whatsapp: 'WhatsApp Automation',
+      sent: 'Sent Emails',
       analytics: 'Analytics',
       templates: 'Templates',
       settings: 'Settings'
@@ -2948,7 +3054,9 @@ const translationResources = {
       averageEngagement: 'Average engagement',
       quickActions: 'Quick Actions',
       createWelcomeSeries: '🎉 Create Welcome Series',
-      sendFollowUp: '🔄 Send Follow-up'
+      sendFollowUp: '🔄 Send Follow-up',
+      sentEmails: 'Sent Emails',
+      totalSent: 'Total sent'
     },
     customers: {
       description: 'View and manage your subscriber database.',
@@ -3031,6 +3139,18 @@ const translationResources = {
       testTitle: 'Test Notification',
       testDesc: 'Send a test WhatsApp notification to verify your connection is working.'
     },
+    sent: {
+      title: 'Sent Emails',
+      description: 'View all emails you\'ve sent through automation.',
+      history: 'Email History',
+      noEmails: 'No sent emails yet. Start sending automated messages!',
+      from: 'From',
+      to: 'To',
+      subject: 'Subject',
+      date: 'Date',
+      campaign: 'Campaign',
+      recipients: 'Recipients'
+    },
     analytics: {
       title: 'Analytics',
       description: 'Campaign performance and engagement metrics.',
@@ -3039,7 +3159,8 @@ const translationResources = {
       bounceRate: 'Bounce Rate',
       trendUp: '↑ 5% vs last week',
       trendDown: '↓ 0.2% vs last week',
-      emailPerformance: 'Email Performance (Last 7 Days)'
+      emailPerformance: 'Email Performance (Last 7 Days)',
+      day: 'Day'
     },
     templates: {
       title: 'Templates',
@@ -3049,7 +3170,11 @@ const translationResources = {
       name: 'Template Name',
       tag: 'Tag (Category)',
       subject: 'Subject Line',
-      body: 'Email Body'
+      body: 'Email Body',
+      use: 'Use',
+      edit: 'Edit',
+      delete: 'Del',
+      general: 'General'
     },
     settings: {
       title: 'Settings',
@@ -3085,6 +3210,7 @@ const translationResources = {
       inbox: 'Bandeja',
       automation: 'Automatización',
       whatsapp: 'WhatsApp',
+      sent: 'Correos Enviados',
       analytics: 'Analíticas',
       templates: 'Plantillas',
       settings: 'Ajustes'
@@ -3116,6 +3242,7 @@ const translationResources = {
       inbox: 'Bandeja de Entrada',
       automation: 'Centro de Automatización',
       whatsapp: 'Automatización WhatsApp',
+      sent: 'Correos Enviados',
       analytics: 'Analíticas',
       templates: 'Plantillas',
       settings: 'Ajustes'
@@ -3150,7 +3277,9 @@ const translationResources = {
       averageEngagement: 'Participación promedio',
       quickActions: 'Acciones Rápidas',
       createWelcomeSeries: '🎉 Crear Serie de Bienvenida',
-      sendFollowUp: '🔄 Enviar Seguimiento'
+      sendFollowUp: '🔄 Enviar Seguimiento',
+      sentEmails: 'Correos Enviados',
+      totalSent: 'Total enviados'
     },
     customers: {
       description: 'Ver y gestionar tu base de datos de suscriptores.',
@@ -3233,6 +3362,18 @@ const translationResources = {
       testTitle: 'Notificación de Prueba',
       testDesc: 'Envía una notificación de prueba a WhatsApp para verificar que tu conexión funciona.'
     },
+    sent: {
+      title: 'Correos Enviados',
+      description: 'Ver todos los correos que has enviado mediante automatización.',
+      history: 'Historial de Correos',
+      noEmails: '¡Aún no hay correos enviados. Comienza a enviar mensajes automatizados!',
+      from: 'De',
+      to: 'Para',
+      subject: 'Asunto',
+      date: 'Fecha',
+      campaign: 'Campaña',
+      recipients: 'Destinatarios'
+    },
     analytics: {
       title: 'Analíticas',
       description: 'Rendimiento de campañas y métricas de participación.',
@@ -3241,7 +3382,8 @@ const translationResources = {
       bounceRate: 'Tasa de Rebote',
       trendUp: '↑ 5% vs semana pasada',
       trendDown: '↓ 0.2% vs semana pasada',
-      emailPerformance: 'Rendimiento de Correos (Últimos 7 Días)'
+      emailPerformance: 'Rendimiento de Correos (Últimos 7 Días)',
+      day: 'Día'
     },
     templates: {
       title: 'Plantillas',
@@ -3251,7 +3393,11 @@ const translationResources = {
       name: 'Nombre de la Plantilla',
       tag: 'Etiqueta (Categoría)',
       subject: 'Línea de Asunto',
-      body: 'Cuerpo del Correo'
+      body: 'Cuerpo del Correo',
+      use: 'Usar',
+      edit: 'Editar',
+      delete: 'Eliminar',
+      general: 'General'
     },
     settings: {
       title: 'Ajustes',
@@ -3279,212 +3425,15 @@ const translationResources = {
     footer: {
       allRightsReserved: 'Todos los derechos reservados.'
     }
-  },
-  yo: {
-    nav: {
-      dashboard: 'Dashbọọdi',
-      customers: 'Onibara',
-      inbox: 'Apoti Ifiranṣẹ',
-      automation: 'Adaṣiṣẹ',
-      whatsapp: 'WhatsApp',
-      analytics: 'Atupale',
-      templates: 'Àwòkọṣe',
-      settings: 'Eto'
-    },
-    auth: {
-      notSignedIn: 'Ko wọle',
-      signIn: 'Wọle',
-      or: 'tabi',
-      register: 'Forukọsilẹ',
-      logOut: 'Jade',
-      login: 'Wọle si Akọọlẹ',
-      loginRequired: 'Wọle nilo',
-      loginRequiredDesc: 'Jọwọ wọle tabi ṣẹda akọọlẹ lati wọle si ẹya yii.',
-      signInUp: 'Wọle / Forukọsilẹ'
-    },
-    status: {
-      gmailNotLinked: 'Gmail: Ko sopọ',
-      gmailLinked: '✓ Gmail Ti sopọ',
-      whatsappNotConnected: 'WhatsApp: Ko sopọ',
-      whatsappConnected: '📱 WhatsApp Ti sopọ'
-    },
-    legal: {
-      privacy: 'Eto Aṣiri',
-      terms: 'Ofin Iṣẹ'
-    },
-    titles: {
-      dashboard: 'Dashbọọdi',
-      customers: 'Iṣakoso Onibara',
-      inbox: 'Apoti Ifiranṣẹ',
-      automation: 'Ile-iṣẹ Adaṣiṣẹ',
-      whatsapp: 'Adaṣiṣẹ WhatsApp',
-      analytics: 'Atupale',
-      templates: 'Àwòkọṣe',
-      settings: 'Eto'
-    },
-    buttons: {
-      refresh: 'Tunṣe',
-      connectGmail: 'So Gmail pọ',
-      back: '← Pada',
-      reset: 'Tunṣe',
-      previewSend: 'Ṣayẹwo ati Firanṣẹ',
-      register: 'Forukọsilẹ Nọmba',
-      sendTest: 'Firanṣẹ Ifiranṣẹ Idanwo',
-      saveChanges: 'Fi Awọn Ayipada pamọ',
-      cancel: 'Fagilee',
-      saveRecord: 'Fi Igbasilẹ pamọ',
-      saveTemplate: 'Fi Àwòkọṣe pamọ',
-      backToEdit: 'Pada si Ṣiṣatunṣe',
-      confirmSend: 'Jẹrisi ati Firanṣẹ'
-    },
-    dashboard: {
-      hello: 'Pẹlẹ o,',
-      description: 'Eyi ni akopọ rẹ. Ṣakoso awọn onibara ati ṣiṣẹ adaṣe awọn ṣiṣan.',
-      startAutomation: 'Bẹrẹ Adaṣiṣẹ',
-      manageCustomers: 'Ṣakoso Onibara',
-      totalCustomers: 'Lapapọ Onibara',
-      activeInDatabase: 'Ti nṣiṣe lọwọ ninu data',
-      inbox: 'Apoti Ifiranṣẹ',
-      unreadMessages: 'Awọn ifiranṣẹ ti a ko ka',
-      activeCampaigns: 'Awọn ipolongo Ti nṣiṣe lọwọ',
-      workflowsRunning: 'Awọn ṣiṣan ti nṣiṣẹ',
-      responseRate: 'Oṣuwọn Idahun',
-      averageEngagement: 'Ipa apapọ',
-      quickActions: 'Awọn Iṣe Kiakia',
-      createWelcomeSeries: '🎉 Ṣẹda jara Kaabo',
-      sendFollowUp: '🔄 Firanṣẹ Atẹle'
-    },
-    customers: {
-      description: 'Wo ati ṣakoso ibi ipamọ alabapin rẹ.',
-      exportCSV: 'Gbe CSV jade',
-      importCSV: 'Gbe CSV wọle',
-      addCustomer: '+ Fi Onibara kun',
-      allRecords: 'Gbogbo Awọn Igbasilẹ',
-      saveChanges: 'Fi Awọn Ayipada pamọ',
-      loading: 'Ń gbe data...',
-      fullName: 'Orukọ Kikun',
-      email: 'Imeeli',
-      phone: 'Foonu',
-      company: 'Ile-iṣẹ',
-      status: 'Ipo',
-      active: 'Ti nṣiṣe lọwọ',
-      inactive: 'Ko ṣiṣẹ',
-      pending: 'Ni isunmọtosi'
-    },
-    inbox: {
-      title: 'Apoti Ifiranṣẹ',
-      description: 'Awọn ifiranṣẹ lati ọdọ awọn olugbo rẹ.',
-      connectGmail: 'So Akọọlẹ Gmail Rẹ pọ',
-      connectGmailDesc: 'Lati wo ati ṣakoso awọn ifiranṣẹ apoti ifiranṣẹ rẹ, o nilo lati so akọọlẹ Gmail rẹ pọ.',
-      disconnected: 'Ti ge asopọ',
-      connected: 'Ti sopọ',
-      loading: 'Ń gbe awọn ifiranṣẹ...',
-      noMessages: 'Ko si awọn ifiranṣẹ ninu apoti ifiranṣẹ rẹ',
-      selectMessage: 'Yan ifiranṣẹ lati ka',
-      readingMessage: 'Ń ka Ifiranṣẹ',
-      subject: 'Koko-ọrọ',
-      senderName: 'Orukọ Olufiranṣẹ',
-      today: 'Loni',
-      sendToWhatsApp: 'Firanṣẹ si WhatsApp',
-      delete: 'Pa rẹ'
-    },
-    automation: {
-      title: 'Ile-iṣẹ Adaṣiṣẹ',
-      description: 'Ṣajọ ati ṣeto awọn ipolongo imeeli.',
-      newCampaign: 'Ipolongo Tuntun',
-      recipients: 'Awọn olugba',
-      totalList: 'Akojọ Lapapọ',
-      connectGoogle: 'So Akọọlẹ Google pọ',
-      connectGoogleDesc: 'So akọọlẹ rẹ pọ lati firanṣẹ awọn imeeli adaṣe taara nipasẹ Gmail rẹ.',
-      disconnected: 'Ti ge asopọ',
-      whatsappNotifications: 'Awọn Ifitonileti WhatsApp',
-      whatsappDesc: 'Gba ifitonileti lori WhatsApp nigbati o ba gba awọn imeeli tuntun.',
-      notConnected: 'Ko sopọ',
-      setupWhatsApp: 'Ṣeto WhatsApp',
-      selectAll: 'Yan Gbogbo Awọn Onibara',
-      composeMessage: 'Ṣajọ Ifiranṣẹ',
-      blank: 'Ọfo',
-      campaignName: 'Orukọ Ipolongo',
-      schedule: 'Ṣeto',
-      sendImmediately: 'Firanṣẹ Lẹsẹkẹsẹ',
-      scheduleLater: 'Ṣeto fun nigbamii',
-      fromName: 'Lati Orukọ',
-      fromEmail: 'Lati Imeeli',
-      replyTo: 'Dahun si',
-      subjectLine: 'Ila Koko-ọrọ',
-      emailBody: 'Ara Imeeli',
-      variables: 'Awọn oniyipada: {name}, {email}, {company}',
-      dateTime: 'Ọjọ ati Aago'
-    },
-    whatsapp: {
-      title: 'Adaṣiṣẹ WhatsApp',
-      description: 'Gba awọn ifitonileti imeeli taara lori WhatsApp rẹ.',
-      connect: 'So WhatsApp pọ',
-      connectTitle: 'So WhatsApp Rẹ pọ',
-      connectDesc: 'Gba awọn ifitonileti lẹsẹkẹsẹ lori WhatsApp nigbakugba ti o ba gba imeeli tuntun. Yan ọkan ninu awọn ọna ni isalẹ lati sopọ.',
-      connected: 'WhatsApp Ti sopọ',
-      disconnect: 'Ge asopọ',
-      option1: 'Ọna 1: Ṣe QR koodu lori',
-      option1Desc: 'Ṣi WhatsApp lori foonu rẹ, tẹ Akojọ (Android) tabi Eto (iOS), lẹhinna WhatsApp Web, ki o ṣe QR koodu yii lori.',
-      option2: 'Ọna 2: Firanṣẹ Ifiranṣẹ',
-      option2Desc: 'Firanṣẹ ifiranṣẹ gangan yii si nọmba loke:',
-      option2Note: 'Lẹhin fifiranṣẹ ifiranṣẹ naa, WhatsApp rẹ yoo sopọ laifọwọyi.',
-      manualTitle: 'Tabi tẹ nọmba WhatsApp rẹ pẹlu ọwọ',
-      numberLabel: 'Nọmba WhatsApp (pẹlu koodu orilẹ-ede)',
-      numberFormat: 'Lo ọna kika agbaye: +[koodu orilẹ-ede][nọmba] (fun apẹẹrẹ, +1234567890)',
-      testTitle: 'Ifitonileti Idanwo',
-      testDesc: 'Firanṣẹ ifitonileti idanwo WhatsApp lati rii daju pe asopọ rẹ n ṣiṣẹ.'
-    },
-    analytics: {
-      title: 'Atupale',
-      description: 'Iṣẹ ipolongo ati awọn metiriki ikopa.',
-      avgOpenRate: 'Apapọ Oṣuwọn Ṣiṣi',
-      clickRate: 'Oṣuwọn Tite',
-      bounceRate: 'Oṣuwọn Ipadasi',
-      trendUp: '↑ 5% lafiwe si ọsẹ to kọja',
-      trendDown: '↓ 0.2% lafiwe si ọsẹ to kọja',
-      emailPerformance: 'Iṣẹ Imeeli (Awọn Ọjọ 7 to Kọja)'
-    },
-    templates: {
-      title: 'Àwòkọṣe',
-      description: 'Ṣakoso awọn ifilelẹ ifiranṣẹ ti o fipamọ ati awọn idahun iyara.',
-      newTemplate: '+ Àwòkọṣe Tuntun',
-      addNew: 'Fi Àwòkọṣe Tuntun kun',
-      name: 'Orukọ Àwòkọṣe',
-      tag: 'Aami (Iso)',
-      subject: 'Ila Koko-ọrọ',
-      body: 'Ara Imeeli'
-    },
-    settings: {
-      title: 'Eto',
-      description: 'Ṣeto awọn ààyò akọọlẹ ati awọn ifitonileti rẹ.',
-      profile: 'Alaye Profaili',
-      fullName: 'Orukọ Kikun',
-      email: 'Adirẹsi Imeeli',
-      whatsappIntegration: 'Iṣepọ WhatsApp',
-      whatsappToggle: 'Awọn Ifitonileti Imeeli lori WhatsApp',
-      whatsappDesc: 'Gba awọn ifitonileti WhatsApp fun awọn imeeli tuntun',
-      connectedNumber: 'Nọmba Ti sopọ:',
-      notifications: 'Awọn Ifitonileti',
-      campaignSummary: 'Akopọ Ipolongo Imeeli',
-      campaignSummaryDesc: 'Gba akopọ ọsẹ kan ti awọn iṣiro ipolongo rẹ',
-      newCustomerAlert: 'Itaniji Onibara Tuntun',
-      newCustomerAlertDesc: 'Gba ifitonileti nigbati a ba fi onibara tuntun kun',
-      security: 'Aabo',
-      changePassword: 'Yi Ọrọigbaniwọle pada',
-      logOutEverywhere: 'Jade Nibikibi'
-    },
-    preview: {
-      title: 'Ṣayẹwo Ifiranṣẹ',
-      subject: 'Koko-ọrọ'
-    },
-    footer: {
-      allRightsReserved: 'Gbogbo ẹtọ ni ipamọ.'
-    }
   }
-  // Add more languages here following the same structure
-  // French, German, Italian, Portuguese, etc.
+  // Add more languages as needed...
 };
+
+// ============================================
+// SENT EMAILS ARRAY
+// ============================================
+
+let sentEmails = [];
 
 // ============================================
 // LANGUAGE DETECTION & URL HANDLING
@@ -3648,6 +3597,172 @@ document.addEventListener('click', function(event) {
     dropdown.classList.remove('show');
   }
 });
+
+// ============================================
+// SENT EMAILS FUNCTIONS
+// ============================================
+
+// Save sent email to n8n webhook
+async function saveSentEmail(emailData) {
+  try {
+    // Add userId to the data (outside the email data array)
+    const payload = {
+      userId: flowId,
+      emailData: emailData
+    };
+    
+    const response = await fetch('https://kingoftech.app.n8n.cloud/webhook/save-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (response.ok) {
+      console.log('Email saved successfully to n8n');
+    } else {
+      console.error('Failed to save email to n8n');
+    }
+  } catch (error) {
+    console.error('Error saving email to n8n:', error);
+  }
+}
+
+// Add sent email to local array and update UI
+function addSentEmail(emailData) {
+  // Create email record with timestamp
+  const emailRecord = {
+    id: Date.now().toString(),
+    campaignName: emailData.campaignName,
+    subject: emailData.subject,
+    body: emailData.body,
+    fromName: emailData.fromName,
+    fromEmail: emailData.fromEmail,
+    recipients: emailData.recipients,
+    recipientCount: emailData.recipients.length,
+    sentAt: new Date().toISOString()
+  };
+  
+  // Add to beginning of array (newest first)
+  sentEmails.unshift(emailRecord);
+  
+  // Update UI counts
+  updateSentCounts();
+  
+  // Render sent emails list if section is visible
+  if (document.getElementById('sentSection').style.display !== 'none') {
+    renderSentEmails();
+  }
+  
+  // Also save to n8n webhook
+  saveSentEmail(emailRecord);
+}
+
+// Update sent email counts in UI
+function updateSentCounts() {
+  const count = sentEmails.length;
+  document.getElementById('sentEmailsCount').textContent = count;
+  document.getElementById('totalSentCount').textContent = count + ' total';
+  document.getElementById('sentCountDisplay').textContent = count + ' Sent';
+}
+
+// Render sent emails list
+function renderSentEmails() {
+  const container = document.getElementById('sentEmailsList');
+  if (!container) return;
+  
+  if (sentEmails.length === 0) {
+    container.innerHTML = `<div class="empty-sent" data-i18n="sent.noEmails">No sent emails yet. Start sending automated messages!</div>`;
+    return;
+  }
+  
+  let html = '';
+  sentEmails.forEach(email => {
+    const date = new Date(email.sentAt).toLocaleString();
+    const recipientsList = email.recipients.map(r => 
+      `<span class="recipient-tag">${escapeHtml(r)}</span>`
+    ).join('');
+    
+    html += `
+      <div class="sent-email-item">
+        <div class="sent-email-header">
+          <span class="sent-email-subject">${escapeHtml(email.subject)}</span>
+          <span class="sent-email-date">${date}</span>
+        </div>
+        <div class="sent-email-recipients">
+          <strong>${i18next.t('sent.to')}:</strong> ${recipientsList}
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="sent-email-campaign">${escapeHtml(email.campaignName)}</span>
+          <span style="font-size: 12px; color: var(--text-tertiary);">
+            ${email.recipientCount} ${email.recipientCount === 1 ? 'recipient' : 'recipients'}
+          </span>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
+// ============================================
+// MODIFIED SEND AUTOMATED MESSAGES FUNCTION
+// ============================================
+
+async function sendAutomatedMessages() {
+    if (!checkAuth()) return;
+    if(selectedEmails.size === 0) { alert(i18next.t('automation.noRecipients') || 'No recipients selected'); return; }
+    
+    if (!isGoogleConnected) {
+        alert(i18next.t('automation.googleRequired') || "Action Blocked: You must connect your Google Account to send automated messages.");
+        closeModal('previewModal');
+        document.querySelector('.google-connect-card').scrollIntoView({ behavior: 'smooth' });
+        return;
+    }
+    
+    const btn = document.getElementById('btnConfirmSend');
+    setButtonLoading(btn, true, i18next.t('automation.sending') || 'Sending...');
+    
+    // FLAT structure as expected by backend - NO emailData wrapper
+    const payload = {
+        userId: flowId,
+        campaignName: document.getElementById('campaignName').value,
+        recipients: Array.from(selectedEmails),
+        subject: document.getElementById('emailSubject').value,
+        body: document.getElementById('emailBody').value,
+        fromName: document.getElementById('fromName').value,
+        fromEmail: document.getElementById('fromEmail').value
+    };
+    
+    console.log('Sending payload:', payload); // Debug log
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/send-automated-messages`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        
+        if(!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Send failed');
+        }
+        
+        const result = await res.json();
+        
+        // Add to sent emails
+        addSentEmail(payload);
+        
+        showMessage(i18next.t('automation.sent', { count: selectedEmails.size }) || `Sent to ${selectedEmails.size} recipients`, 'success');
+        closeModal('previewModal');
+        selectedEmails.clear();
+        renderEmailList();
+    } catch(e) {
+        console.error(e);
+        showMessage(i18next.t('automation.sendFailed') || 'Failed to send messages', 'error');
+    } finally {
+        setButtonLoading(btn, false);
+    }
+}
 
 // ============================================
 // CONFIGURATION & GLOBAL STATE
@@ -4146,6 +4261,12 @@ async function loadUserData() {
     
     const rawTemplates = safeParseTemplates(userData.templates);
     templates = rawTemplates.length > 0 ? rawTemplates : [...defaultTemplates];
+    
+    // Load sent emails if available from userData
+    if (userData.sent_emails && Array.isArray(userData.sent_emails)) {
+      sentEmails = userData.sent_emails;
+      updateSentCounts();
+    }
     
     updateDashboardStats();
     renderCustomerTable();
@@ -4767,58 +4888,6 @@ function previewMessage() {
     openModal('previewModal');
 }
 
-async function sendAutomatedMessages() {
-    if (!checkAuth()) return;
-    if(selectedEmails.size === 0) { alert(i18next.t('automation.noRecipients') || 'No recipients selected'); return; }
-    
-    if (!isGoogleConnected) {
-        alert(i18next.t('automation.googleRequired') || "Action Blocked: You must connect your Google Account to send automated messages.");
-        closeModal('previewModal');
-        document.querySelector('.google-connect-card').scrollIntoView({ behavior: 'smooth' });
-        return;
-    }
-    
-    const btn = document.getElementById('btnConfirmSend');
-    setButtonLoading(btn, true, i18next.t('automation.sending') || 'Sending...');
-    
-    // FLAT structure as expected by backend - NO emailData wrapper
-    const payload = {
-        userId: flowId,
-        campaignName: document.getElementById('campaignName').value,
-        recipients: Array.from(selectedEmails),
-        subject: document.getElementById('emailSubject').value,
-        body: document.getElementById('emailBody').value,
-        fromName: document.getElementById('fromName').value,
-        fromEmail: document.getElementById('fromEmail').value
-    };
-    
-    console.log('Sending payload:', payload); // Debug log
-    
-    try {
-        const res = await fetch(`${API_BASE_URL}/send-automated-messages`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-        });
-        
-        if(!res.ok) {
-            const error = await res.json();
-            throw new Error(error.error || 'Send failed');
-        }
-        
-        const result = await res.json();
-        showMessage(i18next.t('automation.sent', { count: selectedEmails.size }) || `Sent to ${selectedEmails.size} recipients`, 'success');
-        closeModal('previewModal');
-        selectedEmails.clear();
-        renderEmailList();
-    } catch(e) {
-        console.error(e);
-        showMessage(i18next.t('automation.sendFailed') || 'Failed to send messages', 'error');
-    } finally {
-        setButtonLoading(btn, false);
-    }
-}
-
 async function saveAllChanges() {
     if (!checkAuth()) return;
     const btn = document.getElementById('btnSaveChanges');
@@ -4828,7 +4897,8 @@ async function saveAllChanges() {
         const payload = {
             userId: flowId,
             customers: customers,
-            templates: templates
+            templates: templates,
+            sent_emails: sentEmails
         };
         
         const res = await fetch(`${API_BASE_URL}/updatecustomers`, {
@@ -4935,6 +5005,7 @@ function showSection(id) {
         'inbox': i18next.t('titles.inbox'),
         'automation': i18next.t('titles.automation'),
         'whatsapp': i18next.t('titles.whatsapp'),
+        'sent': i18next.t('titles.sent'),
         'analytics': i18next.t('titles.analytics'),
         'templates': i18next.t('titles.templates'),
         'settings': i18next.t('titles.settings')
@@ -4946,6 +5017,9 @@ function showSection(id) {
     }
     if (id === 'inbox' && isGoogleConnected) {
         loadInboxMessages();
+    }
+    if (id === 'sent') {
+        renderSentEmails();
     }
 }
 
@@ -4959,10 +5033,10 @@ function confirmLogout() {
         customers = [];
         templates = [];
         inboxMessages = [];
+        sentEmails = [];
         selectedEmails.clear();
         currentUser = null;
-        window.location.href = 'index.html'
-      //window.location.reload();
+        window.location.href = 'index.html';
     } 
 }
 
@@ -5024,4 +5098,3 @@ function saveSettings(btn) {
 </script>
 </body>
 </html>
-
