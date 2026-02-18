@@ -4262,11 +4262,46 @@ async function loadUserData() {
     const rawTemplates = safeParseTemplates(userData.templates);
     templates = rawTemplates.length > 0 ? rawTemplates : [...defaultTemplates];
     
-    // Load sent emails if available from userData
-    if (userData.sent_emails && Array.isArray(userData.sent_emails)) {
-      sentEmails = userData.sent_emails;
-      updateSentCounts();
+    // ========== ADD THIS BLOCK TO LOAD SENT EMAILS ==========
+    // Load sent emails from email_save with the correct format
+    if (userData.email_save) {
+        try {
+            // First parse the outer string to get array of strings
+            const outerArray = JSON.parse(userData.email_save);
+            console.log('Outer array:', outerArray);
+            
+            // Initialize empty array for all emails
+            let allEmails = [];
+            
+            // Loop through each item in the outer array
+            outerArray.forEach(item => {
+                try {
+                    // Parse each inner string to get the email array
+                    const emailArray = JSON.parse(item);
+                    // emailArray should be an array with one email object
+                    if (Array.isArray(emailArray) && emailArray.length > 0) {
+                        // Add the email object to our collection
+                        allEmails.push(emailArray[0]);
+                    }
+                } catch (innerError) {
+                    console.error('Error parsing inner email:', innerError);
+                }
+            });
+            
+            sentEmails = allEmails;
+            console.log('Loaded sent emails:', sentEmails);
+            
+        } catch (e) {
+            console.error('Error parsing email_save:', e);
+            sentEmails = [];
+        }
+    } else {
+        sentEmails = [];
     }
+    
+    // Update dashboard and sidebar with the count
+    updateSentCounts();
+    // ========== END OF ADDED BLOCK ==========
     
     updateDashboardStats();
     renderCustomerTable();
