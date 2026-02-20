@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- Security Meta Tags (ADD THESE) -->
+<!-- Security Meta Tags (ADD THESE) -->
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <title>Flux On Customer Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2120,6 +2123,8 @@
     }
   }
 </style>
+<!-- Security Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js"></script>
 </head>
 <body>
 
@@ -2976,7 +2981,203 @@
 
 <script>
 // ============================================
-// TRANSLATION DICTIONARY - 50+ LANGUAGES (ADD SENT SECTION)
+// SECURITY ENHANCEMENTS - MUST BE FIRST
+// ============================================
+
+// DOMPurify for XSS prevention
+const DOMPurify = window.DOMPurify || {
+    sanitize: function(html) {
+        // Basic sanitization if DOMPurify not loaded
+        const div = document.createElement('div');
+        div.textContent = html;
+        return div.innerHTML;
+    }
+};
+
+// CSRF Token management
+let csrfToken = null;
+
+// Fetch wrapper with CSRF and authentication
+async function secureFetch(url, options = {}) {
+    const defaultOptions = {
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    };
+
+    if (options.method && options.method !== 'GET' && csrfToken) {
+        defaultOptions.headers['X-CSRF-Token'] = csrfToken;
+    }
+
+    const fetchOptions = { ...defaultOptions, ...options };
+    
+    try {
+        const response = await fetch(url, fetchOptions);
+        
+        if (response.status === 401) {
+            sessionStorage.removeItem('authenticated');
+            sessionStorage.removeItem('userId');
+            showLoginRequired();
+            throw new Error('Session expired');
+        }
+        
+        return response;
+    } catch (error) {
+        console.error('Fetch error:', error);
+        throw error;
+    }
+}
+
+// Session check
+async function checkSession() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/session`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.authenticated) {
+                sessionStorage.setItem('authenticated', 'true');
+                sessionStorage.setItem('userId', data.userId);
+                await refreshCsrfToken();
+                return true;
+            }
+        }
+        
+        sessionStorage.removeItem('authenticated');
+        sessionStorage.removeItem('userId');
+        return false;
+    } catch (error) {
+        console.error('Session check failed:', error);
+        return false;
+    }
+}
+
+// Refresh CSRF token
+async function refreshCsrfToken() {
+    try {
+        const response = await fetch('/api/csrf-token', {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            csrfToken = data.csrfToken;
+        }
+    } catch (error) {
+        console.error('Failed to get CSRF token:', error);
+    }
+}
+
+// Login function
+async function login(email, password) {
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            sessionStorage.setItem('authenticated', 'true');
+            sessionStorage.setItem('userId', data.userId);
+            await refreshCsrfToken();
+            return { success: true, data };
+        } else {
+            const error = await response.json();
+            return { success: false, error: error.error };
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        return { success: false, error: 'Network error' };
+    }
+}
+
+// Logout function
+async function logout() {
+    try {
+        await fetch('/api/logout', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'X-CSRF-Token': csrfToken }
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+    } finally {
+        sessionStorage.removeItem('authenticated');
+        sessionStorage.removeItem('userId');
+        csrfToken = null;
+        localStorage.removeItem('flowid');
+        window.location.href = 'index.html';
+    }
+}
+
+// Show login required modal
+function showLoginRequired() {
+    document.getElementById('loginRequiredModal').style.display = 'flex';
+}
+
+// Secure version of checkAuth
+async function checkAuth() {
+    const isAuthenticated = await checkSession();
+    
+    if (!isAuthenticated) {
+        showLoginRequired();
+        return false;
+    }
+    
+    flowId = sessionStorage.getItem('userId');
+    if (!flowId) {
+        showLoginRequired();
+        return false;
+    }
+    
+    return true;
+}
+
+// Secure version of requireAuth
+async function requireAuth(section) {
+    const auth = await checkAuth();
+    if (!auth) {
+        sessionStorage.setItem('redirectAfterLogin', section);
+        return false;
+    }
+    showSection(section);
+    return true;
+}
+
+// Sanitize HTML before rendering
+function sanitizeHTML(html) {
+    if (!html) return '';
+    return DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'div', 'span', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'blockquote', 'pre', 'code'],
+        ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'title', 'class']
+    });
+}
+
+// Input validation helpers
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function validatePhone(phone) {
+    const re = /^\+?[1-9]\d{1,14}$/;
+    return re.test(phone.replace(/\s/g, ''));
+}
+
+function sanitizeInput(input) {
+    if (typeof input !== 'string') return input;
+    return input.replace(/[<>]/g, '');
+}
+
+// ============================================
+// TRANSLATION DICTIONARY - 50+ LANGUAGES
 // ============================================
 
 const translationResources = {
@@ -3001,7 +3202,9 @@ const translationResources = {
       login: 'Login To Existing Account',
       loginRequired: 'Login Required',
       loginRequiredDesc: 'Please sign in or create an account to access this feature.',
-      signInUp: 'Sign In / Sign Up'
+      signInUp: 'Sign In / Sign Up',
+      signedIn: 'Signed in',
+      confirmLogout: 'Log out?'
     },
     status: {
       gmailNotLinked: 'Gmail: Not Linked',
@@ -3037,7 +3240,8 @@ const translationResources = {
       saveRecord: 'Save Record',
       saveTemplate: 'Save Template',
       backToEdit: 'Back to Edit',
-      confirmSend: 'Confirm & Send'
+      confirmSend: 'Confirm & Send',
+      refreshing: 'Refreshing...'
     },
     dashboard: {
       hello: 'Hello,',
@@ -3056,7 +3260,8 @@ const translationResources = {
       createWelcomeSeries: '🎉 Create Welcome Series',
       sendFollowUp: '🔄 Send Follow-up',
       sentEmails: 'Sent Emails',
-      totalSent: 'Total sent'
+      totalSent: 'Total sent',
+      googleConnected: 'Google Account Connected Successfully!'
     },
     customers: {
       description: 'View and manage your subscriber database.',
@@ -3073,7 +3278,26 @@ const translationResources = {
       status: 'Status',
       active: 'Active',
       inactive: 'Inactive',
-      pending: 'Pending'
+      pending: 'Pending',
+      noCustomers: 'No Customers Yet',
+      startAdding: 'Start by adding or importing customers.',
+      addFirst: 'Add First Customer',
+      name: 'Name',
+      actions: 'Actions',
+      save: 'Save',
+      delete: 'Delete',
+      nameRequired: 'Name is required',
+      saving: 'Saving...',
+      saved: 'Data saved to cloud',
+      saveError: 'Error saving data',
+      parsing: 'Parsing CSV...',
+      csvError: 'CSV file is too short or empty.',
+      noEmailColumn: 'Could not detect an Email column. Please check your CSV.',
+      importSuccess: 'Successfully imported {count} customers!',
+      confirmDelete: 'Are you sure you want to delete this customer?',
+      invalidEmail: 'Invalid email format',
+      invalidPhone: 'Invalid phone format. Use international format (e.g., +1234567890)',
+      exported: 'Customers exported successfully!'
     },
     inbox: {
       title: 'Inbox',
@@ -3090,7 +3314,15 @@ const translationResources = {
       senderName: 'Sender Name',
       today: 'Today',
       sendToWhatsApp: 'Send to WhatsApp',
-      delete: 'Delete'
+      delete: 'Delete',
+      noPreview: 'No preview available',
+      unknownDate: 'Unknown date',
+      noContent: 'No content',
+      confirmDelete: 'Delete this message permanently?',
+      deleted: 'Message deleted',
+      deleteFailed: 'Error deleting message',
+      sentToWhatsApp: 'Message sent to your WhatsApp!',
+      sendFailed: 'Failed to send to WhatsApp'
     },
     automation: {
       title: 'Automation Center',
@@ -3118,7 +3350,14 @@ const translationResources = {
       subjectLine: 'Subject Line',
       emailBody: 'Email Body',
       variables: 'Variables: {name}, {email}, {company}',
-      dateTime: 'Date & Time'
+      dateTime: 'Date & Time',
+      noRecipients: 'No recipients selected',
+      googleRequired: 'Action Blocked: You must connect your Google Account to send automated messages.',
+      sending: 'Sending...',
+      sent: 'Sent to {count} recipients',
+      sendFailed: 'Failed to send messages',
+      noValidEmails: 'No valid email addresses found.',
+      confirmReset: 'Reset form?'
     },
     whatsapp: {
       title: 'WhatsApp Automation',
@@ -3137,7 +3376,21 @@ const translationResources = {
       numberLabel: 'WhatsApp Number (with country code)',
       numberFormat: 'Use international format: +[country code][number] (e.g., +1234567890)',
       testTitle: 'Test Notification',
-      testDesc: 'Send a test WhatsApp notification to verify your connection is working.'
+      testDesc: 'Send a test WhatsApp notification to verify your connection is working.',
+      enterNumber: 'Please enter your WhatsApp number',
+      invalidFormat: 'Invalid phone number format. Please use international format (e.g., +1234567890)',
+      registered: 'WhatsApp number registered successfully!',
+      registrationFailed: 'Failed to register WhatsApp number',
+      confirmDisconnect: 'Disconnect WhatsApp? You will stop receiving notifications.',
+      disconnected: 'WhatsApp disconnected',
+      connectFirst: 'Please connect WhatsApp first',
+      testMessage: 'This is a test notification from Flux On',
+      testSubject: 'Test Notification',
+      testSent: 'Test notification sent to your WhatsApp!',
+      testFailed: 'Failed to send test notification',
+      notificationsEnabled: 'WhatsApp notifications enabled',
+      notificationsDisabled: 'WhatsApp notifications disabled',
+      connectPrompt: 'WhatsApp not connected. Would you like to connect now?'
     },
     sent: {
       title: 'Sent Emails',
@@ -3174,7 +3427,9 @@ const translationResources = {
       use: 'Use',
       edit: 'Edit',
       delete: 'Del',
-      general: 'General'
+      general: 'General',
+      noTemplates: 'No templates found.',
+      confirmDelete: 'Delete template?'
     },
     settings: {
       title: 'Settings',
@@ -3193,7 +3448,8 @@ const translationResources = {
       newCustomerAlertDesc: 'Get notified when a new customer is added',
       security: 'Security',
       changePassword: 'Change Password',
-      logOutEverywhere: 'Log Out Everywhere'
+      logOutEverywhere: 'Log Out Everywhere',
+      saved: 'Settings saved successfully!'
     },
     preview: {
       title: 'Message Preview',
@@ -3201,6 +3457,9 @@ const translationResources = {
     },
     footer: {
       allRightsReserved: 'All rights reserved.'
+    },
+    errors: {
+      loadFailed: 'Failed to load data. Please refresh.'
     }
   },
   es: {
@@ -3224,7 +3483,9 @@ const translationResources = {
       login: 'Iniciar sesión',
       loginRequired: 'Inicio de sesión requerido',
       loginRequiredDesc: 'Por favor inicia sesión o crea una cuenta para acceder a esta función.',
-      signInUp: 'Iniciar sesión / Registrarse'
+      signInUp: 'Iniciar sesión / Registrarse',
+      signedIn: 'Sesión iniciada',
+      confirmLogout: '¿Cerrar sesión?'
     },
     status: {
       gmailNotLinked: 'Gmail: No vinculado',
@@ -3260,7 +3521,8 @@ const translationResources = {
       saveRecord: 'Guardar Registro',
       saveTemplate: 'Guardar Plantilla',
       backToEdit: 'Volver a Editar',
-      confirmSend: 'Confirmar y Enviar'
+      confirmSend: 'Confirmar y Enviar',
+      refreshing: 'Actualizando...'
     },
     dashboard: {
       hello: 'Hola,',
@@ -3279,7 +3541,8 @@ const translationResources = {
       createWelcomeSeries: '🎉 Crear Serie de Bienvenida',
       sendFollowUp: '🔄 Enviar Seguimiento',
       sentEmails: 'Correos Enviados',
-      totalSent: 'Total enviados'
+      totalSent: 'Total enviados',
+      googleConnected: '¡Cuenta de Google conectada exitosamente!'
     },
     customers: {
       description: 'Ver y gestionar tu base de datos de suscriptores.',
@@ -3296,7 +3559,26 @@ const translationResources = {
       status: 'Estado',
       active: 'Activo',
       inactive: 'Inactivo',
-      pending: 'Pendiente'
+      pending: 'Pendiente',
+      noCustomers: 'No hay clientes aún',
+      startAdding: 'Comienza agregando o importando clientes.',
+      addFirst: 'Agregar Primer Cliente',
+      name: 'Nombre',
+      actions: 'Acciones',
+      save: 'Guardar',
+      delete: 'Eliminar',
+      nameRequired: 'El nombre es requerido',
+      saving: 'Guardando...',
+      saved: 'Datos guardados en la nube',
+      saveError: 'Error al guardar datos',
+      parsing: 'Analizando CSV...',
+      csvError: 'El archivo CSV está vacío o es demasiado corto.',
+      noEmailColumn: 'No se pudo detectar una columna de Email. Verifica tu CSV.',
+      importSuccess: '¡{count} clientes importados exitosamente!',
+      confirmDelete: '¿Estás seguro de que quieres eliminar este cliente?',
+      invalidEmail: 'Formato de email inválido',
+      invalidPhone: 'Formato de teléfono inválido. Usa formato internacional (ej., +1234567890)',
+      exported: '¡Clientes exportados exitosamente!'
     },
     inbox: {
       title: 'Bandeja de Entrada',
@@ -3313,7 +3595,15 @@ const translationResources = {
       senderName: 'Nombre del Remitente',
       today: 'Hoy',
       sendToWhatsApp: 'Enviar a WhatsApp',
-      delete: 'Eliminar'
+      delete: 'Eliminar',
+      noPreview: 'No hay vista previa disponible',
+      unknownDate: 'Fecha desconocida',
+      noContent: 'Sin contenido',
+      confirmDelete: '¿Eliminar este mensaje permanentemente?',
+      deleted: 'Mensaje eliminado',
+      deleteFailed: 'Error al eliminar mensaje',
+      sentToWhatsApp: '¡Mensaje enviado a tu WhatsApp!',
+      sendFailed: 'Error al enviar a WhatsApp'
     },
     automation: {
       title: 'Centro de Automatización',
@@ -3341,7 +3631,14 @@ const translationResources = {
       subjectLine: 'Línea de Asunto',
       emailBody: 'Cuerpo del Correo',
       variables: 'Variables: {name}, {email}, {company}',
-      dateTime: 'Fecha y Hora'
+      dateTime: 'Fecha y Hora',
+      noRecipients: 'No hay destinatarios seleccionados',
+      googleRequired: 'Acción bloqueada: Debes conectar tu cuenta de Google para enviar mensajes automatizados.',
+      sending: 'Enviando...',
+      sent: 'Enviado a {count} destinatarios',
+      sendFailed: 'Error al enviar mensajes',
+      noValidEmails: 'No se encontraron direcciones de email válidas.',
+      confirmReset: '¿Reiniciar formulario?'
     },
     whatsapp: {
       title: 'Automatización de WhatsApp',
@@ -3360,7 +3657,21 @@ const translationResources = {
       numberLabel: 'Número de WhatsApp (con código de país)',
       numberFormat: 'Usa formato internacional: +[código de país][número] (ej., +1234567890)',
       testTitle: 'Notificación de Prueba',
-      testDesc: 'Envía una notificación de prueba a WhatsApp para verificar que tu conexión funciona.'
+      testDesc: 'Envía una notificación de prueba a WhatsApp para verificar que tu conexión funciona.',
+      enterNumber: 'Por favor ingresa tu número de WhatsApp',
+      invalidFormat: 'Formato de número inválido. Usa formato internacional (ej., +1234567890)',
+      registered: '¡Número de WhatsApp registrado exitosamente!',
+      registrationFailed: 'Error al registrar número de WhatsApp',
+      confirmDisconnect: '¿Desconectar WhatsApp? Dejarás de recibir notificaciones.',
+      disconnected: 'WhatsApp desconectado',
+      connectFirst: 'Por favor conecta WhatsApp primero',
+      testMessage: 'Esta es una notificación de prueba de Flux On',
+      testSubject: 'Notificación de Prueba',
+      testSent: '¡Notificación de prueba enviada a tu WhatsApp!',
+      testFailed: 'Error al enviar notificación de prueba',
+      notificationsEnabled: 'Notificaciones de WhatsApp activadas',
+      notificationsDisabled: 'Notificaciones de WhatsApp desactivadas',
+      connectPrompt: 'WhatsApp no está conectado. ¿Quieres conectarlo ahora?'
     },
     sent: {
       title: 'Correos Enviados',
@@ -3397,7 +3708,9 @@ const translationResources = {
       use: 'Usar',
       edit: 'Editar',
       delete: 'Eliminar',
-      general: 'General'
+      general: 'General',
+      noTemplates: 'No se encontraron plantillas.',
+      confirmDelete: '¿Eliminar plantilla?'
     },
     settings: {
       title: 'Ajustes',
@@ -3416,7 +3729,8 @@ const translationResources = {
       newCustomerAlertDesc: 'Recibe notificación cuando se agregue un nuevo cliente',
       security: 'Seguridad',
       changePassword: 'Cambiar Contraseña',
-      logOutEverywhere: 'Cerrar Sesión en Todas Partes'
+      logOutEverywhere: 'Cerrar Sesión en Todas Partes',
+      saved: '¡Ajustes guardados exitosamente!'
     },
     preview: {
       title: 'Vista Previa del Mensaje',
@@ -3424,6 +3738,9 @@ const translationResources = {
     },
     footer: {
       allRightsReserved: 'Todos los derechos reservados.'
+    },
+    errors: {
+      loadFailed: 'Error al cargar datos. Por favor actualiza.'
     }
   }
   // Add more languages as needed...
@@ -3488,7 +3805,7 @@ let currentLang = 'en';
 
 // Initialize i18next
 i18next.init({
-  lng: 'en', // default language
+  lng: 'en',
   fallbackLng: 'en',
   debug: false,
   resources: Object.keys(translationResources).reduce((acc, lang) => {
@@ -3502,19 +3819,16 @@ i18next.init({
 }, function(err, t) {
   if (err) return console.error('i18next init error:', err);
   
-  // Get language from URL
   const urlParams = new URLSearchParams(window.location.search);
   const urlLang = urlParams.get('lang');
   
   if (urlLang && translationResources[urlLang]) {
     changeLanguage(urlLang);
   } else {
-    // Apply default translations
     translatePage();
   }
 });
 
-// Translate page function
 function translatePage() {
   document.querySelectorAll('[data-i18n]').forEach(element => {
     const key = element.getAttribute('data-i18n');
@@ -3531,11 +3845,9 @@ function translatePage() {
     }
   });
   
-  // Update HTML lang attribute
   document.documentElement.lang = i18next.language;
 }
 
-// Change language function
 function changeLanguage(lng) {
   i18next.changeLanguage(lng, (err, t) => {
     if (err) return console.error('Language change error:', err);
@@ -3544,12 +3856,10 @@ function changeLanguage(lng) {
     updateLanguageDisplay(lng);
     updateURLWithLanguage(lng);
     
-    // Save preference
     localStorage.setItem('preferredLanguage', lng);
   });
 }
 
-// Update language display in header
 function updateLanguageDisplay(lng) {
   const currentLangEl = document.getElementById('currentLanguage');
   if (currentLangEl && availableLanguages[lng]) {
@@ -3557,14 +3867,12 @@ function updateLanguageDisplay(lng) {
   }
 }
 
-// Update URL with language parameter
 function updateURLWithLanguage(lng) {
   const url = new URL(window.location);
   url.searchParams.set('lang', lng);
   window.history.replaceState({}, '', url);
 }
 
-// Populate language dropdown
 function populateLanguageDropdown() {
   const dropdown = document.getElementById('languageDropdown');
   if (!dropdown) return;
@@ -3584,7 +3892,6 @@ function populateLanguageDropdown() {
   dropdown.innerHTML = html;
 }
 
-// Toggle language dropdown
 function toggleLanguageDropdown() {
   document.getElementById('languageDropdown').classList.toggle('show');
 }
@@ -3605,13 +3912,12 @@ document.addEventListener('click', function(event) {
 // Save sent email to n8n webhook
 async function saveSentEmail(emailData) {
   try {
-    // Add userId to the data (outside the email data array)
     const payload = {
       userId: flowId,
       emailData: emailData
     };
     
-    const response = await fetch('https://kingoftech.app.n8n.cloud/webhook/save-email', {
+    const response = await secureFetch('https://kingoftech.app.n8n.cloud/webhook/save-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -3629,7 +3935,6 @@ async function saveSentEmail(emailData) {
 
 // Add sent email to local array and update UI
 function addSentEmail(emailData) {
-  // Create email record with timestamp
   const emailRecord = {
     id: Date.now().toString(),
     campaignName: emailData.campaignName,
@@ -3642,27 +3947,27 @@ function addSentEmail(emailData) {
     sentAt: new Date().toISOString()
   };
   
-  // Add to beginning of array (newest first)
   sentEmails.unshift(emailRecord);
   
-  // Update UI counts
   updateSentCounts();
   
-  // Render sent emails list if section is visible
   if (document.getElementById('sentSection').style.display !== 'none') {
     renderSentEmails();
   }
   
-  // Also save to n8n webhook
   saveSentEmail(emailRecord);
 }
 
 // Update sent email counts in UI
 function updateSentCounts() {
   const count = sentEmails.length;
-  document.getElementById('sentEmailsCount').textContent = count;
-  document.getElementById('totalSentCount').textContent = count + ' total';
-  document.getElementById('sentCountDisplay').textContent = count + ' Sent';
+  const sentEmailsCountEl = document.getElementById('sentEmailsCount');
+  const totalSentCountEl = document.getElementById('totalSentCount');
+  const sentCountDisplayEl = document.getElementById('sentCountDisplay');
+  
+  if (sentEmailsCountEl) sentEmailsCountEl.textContent = count;
+  if (totalSentCountEl) totalSentCountEl.textContent = count + ' total';
+  if (sentCountDisplayEl) sentCountDisplayEl.textContent = count + ' Sent';
 }
 
 // Render sent emails list
@@ -3709,8 +4014,13 @@ function renderSentEmails() {
 // ============================================
 
 async function sendAutomatedMessages() {
-    if (!checkAuth()) return;
-    if(selectedEmails.size === 0) { alert(i18next.t('automation.noRecipients') || 'No recipients selected'); return; }
+    const auth = await checkAuth();
+    if (!auth) return;
+    
+    if(selectedEmails.size === 0) { 
+        alert(i18next.t('automation.noRecipients') || 'No recipients selected'); 
+        return; 
+    }
     
     if (!isGoogleConnected) {
         alert(i18next.t('automation.googleRequired') || "Action Blocked: You must connect your Google Account to send automated messages.");
@@ -3722,7 +4032,6 @@ async function sendAutomatedMessages() {
     const btn = document.getElementById('btnConfirmSend');
     setButtonLoading(btn, true, i18next.t('automation.sending') || 'Sending...');
     
-    // FLAT structure as expected by backend - NO emailData wrapper
     const payload = {
         userId: flowId,
         campaignName: document.getElementById('campaignName').value,
@@ -3733,10 +4042,10 @@ async function sendAutomatedMessages() {
         fromEmail: document.getElementById('fromEmail').value
     };
     
-    console.log('Sending payload:', payload); // Debug log
+    console.log('Sending payload:', payload);
     
     try {
-        const res = await fetch(`${API_BASE_URL}/send-automated-messages`, {
+        const res = await secureFetch(`${API_BASE_URL}/send-automated-messages`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
@@ -3749,7 +4058,6 @@ async function sendAutomatedMessages() {
         
         const result = await res.json();
         
-        // Add to sent emails
         addSentEmail(payload);
         
         showMessage(i18next.t('automation.sent', { count: selectedEmails.size }) || `Sent to ${selectedEmails.size} recipients`, 'success');
@@ -3768,7 +4076,7 @@ async function sendAutomatedMessages() {
 // CONFIGURATION & GLOBAL STATE
 // ============================================
 const API_BASE_URL = 'https://flowon.onrender.com/api'; 
-let flowId = localStorage.getItem('flowid');
+let flowId = null;
 
 // Global Variables
 let currentUser = null;
@@ -3790,52 +4098,31 @@ const defaultTemplates = [
 ];
 
 // ============================================
-// AUTHENTICATION CHECKS
+// REDIRECT TO SIGNUP
 // ============================================
-function checkAuth() {
-    flowId = localStorage.getItem('flowid');
-    if (!flowId) {
-        document.getElementById('loginRequiredModal').style.display = 'flex';
-        return false;
-    }
-    return true;
-}
-
-function requireAuth(section) {
-    if (!checkAuth()) {
-        sessionStorage.setItem('redirectAfterLogin', section);
-        return false;
-    }
-    showSection(section);
-    return true;
-}
 
 function redirectToSignup() {
-    localStorage.removeItem('flowid');
     window.location.href = 'signup.html';
 }
 
 // ============================================
 // INITIALIZATION
 // ============================================
-document.addEventListener('DOMContentLoaded', function() {
-  // Populate language dropdown
+
+document.addEventListener('DOMContentLoaded', async function() {
   populateLanguageDropdown();
   
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('status') === 'connected') {
-      const userId = urlParams.get('userId');
-      if (userId) {
-          localStorage.setItem('flowid', userId);
-      }
-      
       window.history.replaceState({}, document.title, window.location.pathname);
       updateGoogleConnectionUI(true);
       showMessage(i18next.t('dashboard.googleConnected') || 'Google Account Connected Successfully!', 'success');
       showSection('automation');
   }
 
-  if (!flowId) {
+  const isAuthenticated = await checkSession();
+
+  if (!isAuthenticated) {
     document.getElementById('logoutauth').style.display = 'none';
     document.getElementById('signupauth').style.display = 'flex';
     document.getElementById('loginRequiredModal').style.display = 'flex';
@@ -3856,6 +4143,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     return;
   } else {
+    flowId = sessionStorage.getItem('userId');
+    
     document.getElementById('logoutauth').style.display = 'flex';
     document.getElementById('signupauth').style.display = 'none';
     
@@ -3870,7 +4159,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  loadUserData();
+  await loadUserData();
   checkWhatsAppStatus();
   setupEventListeners();
   setInterval(loadInboxMessages, 30000);
@@ -3881,7 +4170,9 @@ function setupEventListeners() {
   if(scheduleSelect) {
       scheduleSelect.addEventListener('change', function() {
         const scheduleDateGroup = document.getElementById('scheduleDateGroup');
-        scheduleDateGroup.style.display = this.value === 'scheduled' ? 'block' : 'none';
+        if (scheduleDateGroup) {
+          scheduleDateGroup.style.display = this.value === 'scheduled' ? 'block' : 'none';
+        }
       });
   }
   
@@ -3897,17 +4188,19 @@ function setupEventListeners() {
 // ============================================
 // GOOGLE INTEGRATION LOGIC
 // ============================================
-function connectGoogle() {
-   if (!checkAuth()) return;
+
+async function connectGoogle() {
+   const auth = await checkAuth();
+   if (!auth) return;
    
-   const userId = localStorage.getItem('flowid'); 
+   const userId = sessionStorage.getItem('userId'); 
    
    if (!userId) {
        alert("User ID is missing. Please log in again.");
        return;
    }
    
-   const targetUrl = `${API_BASE_URL}/google/connect?userId=${encodeURIComponent(userId)}`;
+   const targetUrl = `${API_BASE_URL}/google/connect`;
    window.location.href = targetUrl;
 }
 
@@ -3976,11 +4269,13 @@ function updateGoogleConnectionUI(isConnected) {
 // ============================================
 // WHATSAPP INTEGRATION LOGIC
 // ============================================
+
 async function checkWhatsAppStatus() {
-    if (!checkAuth()) return;
+    const auth = await checkAuth();
+    if (!auth) return;
     
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/status?userId=${encodeURIComponent(flowId)}`);
+        const res = await secureFetch(`${API_BASE_URL}/whatsapp/status`);
         if (res.ok) {
             const data = await res.json();
             updateWhatsAppUI(data.connected, data.phoneNumber);
@@ -4038,7 +4333,8 @@ function updateWhatsAppUI(connected, number = '') {
 }
 
 async function registerWhatsApp() {
-    if (!checkAuth()) return;
+    const auth = await checkAuth();
+    if (!auth) return;
     
     const phoneNumber = document.getElementById('whatsappNumber').value.trim();
     if (!phoneNumber) {
@@ -4056,10 +4352,10 @@ async function registerWhatsApp() {
     setButtonLoading(btn, true, 'Registering...');
     
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/register`, {
+        const res = await secureFetch(`${API_BASE_URL}/whatsapp/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: flowId, phoneNumber })
+            body: JSON.stringify({ phoneNumber })
         });
         
         if (res.ok) {
@@ -4080,13 +4376,13 @@ async function registerWhatsApp() {
 async function disconnectWhatsApp() {
     if (!confirm(i18next.t('whatsapp.confirmDisconnect') || 'Disconnect WhatsApp? You will stop receiving notifications.')) return;
     
-    // Since we don't have a disconnect endpoint yet, just update UI
     updateWhatsAppUI(false);
     showMessage(i18next.t('whatsapp.disconnected') || 'WhatsApp disconnected', 'success');
 }
 
 async function testWhatsApp() {
-    if (!checkAuth() || !isWhatsAppConnected) {
+    const auth = await checkAuth();
+    if (!auth || !isWhatsAppConnected) {
         alert(i18next.t('whatsapp.connectFirst') || 'Please connect WhatsApp first');
         return;
     }
@@ -4095,7 +4391,7 @@ async function testWhatsApp() {
     setButtonLoading(btn, true, 'Sending...');
     
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/notify`, {
+        const res = await secureFetch(`${API_BASE_URL}/whatsapp/notify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -4121,11 +4417,11 @@ async function testWhatsApp() {
 
 function toggleWhatsAppNotifications() {
     const toggle = document.getElementById('whatsappToggle');
-    if (toggle.checked && !isWhatsAppConnected) {
+    if (toggle && toggle.checked && !isWhatsAppConnected) {
         alert(i18next.t('whatsapp.connectFirst') || 'Please connect WhatsApp first in the WhatsApp section');
         toggle.checked = false;
         showSection('whatsapp');
-    } else if (toggle.checked) {
+    } else if (toggle && toggle.checked) {
         showMessage(i18next.t('whatsapp.notificationsEnabled') || 'WhatsApp notifications enabled', 'success');
     } else {
         showMessage(i18next.t('whatsapp.notificationsDisabled') || 'WhatsApp notifications disabled', 'info');
@@ -4133,7 +4429,8 @@ function toggleWhatsAppNotifications() {
 }
 
 async function sendToWhatsApp() {
-    if (!checkAuth()) return;
+    const auth = await checkAuth();
+    if (!auth) return;
     if (currentMessageIndex === -1) return;
     
     if (!isWhatsAppConnected) {
@@ -4149,7 +4446,7 @@ async function sendToWhatsApp() {
     setButtonLoading(btn, true, '');
     
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/notify-new-message`, {
+        const res = await secureFetch(`${API_BASE_URL}/whatsapp/notify-new-message`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -4177,6 +4474,7 @@ async function sendToWhatsApp() {
 // ============================================
 // DATA LOADING ENGINE
 // ============================================
+
 function parseAndFlattenCustomers(input) {
     if (!input) return [];
     if (typeof input === 'string') {
@@ -4235,12 +4533,13 @@ function safeParseTemplates(input) {
 }
 
 async function loadUserData() {
-  if (!checkAuth()) return;
+  const auth = await checkAuth();
+  if (!auth) return;
   
   try {
     showGlobalLoader(true, 'Loading Dashboard...');
     
-    const response = await fetch(`${API_BASE_URL}/userdata/${flowId}`);
+    const response = await secureFetch(`${API_BASE_URL}/userdata/${flowId}`);
     if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
     const userData = await response.json();
     currentUser = userData;
@@ -4262,25 +4561,17 @@ async function loadUserData() {
     const rawTemplates = safeParseTemplates(userData.templates);
     templates = rawTemplates.length > 0 ? rawTemplates : [...defaultTemplates];
     
-    // ========== ADD THIS BLOCK TO LOAD SENT EMAILS ==========
-    // Load sent emails from email_save with the correct format
     if (userData.email_save) {
         try {
-            // First parse the outer string to get array of strings
             const outerArray = JSON.parse(userData.email_save);
             console.log('Outer array:', outerArray);
             
-            // Initialize empty array for all emails
             let allEmails = [];
             
-            // Loop through each item in the outer array
             outerArray.forEach(item => {
                 try {
-                    // Parse each inner string to get the email array
                     const emailArray = JSON.parse(item);
-                    // emailArray should be an array with one email object
                     if (Array.isArray(emailArray) && emailArray.length > 0) {
-                        // Add the email object to our collection
                         allEmails.push(emailArray[0]);
                     }
                 } catch (innerError) {
@@ -4299,9 +4590,7 @@ async function loadUserData() {
         sentEmails = [];
     }
     
-    // Update dashboard and sidebar with the count
     updateSentCounts();
-    // ========== END OF ADDED BLOCK ==========
     
     updateDashboardStats();
     renderCustomerTable();
@@ -4327,6 +4616,7 @@ async function loadUserData() {
 // ============================================
 // INBOX API FUNCTIONS
 // ============================================
+
 function cleanN8nValue(val) {
     if (!val) return '';
     if (typeof val === 'string' && val.startsWith('=')) {
@@ -4336,10 +4626,11 @@ function cleanN8nValue(val) {
 }
 
 async function loadInboxMessages() {
-    if (!checkAuth() || !isGoogleConnected) return;
+    const auth = await checkAuth();
+    if (!auth || !isGoogleConnected) return;
     
     try {
-        const res = await fetch(`${API_BASE_URL}/inbox?userId=${encodeURIComponent(flowId)}`);
+        const res = await secureFetch(`${API_BASE_URL}/inbox`);
         if (res.ok) {
             inboxMessages = await res.json();
             updateNotificationCount();
@@ -4355,14 +4646,19 @@ async function loadInboxMessages() {
 function updateNotificationCount() {
     const unread = inboxMessages.filter(m => !m.read).length;
     const badge = document.getElementById('notificationBadge');
+    const unreadStatsEl = document.getElementById('unreadStats');
     
-    badge.textContent = unread;
-    if (unread > 0) {
-        badge.classList.add('show');
+    if (badge) {
+        badge.textContent = unread;
+        if (unread > 0) {
+            badge.classList.add('show');
+        } else {
+            badge.classList.remove('show');
+        }
+    }
+    
+    if (unreadStatsEl) {
         updateText('unreadStats', unread);
-    } else {
-        badge.classList.remove('show');
-        updateText('unreadStats', 0);
     }
 }
 
@@ -4409,7 +4705,8 @@ function renderInboxList() {
 }
 
 async function viewEmail(index) {
-    if (!checkAuth() || !isGoogleConnected) return;
+    const auth = await checkAuth();
+    if (!auth || !isGoogleConnected) return;
     
     const msg = inboxMessages[index];
     if (!msg) return;
@@ -4421,7 +4718,7 @@ async function viewEmail(index) {
         updateNotificationCount();
         
         try {
-            await fetch(`${API_BASE_URL}/inbox/read/${msg.id}?userId=${encodeURIComponent(flowId)}`, { 
+            await secureFetch(`${API_BASE_URL}/inbox/read/${msg.id}`, { 
                 method: 'POST' 
             });
         } catch(e) {
@@ -4456,7 +4753,7 @@ async function viewEmail(index) {
     const textContent = msg.body_text;
     
     if (htmlContent && !htmlContent.startsWith('=')) {
-        bodyContainer.innerHTML = htmlContent;
+        bodyContainer.innerHTML = sanitizeHTML(htmlContent);
     } else {
         bodyContainer.innerHTML = `<pre style="font-family: inherit; white-space: pre-wrap;">${escapeHtml(textContent || i18next.t('inbox.noContent'))}</pre>`;
     }
@@ -4467,7 +4764,8 @@ async function viewEmail(index) {
 }
 
 async function deleteCurrentMessage() {
-    if (!checkAuth() || !isGoogleConnected) return;
+    const auth = await checkAuth();
+    if (!auth || !isGoogleConnected) return;
     if (currentMessageIndex === -1) return;
     
     if(!confirm(i18next.t('inbox.confirmDelete') || 'Delete this message permanently?')) return;
@@ -4475,7 +4773,7 @@ async function deleteCurrentMessage() {
     const msg = inboxMessages[currentMessageIndex];
     
     try {
-        await fetch(`${API_BASE_URL}/inbox/${msg.id}?userId=${encodeURIComponent(flowId)}`, { 
+        await secureFetch(`${API_BASE_URL}/inbox/${msg.id}`, { 
             method: 'DELETE' 
         });
         
@@ -4505,6 +4803,7 @@ function closeMobileInbox() {
 // ============================================
 // UI RENDERING FUNCTIONS
 // ============================================
+
 function updateDashboardStats() {
   const total = customers.length;
   updateText('totalCustomers', total);
@@ -4646,8 +4945,9 @@ function renderTemplateSelector() {
 // ============================================
 // USER ACTIONS & LOGIC
 // ============================================
-function toggleEmailSelection(checkbox) {
-  if (!checkAuth()) return;
+
+async function toggleEmailSelection(checkbox) {
+  if (!await checkAuth()) return;
   const email = checkbox.dataset.email;
   if (checkbox.checked) selectedEmails.add(email);
   else selectedEmails.delete(email);
@@ -4655,8 +4955,8 @@ function toggleEmailSelection(checkbox) {
   updateSelectAllCheckbox();
 }
 
-function toggleAllEmails() {
-  if (!checkAuth()) return;
+async function toggleAllEmails() {
+  if (!await checkAuth()) return;
   const selectAll = document.getElementById('selectAllEmails');
   const checkboxes = document.querySelectorAll('.email-checkbox');
   
@@ -4690,24 +4990,24 @@ function updateSelectAllCheckbox() {
 
 function updateCustomerField(index, field, value) {
   if (!customers[index]) customers[index] = {};
-  customers[index][field] = value;
+  customers[index][field] = sanitizeInput(value);
 }
 
 async function saveCustomer(index) {
-  if (!checkAuth()) return;
+  if (!await checkAuth()) return;
   await saveAllChanges();
 }
 
 async function deleteCustomer(index) {
-  if (!checkAuth()) return;
+  if (!await checkAuth()) return;
   if (!confirm(i18next.t('customers.confirmDelete') || 'Are you sure you want to delete this customer?')) return;
   customers.splice(index, 1);
   refreshUI();
   await saveAllChanges();
 }
 
-function addNewCustomer() {
-  if (!checkAuth()) return;
+async function addNewCustomer() {
+  if (!await checkAuth()) return;
   updateValue('newCustomerName', '');
   updateValue('newCustomerEmail', '');
   updateValue('newCustomerPhone', '');
@@ -4717,19 +5017,37 @@ function addNewCustomer() {
 }
 
 async function saveNewCustomer() {
-  if (!checkAuth()) return;
+  if (!await checkAuth()) return;
   const btn = document.getElementById('btnSaveCustomer');
   setButtonLoading(btn, true, i18next.t('customers.saving') || 'Saving...');
   
   try {
       const name = document.getElementById('newCustomerName').value.trim();
-      if (!name) { alert(i18next.t('customers.nameRequired') || 'Name is required'); setButtonLoading(btn, false); return; }
+      if (!name) { 
+          alert(i18next.t('customers.nameRequired') || 'Name is required'); 
+          setButtonLoading(btn, false); 
+          return; 
+      }
+      
+      const email = document.getElementById('newCustomerEmail').value.trim();
+      if (email && !validateEmail(email)) {
+          alert(i18next.t('customers.invalidEmail') || 'Invalid email format');
+          setButtonLoading(btn, false);
+          return;
+      }
+      
+      const phone = document.getElementById('newCustomerPhone').value.trim();
+      if (phone && !validatePhone(phone)) {
+          alert(i18next.t('customers.invalidPhone') || 'Invalid phone format. Use international format (e.g., +1234567890)');
+          setButtonLoading(btn, false);
+          return;
+      }
       
       const newC = {
-          name: name,
-          email: document.getElementById('newCustomerEmail').value.trim(),
-          phone: document.getElementById('newCustomerPhone').value.trim(),
-          company: document.getElementById('newCustomerCompany').value.trim(),
+          name: sanitizeInput(name),
+          email: sanitizeInput(email),
+          phone: sanitizeInput(phone),
+          company: sanitizeInput(document.getElementById('newCustomerCompany').value.trim()),
           status: document.getElementById('newCustomerStatus').value,
           createdAt: new Date().toISOString()
       };
@@ -4745,25 +5063,27 @@ async function saveNewCustomer() {
   }
 }
 
-function importCustomers() {
-    if (!checkAuth()) return;
+async function importCustomers() {
+    if (!await checkAuth()) return;
     document.getElementById('csvFileInput').click();
 }
 
 function handleFileSelect(event) {
-    if (!checkAuth()) return;
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    showGlobalLoader(true, i18next.t('customers.parsing') || 'Parsing CSV...');
-    const reader = new FileReader();
-    
-    reader.onload = function(e) {
-        setTimeout(() => processCSV(e.target.result), 100);
-    };
-    
-    reader.readAsText(file);
-    event.target.value = ''; 
+    checkAuth().then(auth => {
+        if (!auth) return;
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        showGlobalLoader(true, i18next.t('customers.parsing') || 'Parsing CSV...');
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            setTimeout(() => processCSV(e.target.result), 100);
+        };
+        
+        reader.readAsText(file);
+        event.target.value = ''; 
+    });
 }
 
 function processCSV(csvText) {
@@ -4814,18 +5134,18 @@ function processCSV(csvText) {
         const email = (row[emailIdx] || '').trim();
         if (email && email.includes('@')) {
             let name = 'Unknown';
-            if (nameIdx > -1 && row[nameIdx]) name = row[nameIdx];
+            if (nameIdx > -1 && row[nameIdx]) name = sanitizeInput(row[nameIdx]);
             else if (headers.includes('first name')) {
                 const fNameIdx = headers.indexOf('first name');
                 const lNameIdx = headers.indexOf('last name');
-                name = `${row[fNameIdx] || ''} ${row[lNameIdx] || ''}`.trim();
+                name = sanitizeInput(`${row[fNameIdx] || ''} ${row[lNameIdx] || ''}`.trim());
             } else name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             
             customers.push({
                 name: name,
-                email: email,
-                phone: phoneIdx > -1 ? row[phoneIdx] : '',
-                company: companyIdx > -1 ? row[companyIdx] : '',
+                email: sanitizeInput(email),
+                phone: phoneIdx > -1 ? sanitizeInput(row[phoneIdx]) : '',
+                company: companyIdx > -1 ? sanitizeInput(row[companyIdx]) : '',
                 status: 'Active',
                 createdAt: new Date().toISOString()
             });
@@ -4840,16 +5160,16 @@ function processCSV(csvText) {
     });
 }
 
-function createNewTemplate() {
-    if (!checkAuth()) return;
+async function createNewTemplate() {
+    if (!await checkAuth()) return;
     updateValue('templateIndex', '-1');
     document.getElementById('templateForm').reset();
     updateText('templateModalTitle', i18next.t('templates.addNew'));
     openModal('templateModal');
 }
 
-function editTemplate(index) {
-    if (!checkAuth()) return;
+async function editTemplate(index) {
+    if (!await checkAuth()) return;
     const t = templates[index];
     updateValue('templateIndex', index);
     updateValue('templateName', t.name);
@@ -4861,16 +5181,16 @@ function editTemplate(index) {
 }
 
 async function saveTemplate() {
-    if (!checkAuth()) return;
+    if (!await checkAuth()) return;
     const btn = document.getElementById('btnSaveTemplate');
     setButtonLoading(btn, true);
     
     const index = parseInt(document.getElementById('templateIndex').value);
     const newT = {
-        name: document.getElementById('templateName').value,
-        tag: document.getElementById('templateTag').value,
-        subject: document.getElementById('templateSubject').value,
-        body: document.getElementById('templateBody').value
+        name: sanitizeInput(document.getElementById('templateName').value),
+        tag: sanitizeInput(document.getElementById('templateTag').value),
+        subject: sanitizeInput(document.getElementById('templateSubject').value),
+        body: document.getElementById('templateBody').value // Don't sanitize email body as it may contain HTML
     };
     
     if (index === -1) templates.push(newT);
@@ -4884,7 +5204,7 @@ async function saveTemplate() {
 }
 
 async function deleteTemplate(index) {
-    if (!checkAuth()) return;
+    if (!await checkAuth()) return;
     if(!confirm(i18next.t('templates.confirmDelete') || 'Delete template?')) return;
     templates.splice(index, 1);
     renderTemplates();
@@ -4893,9 +5213,11 @@ async function deleteTemplate(index) {
 }
 
 function useTemplate(index) {
-    if (!checkAuth()) return;
-    loadTemplate(index);
-    showSection('automation');
+    checkAuth().then(auth => {
+        if (!auth) return;
+        loadTemplate(index);
+        showSection('automation');
+    });
 }
 
 function loadTemplate(identifier) {
@@ -4914,8 +5236,8 @@ function loadTemplate(identifier) {
     }
 }
 
-function previewMessage() {
-    if (!checkAuth()) return;
+async function previewMessage() {
+    if (!await checkAuth()) return;
     const subject = document.getElementById('emailSubject').value;
     const body = document.getElementById('emailBody').value;
     updateText('previewSubject', subject);
@@ -4924,19 +5246,18 @@ function previewMessage() {
 }
 
 async function saveAllChanges() {
-    if (!checkAuth()) return;
+    if (!await checkAuth()) return;
     const btn = document.getElementById('btnSaveChanges');
     if(btn) setButtonLoading(btn, true, i18next.t('customers.saving') || 'Saving...');
     
     try {
         const payload = {
-            userId: flowId,
             customers: customers,
             templates: templates,
             sent_emails: sentEmails
         };
         
-        const res = await fetch(`${API_BASE_URL}/updatecustomers`, {
+        const res = await secureFetch(`${API_BASE_URL}/updatecustomers`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
@@ -4956,14 +5277,15 @@ async function saveAllChanges() {
 // ============================================
 // UTILITIES
 // ============================================
+
 function refreshUI() {
     updateDashboardStats();
     renderCustomerTable();
     renderEmailList();
 }
 
-function refreshData() {
-    if (!checkAuth()) return;
+async function refreshData() {
+    if (!await checkAuth()) return;
     const btn = document.getElementById('btnRefresh');
     setButtonLoading(btn, true, i18next.t('buttons.refreshing') || 'Refreshing...');
     loadUserData().finally(() => setButtonLoading(btn, false));
@@ -4984,7 +5306,7 @@ function setButtonLoading(btn, isLoading, text='Loading...') {
         btn.disabled = true;
         btn.innerHTML = `<span class="btn-spinner"></span> ${text}`;
     } else {
-        btn.innerHTML = btn.dataset.og || 'Submit';
+        btn.innerHTML = btn.dataset.og || btn.innerHTML;
         btn.disabled = false;
     }
 }
@@ -5010,7 +5332,7 @@ function updateValue(id, val) {
 
 function escapeHtml(text) {
   if (!text) return "";
-  return text
+  return String(text)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -5022,13 +5344,13 @@ function getInitials(name) {
     return (name || 'U').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
 }
 
-function showSection(id) {
-    if (!checkAuth()) return;
+async function showSection(id) {
+    if (!await checkAuth()) return;
     
     document.querySelectorAll('.section-content').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     
-    const sec = document.getElementById(id+'Section');
+    const sec = document.getElementById(id + 'Section');
     if(sec) sec.style.display = 'block';
     
     const nav = document.querySelector(`a[href="#${id}"]`);
@@ -5058,20 +5380,22 @@ function showSection(id) {
     }
 }
 
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-function clearForm() { if(confirm(i18next.t('automation.confirmReset') || 'Reset form?')) document.getElementById('messageForm').reset(); }
+function openModal(id) { 
+    document.getElementById(id).style.display = 'flex'; 
+}
 
-function confirmLogout() { 
+function closeModal(id) { 
+    document.getElementById(id).style.display = 'none'; 
+}
+
+async function clearForm() { 
+    if(confirm(i18next.t('automation.confirmReset') || 'Reset form?')) 
+        document.getElementById('messageForm').reset(); 
+}
+
+async function confirmLogout() { 
     if(confirm(i18next.t('auth.confirmLogout') || 'Log out?')) { 
-        localStorage.removeItem('flowid'); 
-        customers = [];
-        templates = [];
-        inboxMessages = [];
-        sentEmails = [];
-        selectedEmails.clear();
-        currentUser = null;
-        window.location.href = 'index.html';
+        await logout();
     } 
 }
 
@@ -5117,18 +5441,108 @@ function closeMobileMenu() {
 document.addEventListener('keydown', function(event) {
     if (event.key === "Escape") {
         closeMobileMenu();
+        closeModal('loginRequiredModal');
+        closeModal('addCustomerModal');
+        closeModal('templateModal');
+        closeModal('previewModal');
+        document.getElementById('userDropdown')?.classList.remove('show');
+        document.getElementById('languageDropdown')?.classList.remove('show');
     }
 });
 
 function exportCustomers() {
-    if (!checkAuth()) return;
-    alert(i18next.t('customers.exportComing') || 'Export functionality will be implemented soon!');
+    checkAuth().then(auth => {
+        if (!auth) return;
+        
+        const headers = ['Name', 'Email', 'Phone', 'Company', 'Status'];
+        const csvRows = [];
+        
+        csvRows.push(headers.join(','));
+        
+        customers.forEach(c => {
+            const values = [
+                `"${c.name}"`,
+                `"${c.email}"`,
+                `"${c.phone || ''}"`,
+                `"${c.company || ''}"`,
+                c.status
+            ];
+            csvRows.push(values.join(','));
+        });
+        
+        const csvContent = csvRows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'customers.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        showMessage(i18next.t('customers.exported') || 'Customers exported successfully!', 'success');
+    });
 }
 
 function saveSettings(btn) {
-    if (!checkAuth()) return;
-    showMessage(i18next.t('settings.saved') || 'Settings saved successfully!', 'success');
+    checkAuth().then(auth => {
+        if (!auth) return;
+        showMessage(i18next.t('settings.saved') || 'Settings saved successfully!', 'success');
+    });
 }
+
+// Add CSRF token to all forms
+document.addEventListener('submit', function(e) {
+    const form = e.target;
+    if (form.method === 'post' || form.method === 'POST') {
+        let csrfInput = form.querySelector('input[name="_csrf"]');
+        if (!csrfInput && csrfToken) {
+            csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_csrf';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+        }
+    }
+});
+
+document.addEventListener('input', function(e) {
+    if (e.target.type === 'email') {
+        const email = e.target.value;
+        if (email && !validateEmail(email)) {
+            e.target.setCustomValidity('Invalid email format');
+        } else {
+            e.target.setCustomValidity('');
+        }
+    } else if (e.target.type === 'tel') {
+        const phone = e.target.value;
+        if (phone && !validatePhone(phone)) {
+            e.target.setCustomValidity('Use international format (e.g., +1234567890)');
+        } else {
+            e.target.setCustomValidity('');
+        }
+    }
+});
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('languageDropdown');
+    const btn = document.querySelector('.language-btn');
+    if (btn && dropdown && !btn.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.classList.remove('show');
+    }
+    
+    const userDropdown = document.getElementById('userDropdown');
+    const profile = document.querySelector('.profile-area');
+    if (userDropdown && profile && !profile.contains(event.target) && !userDropdown.contains(event.target)) {
+        userDropdown.classList.remove('show');
+    }
+    
+    const search = document.querySelector('.search-container');
+    const results = document.getElementById('searchResults');
+    if (search && results && !search.contains(event.target)) {
+        results.classList.remove('show');
+    }
+});
 
 </script>
 </body>
