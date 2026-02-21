@@ -465,7 +465,7 @@
   /* --- Page Content --- */
   .page-content { 
     padding: 40px; 
-    max-width: 1400px; 
+    max-width: 1200px; 
     margin: 0 auto; 
     width: 100%; 
     flex: 1; 
@@ -548,153 +548,6 @@
   .card-desc { 
     font-size: 13px; 
     color: var(--text-tertiary); 
-  }
-  
-  /* Dashboard Two Column Layout */
-  .dashboard-two-column {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin-bottom: 40px;
-  }
-  
-  .dashboard-column {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
-  
-  /* Templates Preview on Dashboard */
-  .templates-preview {
-    background: #fff;
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-  
-  .templates-preview-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border-light);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg-subtle);
-  }
-  
-  .templates-preview-header h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 700;
-  }
-  
-  .templates-preview-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    padding: 24px;
-  }
-  
-  .template-preview-card {
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-sm);
-    padding: 16px;
-    transition: all 0.2s;
-    cursor: pointer;
-  }
-  
-  .template-preview-card:hover {
-    border-color: var(--border-strong);
-    background: var(--bg-subtle);
-  }
-  
-  .template-preview-name {
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 8px;
-  }
-  
-  .template-preview-tag {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    background: #e5e7eb;
-    color: #374151;
-    font-weight: 600;
-    display: inline-block;
-  }
-  
-  .template-preview-body {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 8px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  /* Analytics Preview on Dashboard */
-  .analytics-preview {
-    background: #fff;
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-  
-  .analytics-preview-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border-light);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg-subtle);
-  }
-  
-  .analytics-preview-header h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 700;
-  }
-  
-  .analytics-preview-content {
-    padding: 24px;
-  }
-  
-  .analytics-mini-chart {
-    height: 120px;
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-  
-  .mini-bar {
-    flex: 1;
-    background: var(--accent-blue);
-    border-radius: 4px 4px 0 0;
-    min-height: 4px;
-    opacity: 0.7;
-  }
-  
-  .analytics-mini-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
-  
-  .mini-stat {
-    text-align: center;
-  }
-  
-  .mini-stat-value {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-main);
-  }
-  
-  .mini-stat-label {
-    font-size: 11px;
-    color: var(--text-tertiary);
   }
   
   /* --- Buttons --- */
@@ -1945,10 +1798,6 @@
     .inbox-layout {
       height: calc(100vh - 160px);
     }
-    
-    .dashboard-two-column {
-      grid-template-columns: 1fr;
-    }
   }
   
   @media (max-width: 768px) {
@@ -2098,10 +1947,6 @@
     /* Templates Mobile */
     .templates-grid { 
       grid-template-columns: 1fr; 
-    }
-    
-    .templates-preview-grid {
-      grid-template-columns: 1fr;
     }
     
     /* Inbox Mobile */
@@ -2326,6 +2171,18 @@
         <span class="nav-icon">📤</span>
         <span>Sent Emails</span>
       </a>
+      <a href="#analytics" class="nav-item" onclick="showSection('analytics'); closeMobileMenu();" data-i18n="nav.analytics">
+        <span class="nav-icon">📈</span>
+        <span>Analytics</span>
+      </a>
+      <a href="#templates" class="nav-item" onclick="showSection('templates'); closeMobileMenu();" data-i18n="nav.templates">
+        <span class="nav-icon">📝</span>
+        <span>Templates</span>
+      </a>
+      <a href="#settings" class="nav-item" onclick="showSection('settings'); closeMobileMenu();" data-i18n="nav.settings">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
     </nav>
     
     <div class="auth-status" id="mobileAuthStatus">
@@ -2475,49 +2332,6 @@
             </div>
             <div class="card-count" id="sentEmailsCount" aria-live="polite">0</div>
             <div class="card-desc" data-i18n="dashboard.totalSent">Total sent</div>
-          </div>
-        </div>
-        
-        <!-- Two Column Dashboard Section -->
-        <div class="dashboard-two-column">
-          <!-- Left Column - Templates Preview -->
-          <div class="dashboard-column">
-            <div class="templates-preview">
-              <div class="templates-preview-header">
-                <h3 data-i18n="templates.title">Templates</h3>
-                <button class="btn btn-secondary" style="height: 32px; font-size: 12px;" onclick="showSection('templates')">View All →</button>
-              </div>
-              <div class="templates-preview-grid" id="dashboardTemplatesPreview">
-                <div style="padding: 24px; text-align: center; color: var(--text-tertiary);" data-i18n="templates.loading">Loading templates...</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Right Column - Analytics Preview -->
-          <div class="dashboard-column">
-            <div class="analytics-preview">
-              <div class="analytics-preview-header">
-                <h3 data-i18n="analytics.title">Analytics</h3>
-                <button class="btn btn-secondary" style="height: 32px; font-size: 12px;" onclick="showSection('analytics')">View All →</button>
-              </div>
-              <div class="analytics-preview-content">
-                <div class="analytics-mini-chart" id="dashboardMiniChart"></div>
-                <div class="analytics-mini-stats">
-                  <div class="mini-stat">
-                    <div class="mini-stat-value" id="dashboardOpenRate">42%</div>
-                    <div class="mini-stat-label" data-i18n="analytics.avgOpenRate">Open Rate</div>
-                  </div>
-                  <div class="mini-stat">
-                    <div class="mini-stat-value" id="dashboardClickRate">18%</div>
-                    <div class="mini-stat-label" data-i18n="analytics.clickRate">Click Rate</div>
-                  </div>
-                  <div class="mini-stat">
-                    <div class="mini-stat-value" id="dashboardBounceRate">0.8%</div>
-                    <div class="mini-stat-label" data-i18n="analytics.bounceRate">Bounce</div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
         
@@ -2913,7 +2727,7 @@
         </div>
       </section>
       
-      <!-- Analytics Section (Full Page) -->
+      <!-- Analytics Section -->
       <section id="analyticsSection" class="section-content" aria-labelledby="analyticsTitle" style="display: none;">
         <div class="welcome-card">
           <h1 id="analyticsTitle" data-i18n="analytics.title">Analytics</h1>
@@ -2923,17 +2737,17 @@
         <div class="analytics-summary">
             <div class="metric-box">
                 <div class="metric-label" data-i18n="analytics.avgOpenRate">Avg. Open Rate</div>
-                <div class="metric-value" id="fullOpenRate">42.5%</div>
+                <div class="metric-value">42.5%</div>
                 <div class="metric-trend trend-up" data-i18n="analytics.trendUp">↑ 5% vs last week</div>
             </div>
             <div class="metric-box">
                 <div class="metric-label" data-i18n="analytics.clickRate">Click Rate</div>
-                <div class="metric-value" id="fullClickRate">18.2%</div>
+                <div class="metric-value">18.2%</div>
                 <div class="metric-trend trend-up" data-i18n="analytics.trendUp">↑ 2% vs last week</div>
             </div>
             <div class="metric-box">
                 <div class="metric-label" data-i18n="analytics.bounceRate">Bounce Rate</div>
-                <div class="metric-value" id="fullBounceRate">0.8%</div>
+                <div class="metric-value">0.8%</div>
                 <div class="metric-trend trend-down" data-i18n="analytics.trendDown">↓ 0.2% vs last week</div>
             </div>
         </div>
@@ -2947,7 +2761,7 @@
         </div>
       </section>
       
-      <!-- Templates Section (Full Page) -->
+      <!-- Templates Section -->
       <section id="templatesSection" class="section-content" aria-labelledby="templatesTitle" style="display: none;">
         <div class="welcome-card">
           <div style="display: flex; flex-direction: column; gap: 16px;">
@@ -3204,6 +3018,7 @@ async function secureFetch(url, options = {}) {
         }
 
         if (response.status === 403) {
+            // CSRF token may have expired — refresh and surface the error
             await refreshCsrfToken();
             throw new Error('Request blocked (CSRF). Please try again.');
         }
@@ -3265,11 +3080,6 @@ function showLoginRequired() {
     if (modal) modal.style.display = 'flex';
 }
 
-function hideLoginRequired() {
-    const modal = document.getElementById('loginRequiredModal');
-    if (modal) modal.style.display = 'none';
-}
-
 async function checkAuth() {
     // Check localStorage first (set during signup flow)
     const localFlowId = localStorage.getItem('flowid');
@@ -3278,28 +3088,22 @@ async function checkAuth() {
         sessionStorage.setItem('userId', localFlowId);
         sessionStorage.setItem('authenticated', 'true');
         if (!csrfToken) await refreshCsrfToken();
-        hideLoginRequired(); // Hide modal if it was showing
         return true;
     }
 
     if (sessionStorage.getItem('authenticated') === 'true' && sessionStorage.getItem('userId')) {
         flowId = sessionStorage.getItem('userId');
         if (!csrfToken) await refreshCsrfToken();
-        hideLoginRequired(); // Hide modal if it was showing
         return true;
     }
 
     const isAuthenticated = await checkSession();
     if (!isAuthenticated) {
-        // Only show login required if we're not on signup page
-        if (!window.location.href.includes('signup.html')) {
-            showLoginRequired();
-        }
+        showLoginRequired();
         return false;
     }
 
     flowId = sessionStorage.getItem('userId');
-    hideLoginRequired(); // Hide modal if it was showing
     return !!flowId;
 }
 
@@ -3364,7 +3168,7 @@ function validatePhone(phone) {
 
 const translationResources = {
     en: {
-        nav: { dashboard:'Dashboard', customers:'Customers', inbox:'Inbox', automation:'Automation', whatsapp:'WhatsApp', sent:'Sent Emails' },
+        nav: { dashboard:'Dashboard', customers:'Customers', inbox:'Inbox', automation:'Automation', whatsapp:'WhatsApp', sent:'Sent Emails', analytics:'Analytics', templates:'Templates', settings:'Settings' },
         auth: { notSignedIn:'Not signed in', signIn:'Sign in', or:'or', register:'Register', logOut:'Log Out', login:'Login To Existing Account', loginRequired:'Login Required', loginRequiredDesc:'Please sign in or create an account to access this feature.', signInUp:'Sign In / Sign Up', signedIn:'Signed in', confirmLogout:'Log out?' },
         status: { gmailNotLinked:'Gmail: Not Linked', gmailLinked:'✓ Gmail Linked', whatsappNotConnected:'WhatsApp: Not Connected', whatsappConnected:'📱 WhatsApp Connected' },
         legal: { privacy:'Privacy Policy', terms:'Terms of Service' },
@@ -3381,11 +3185,10 @@ const translationResources = {
         settings: { title:'Settings', description:'Configure your account preferences and notifications.', profile:'Profile Information', fullName:'Full Name', email:'Email Address', whatsappIntegration:'WhatsApp Integration', whatsappToggle:'Email Notifications on WhatsApp', whatsappDesc:'Receive WhatsApp notifications for new emails', connectedNumber:'Connected Number:', notifications:'Notifications', campaignSummary:'Email Campaign Summary', campaignSummaryDesc:'Receive a weekly summary of your campaign stats', newCustomerAlert:'New Customer Alert', newCustomerAlertDesc:'Get notified when a new customer is added', security:'Security', changePassword:'Change Password', logOutEverywhere:'Log Out Everywhere', saved:'Settings saved successfully!' },
         preview: { title:'Message Preview', subject:'Subject' },
         footer: { allRightsReserved:'All rights reserved.' },
-        errors: { loadFailed:'Failed to load data. Please refresh.' },
-        templates: { loading:'Loading templates...' }
+        errors: { loadFailed:'Failed to load data. Please refresh.' }
     },
     es: {
-        nav: { dashboard:'Panel', customers:'Clientes', inbox:'Bandeja', automation:'Automatización', whatsapp:'WhatsApp', sent:'Correos Enviados' },
+        nav: { dashboard:'Panel', customers:'Clientes', inbox:'Bandeja', automation:'Automatización', whatsapp:'WhatsApp', sent:'Correos Enviados', analytics:'Analíticas', templates:'Plantillas', settings:'Ajustes' },
         auth: { notSignedIn:'No has iniciado sesión', signIn:'Iniciar sesión', or:'o', register:'Registrarse', logOut:'Cerrar sesión', login:'Iniciar sesión', loginRequired:'Inicio de sesión requerido', loginRequiredDesc:'Por favor inicia sesión o crea una cuenta para acceder a esta función.', signInUp:'Iniciar sesión / Registrarse', signedIn:'Sesión iniciada', confirmLogout:'¿Cerrar sesión?' },
         status: { gmailNotLinked:'Gmail: No vinculado', gmailLinked:'✓ Gmail Vinculado', whatsappNotConnected:'WhatsApp: No conectado', whatsappConnected:'📱 WhatsApp Conectado' },
         legal: { privacy:'Política de Privacidad', terms:'Términos de Servicio' },
@@ -3398,7 +3201,7 @@ const translationResources = {
         whatsapp: { title:'Automatización de WhatsApp', description:'Recibe notificaciones de correo en tu WhatsApp.', connect:'Conectar WhatsApp', connectTitle:'Conecta tu WhatsApp', connectDesc:'Recibe notificaciones instantáneas en WhatsApp cada vez que recibas un correo.', connected:'WhatsApp Conectado', disconnect:'Desconectar', option1:'Opción 1: Escanear QR', option1Desc:'Abre WhatsApp, toca Menú/Configuración, luego WhatsApp Web y escanea.', option2:'Opción 2: Enviar Mensaje', option2Desc:'Envía este mensaje exacto al número de arriba:', option2Note:'Después de enviar, tu WhatsApp se conectará automáticamente.', manualTitle:'O ingresa tu número manualmente', numberLabel:'Número de WhatsApp (con código de país)', numberFormat:'Formato internacional: +[código][número] (ej., +1234567890)', testTitle:'Notificación de Prueba', testDesc:'Envía una notificación de prueba para verificar tu conexión.', enterNumber:'Por favor ingresa tu número de WhatsApp', invalidFormat:'Formato inválido. Usa formato internacional (ej., +1234567890)', registered:'¡Número registrado exitosamente!', registrationFailed:'Error al registrar número', confirmDisconnect:'¿Desconectar WhatsApp? Dejarás de recibir notificaciones.', disconnected:'WhatsApp desconectado', connectFirst:'Por favor conecta WhatsApp primero', testMessage:'Esta es una notificación de prueba de Flux On', testSubject:'Notificación de Prueba', testSent:'¡Notificación de prueba enviada!', testFailed:'Error al enviar notificación de prueba', notificationsEnabled:'Notificaciones activadas', notificationsDisabled:'Notificaciones desactivadas', connectPrompt:'WhatsApp no conectado. ¿Quieres conectarlo ahora?' },
         sent: { title:'Correos Enviados', description:'Ver todos los correos enviados mediante automatización.', history:'Historial de Correos', noEmails:'¡Aún no hay correos enviados!', from:'De', to:'Para', subject:'Asunto', date:'Fecha', campaign:'Campaña', recipients:'Destinatarios' },
         analytics: { title:'Analíticas', description:'Rendimiento de campañas y métricas.', avgOpenRate:'Tasa de Apertura Prom.', clickRate:'Tasa de Clics', bounceRate:'Tasa de Rebote', trendUp:'↑ 5% vs semana pasada', trendDown:'↓ 0.2% vs semana pasada', emailPerformance:'Rendimiento de Correos (Últimos 7 Días)', day:'Día' },
-        templates: { title:'Plantillas', description:'Gestiona tus diseños de mensajes.', newTemplate:'+ Nueva Plantilla', addNew:'Agregar Nueva Plantilla', name:'Nombre de la Plantilla', tag:'Etiqueta (Categoría)', subject:'Línea de Asunto', body:'Cuerpo del Correo', use:'Usar', edit:'Editar', delete:'Eliminar', general:'General', noTemplates:'No se encontraron plantillas.', confirmDelete:'¿Eliminar plantilla?', loading:'Cargando plantillas...' },
+        templates: { title:'Plantillas', description:'Gestiona tus diseños de mensajes.', newTemplate:'+ Nueva Plantilla', addNew:'Agregar Nueva Plantilla', name:'Nombre de la Plantilla', tag:'Etiqueta (Categoría)', subject:'Línea de Asunto', body:'Cuerpo del Correo', use:'Usar', edit:'Editar', delete:'Eliminar', general:'General', noTemplates:'No se encontraron plantillas.', confirmDelete:'¿Eliminar plantilla?' },
         settings: { title:'Ajustes', description:'Configura tus preferencias de cuenta.', profile:'Información de Perfil', fullName:'Nombre Completo', email:'Correo Electrónico', whatsappIntegration:'Integración de WhatsApp', whatsappToggle:'Notificaciones de Correo en WhatsApp', whatsappDesc:'Recibe notificaciones de WhatsApp para nuevos correos', connectedNumber:'Número Conectado:', notifications:'Notificaciones', campaignSummary:'Resumen de Campañas', campaignSummaryDesc:'Resumen semanal de tus estadísticas', newCustomerAlert:'Alerta de Nuevo Cliente', newCustomerAlertDesc:'Notificación cuando se agregue un nuevo cliente', security:'Seguridad', changePassword:'Cambiar Contraseña', logOutEverywhere:'Cerrar Sesión en Todas Partes', saved:'¡Ajustes guardados exitosamente!' },
         preview: { title:'Vista Previa del Mensaje', subject:'Asunto' },
         footer: { allRightsReserved:'Todos los derechos reservados.' },
@@ -3532,48 +3335,6 @@ const defaultTemplates = [
 ];
 
 // ============================================
-// DASHBOARD PREVIEW RENDERING
-// ============================================
-
-function renderDashboardTemplatesPreview() {
-    const container = document.getElementById('dashboardTemplatesPreview');
-    if (!container) return;
-    
-    if (!templates || templates.length === 0) {
-        container.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-tertiary);">${i18next.t('templates.noTemplates')}</div>`;
-        return;
-    }
-    
-    // Show first 4 templates in the preview grid
-    const previewTemplates = templates.slice(0, 4);
-    container.innerHTML = previewTemplates.map(t => `
-        <div class="template-preview-card" onclick="showSection('templates')">
-            <div class="template-preview-name">${escapeHtml(t.name)}</div>
-            <span class="template-preview-tag">${escapeHtml(t.tag || i18next.t('templates.general'))}</span>
-            <div class="template-preview-body">${escapeHtml(t.body || '').substring(0, 60)}${t.body && t.body.length > 60 ? '...' : ''}</div>
-        </div>
-    `).join('');
-}
-
-function renderDashboardAnalyticsPreview() {
-    const container = document.getElementById('dashboardMiniChart');
-    if (!container) return;
-    
-    // Sample data for mini chart
-    const data = [10, 40, 25, 50, 30, 60, 45];
-    const max = Math.max(...data);
-    
-    container.innerHTML = data.map(d => `
-        <div class="mini-bar" style="height: ${(d / max) * 100}%;"></div>
-    `).join('');
-    
-    // Update stats
-    document.getElementById('dashboardOpenRate').textContent = '42.5%';
-    document.getElementById('dashboardClickRate').textContent = '18.2%';
-    document.getElementById('dashboardBounceRate').textContent = '0.8%';
-}
-
-// ============================================
 // INITIALIZATION
 // ============================================
 
@@ -3602,6 +3363,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Not logged in — show guest state
         setEl('logoutauth', 'display', 'none');
         setEl('signupauth', 'display', 'flex');
+        document.getElementById('loginRequiredModal').style.display = 'flex';
 
         const authStatus = document.getElementById('mobileAuthStatus');
         if (authStatus) authStatus.innerHTML = `
@@ -3685,9 +3447,7 @@ async function loadUserData() {
     showGlobalLoader(true, 'Loading Dashboard...');
 
     try {
-        const response = await fetch(`${API_BASE_URL}/userdata/${flowId}`, {
-            credentials: 'include'
-        });
+        const response = await secureFetch(`/userdata/${flowId}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const userData = await response.json();
         currentUser = userData;
@@ -3738,10 +3498,6 @@ async function loadUserData() {
         renderTemplates();
         renderTemplateSelector();
         renderAnalytics();
-        
-        // Render dashboard previews
-        renderDashboardTemplatesPreview();
-        renderDashboardAnalyticsPreview();
 
         if (hasTokens) await loadInboxMessages();
 
@@ -3762,6 +3518,7 @@ async function loadUserData() {
 async function connectGoogle() {
     const auth = await checkAuth();
     if (!auth) return;
+    // Redirect — backend creates secure state nonce and redirects to Google
     window.location.href = `${API_BASE_URL}/google/connect`;
 }
 
@@ -3826,9 +3583,7 @@ async function checkWhatsAppStatus() {
     if (!auth) return;
 
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/status`, {
-            credentials: 'include'
-        });
+        const res = await secureFetch('/whatsapp/status');
         if (res.ok) {
             const data = await res.json();
             updateWhatsAppUI(data.connected, data.phoneNumber || '');
@@ -3893,10 +3648,8 @@ async function registerWhatsApp() {
     setButtonLoading(btn, true, 'Registering...');
 
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/register`, {
+        const res = await secureFetch('/whatsapp/register', {
             method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phoneNumber: phoneNumber.replace(/\s/g, '') })
         });
 
@@ -3934,10 +3687,8 @@ async function testWhatsApp() {
     setButtonLoading(btn, true, 'Sending...');
 
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/notify`, {
+        const res = await secureFetch('/whatsapp/notify', {
             method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 message: i18next.t('whatsapp.testMessage'),
                 from: 'Flux On System',
@@ -3983,10 +3734,8 @@ async function sendToWhatsApp() {
     setButtonLoading(btn, true, '');
 
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/notify-new-message`, {
+        const res = await secureFetch('/whatsapp/notify-new-message', {
             method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messageId: msg.id,
                 from: msg.from_name || msg.from_email,
@@ -4014,9 +3763,7 @@ async function loadInboxMessages() {
     if (!auth || !isGoogleConnected) return;
 
     try {
-        const res = await fetch(`${API_BASE_URL}/inbox`, {
-            credentials: 'include'
-        });
+        const res = await secureFetch('/inbox');
         if (res.ok) {
             inboxMessages = await res.json();
             updateNotificationCount();
@@ -4081,13 +3828,13 @@ async function viewEmail(index) {
 
     currentMessageIndex = index;
 
+    // Mark read locally
     if (!msg.read) {
         msg.read = true;
         updateNotificationCount();
-        fetch(`${API_BASE_URL}/inbox/read/${msg.id}`, {
-            method: 'POST',
-            credentials: 'include'
-        }).catch(e => console.error('[markRead]', e));
+        // Fire and forget — non-blocking
+        secureFetch(`/inbox/read/${msg.id}`, { method: 'POST' })
+            .catch(e => console.error('[markRead]', e));
     }
 
     renderInboxList();
@@ -4129,10 +3876,7 @@ async function deleteCurrentMessage() {
     const msg = inboxMessages[currentMessageIndex];
 
     try {
-        const res = await fetch(`${API_BASE_URL}/inbox/${msg.id}`, {
-            method: 'DELETE',
-            credentials: 'include'
-        });
+        const res = await secureFetch(`/inbox/${msg.id}`, { method: 'DELETE' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         inboxMessages.splice(currentMessageIndex, 1);
@@ -4236,7 +3980,6 @@ async function sendAutomatedMessages() {
     setButtonLoading(btn, true, i18next.t('automation.sending'));
 
     const payload = {
-        userId: flowId,
         campaignName: document.getElementById('campaignName').value,
         recipients: Array.from(selectedEmails),
         subject: document.getElementById('emailSubject').value,
@@ -4246,10 +3989,8 @@ async function sendAutomatedMessages() {
     };
 
     try {
-        const res = await fetch(`${API_BASE_URL}/send-automated-messages`, {
+        const res = await secureFetch('/send-automated-messages', {
             method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
@@ -4329,10 +4070,8 @@ async function saveAllChanges() {
     if (btn) setButtonLoading(btn, true, i18next.t('customers.saving'));
 
     try {
-        const res = await fetch(`${API_BASE_URL}/updatecustomers`, {
+        const res = await secureFetch('/updatecustomers', {
             method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ customers, templates, sent_emails: sentEmails })
         });
 
@@ -4609,9 +4348,6 @@ function renderTemplates() {
                 <button class="btn btn-secondary" style="height:32px;font-size:13px;color:var(--color-red-text);" onclick="deleteTemplate(${i})">${i18next.t('templates.delete')}</button>
             </div>
         </div>`).join('');
-    
-    // Also update dashboard preview
-    renderDashboardTemplatesPreview();
 }
 
 function renderTemplateSelector() {
@@ -4770,14 +4506,6 @@ function renderAnalytics() {
             <div class="chart-bar" style="height:${(d / max) * 100}%"></div>
             <div class="chart-label">${i18next.t('analytics.day')} ${i + 1}</div>
         </div>`).join('');
-    
-    // Update dashboard preview
-    renderDashboardAnalyticsPreview();
-    
-    // Update full analytics page
-    document.getElementById('fullOpenRate').textContent = '42.5%';
-    document.getElementById('fullClickRate').textContent = '18.2%';
-    document.getElementById('fullBounceRate').textContent = '0.8%';
 }
 
 // ============================================
@@ -4803,8 +4531,6 @@ async function showSection(id) {
     if (id === 'whatsapp') checkWhatsAppStatus();
     if (id === 'inbox' && isGoogleConnected) loadInboxMessages();
     if (id === 'sent') renderSentEmails();
-    if (id === 'analytics') renderAnalytics();
-    if (id === 'templates') renderTemplates();
 }
 
 async function refreshData() {
@@ -4825,10 +4551,7 @@ function refreshUI() {
 async function confirmLogout() {
     if (!confirm(i18next.t('auth.confirmLogout'))) return;
     try {
-        await fetch(`${API_BASE_URL}/logout`, {
-            method: 'POST',
-            credentials: 'include'
-        });
+        await secureFetch('/logout', { method: 'POST' });
     } catch (e) {
         console.warn('[logout]', e);
     } finally {
@@ -4925,3 +4648,4 @@ function getInitials(name) {
 </script>
 </body>
 </html>
+
