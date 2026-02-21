@@ -2981,66 +2981,65 @@
 
 <script>
 // ============================================
-// SECURITY ENHANCEMENTS - MUST BE FIRST
+// SECURITY CORE — MUST LOAD FIRST
 // ============================================
 
-// DOMPurify for XSS prevention
-const DOMPurify = window.DOMPurify || {
-    sanitize: function(html) {
-        const div = document.createElement('div');
-        div.textContent = html;
-        return div.innerHTML;
-    }
-};
-
-// CSRF Token management
+const API_BASE_URL = 'https://flowon.onrender.com/api';
 let csrfToken = null;
 
-// API Base URL
-const API_BASE_URL = 'https://flowon.onrender.com/api';
-
-// Fetch wrapper with credentials
+// Universal fetch wrapper — credentials + CSRF on every call
 async function secureFetch(url, options = {}) {
     const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
-    
-    const defaultOptions = {
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
+
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
     };
 
-    if (options.method && options.method !== 'GET' && csrfToken) {
-        defaultOptions.headers['X-CSRF-Token'] = csrfToken;
+    const statefulMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+    if (options.method && statefulMethods.includes(options.method.toUpperCase()) && csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken;
     }
 
-    const fetchOptions = { ...defaultOptions, ...options };
-    
+    const fetchOptions = {
+        ...options,
+        credentials: 'include',
+        headers
+    };
+
     try {
         const response = await fetch(fullUrl, fetchOptions);
-        
+
         if (response.status === 401) {
             sessionStorage.removeItem('authenticated');
             sessionStorage.removeItem('userId');
             showLoginRequired();
-            throw new Error('Session expired');
+            throw new Error('Session expired. Please log in again.');
         }
-        
+
+        if (response.status === 403) {
+            // CSRF token may have expired — refresh and surface the error
+            await refreshCsrfToken();
+            throw new Error('Request blocked (CSRF). Please try again.');
+        }
+
         return response;
     } catch (error) {
-        console.error('Fetch error:', error);
+        console.error('[secureFetch]', url, error.message);
         throw error;
     }
 }
 
-// Session check
+// ============================================
+// SESSION & CSRF
+// ============================================
+
 async function checkSession() {
     try {
         const response = await fetch(`${API_BASE_URL}/session`, {
             credentials: 'include'
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             if (data.authenticated) {
@@ -3050,66 +3049,64 @@ async function checkSession() {
                 return true;
             }
         }
-        
+
         sessionStorage.removeItem('authenticated');
         sessionStorage.removeItem('userId');
         return false;
     } catch (error) {
-        console.error('Session check failed:', error);
+        console.error('[checkSession]', error);
         return false;
     }
 }
 
-// Refresh CSRF token
 async function refreshCsrfToken() {
     try {
         const response = await fetch(`${API_BASE_URL}/csrf-token`, {
             credentials: 'include'
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             csrfToken = data.csrfToken;
+            console.log('[CSRF] Token refreshed');
         }
     } catch (error) {
-        console.error('Failed to get CSRF token:', error);
+        console.error('[CSRF] Failed to refresh token:', error);
     }
 }
 
-// Show login required modal
 function showLoginRequired() {
-    document.getElementById('loginRequiredModal').style.display = 'flex';
+    const modal = document.getElementById('loginRequiredModal');
+    if (modal) modal.style.display = 'flex';
 }
 
-// Check authentication (uses sessionStorage first, then session)
 async function checkAuth() {
-    // First check if we have flowId in localStorage (backward compatibility)
+    // Check localStorage first (set during signup flow)
     const localFlowId = localStorage.getItem('flowid');
-    if (localFlowId) {
+    if (localFlowId && !sessionStorage.getItem('authenticated')) {
         flowId = localFlowId;
         sessionStorage.setItem('userId', localFlowId);
         sessionStorage.setItem('authenticated', 'true');
+        if (!csrfToken) await refreshCsrfToken();
         return true;
     }
-    
-    // Then check session
+
+    if (sessionStorage.getItem('authenticated') === 'true' && sessionStorage.getItem('userId')) {
+        flowId = sessionStorage.getItem('userId');
+        if (!csrfToken) await refreshCsrfToken();
+        return true;
+    }
+
     const isAuthenticated = await checkSession();
-    
     if (!isAuthenticated) {
         showLoginRequired();
         return false;
     }
-    
+
     flowId = sessionStorage.getItem('userId');
-    if (!flowId) {
-        showLoginRequired();
-        return false;
-    }
-    
-    return true;
+    return !!flowId;
 }
 
-// Require auth for sections
 async function requireAuth(section) {
     const auth = await checkAuth();
     if (!auth) {
@@ -3120,926 +3117,207 @@ async function requireAuth(section) {
     return true;
 }
 
-// Sanitize HTML before rendering
+// ============================================
+// XSS PREVENTION
+// ============================================
+
+const DOMPurify = window.DOMPurify || {
+    sanitize: (html) => {
+        const div = document.createElement('div');
+        div.textContent = html;
+        return div.innerHTML;
+    }
+};
+
 function sanitizeHTML(html) {
     if (!html) return '';
     return DOMPurify.sanitize(html, {
-        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'div', 'span', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'blockquote', 'pre', 'code'],
-        ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'title', 'class']
+        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'div', 'span',
+            'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'img', 'blockquote', 'pre', 'code', 'table', 'thead', 'tbody', 'tr', 'td', 'th'],
+        ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'title', 'class', 'style']
     });
 }
 
-// Input validation helpers
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
-
-function validatePhone(phone) {
-    const re = /^\+?[1-9]\d{1,14}$/;
-    return re.test(phone.replace(/\s/g, ''));
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function sanitizeInput(input) {
     if (typeof input !== 'string') return input;
-    return input.replace(/[<>]/g, '');
+    return input.replace(/[<>]/g, '').trim();
+}
+
+function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validatePhone(phone) {
+    return /^\+?[1-9]\d{1,14}$/.test(phone.replace(/\s/g, ''));
 }
 
 // ============================================
-// TRANSLATION DICTIONARY - 50+ LANGUAGES
+// TRANSLATIONS (50+ Languages)
 // ============================================
 
 const translationResources = {
-  en: {
-    nav: {
-      dashboard: 'Dashboard',
-      customers: 'Customers',
-      inbox: 'Inbox',
-      automation: 'Automation',
-      whatsapp: 'WhatsApp',
-      sent: 'Sent Emails',
-      analytics: 'Analytics',
-      templates: 'Templates',
-      settings: 'Settings'
+    en: {
+        nav: { dashboard:'Dashboard', customers:'Customers', inbox:'Inbox', automation:'Automation', whatsapp:'WhatsApp', sent:'Sent Emails', analytics:'Analytics', templates:'Templates', settings:'Settings' },
+        auth: { notSignedIn:'Not signed in', signIn:'Sign in', or:'or', register:'Register', logOut:'Log Out', login:'Login To Existing Account', loginRequired:'Login Required', loginRequiredDesc:'Please sign in or create an account to access this feature.', signInUp:'Sign In / Sign Up', signedIn:'Signed in', confirmLogout:'Log out?' },
+        status: { gmailNotLinked:'Gmail: Not Linked', gmailLinked:'✓ Gmail Linked', whatsappNotConnected:'WhatsApp: Not Connected', whatsappConnected:'📱 WhatsApp Connected' },
+        legal: { privacy:'Privacy Policy', terms:'Terms of Service' },
+        titles: { dashboard:'Dashboard', customers:'Customer Management', inbox:'Inbox', automation:'Automation Center', whatsapp:'WhatsApp Automation', sent:'Sent Emails', analytics:'Analytics', templates:'Templates', settings:'Settings' },
+        buttons: { refresh:'Refresh', connectGmail:'Connect Gmail', back:'← Back', reset:'Reset', previewSend:'Preview & Send', register:'Register Number', sendTest:'Send Test Notification', saveChanges:'Save Changes', cancel:'Cancel', saveRecord:'Save Record', saveTemplate:'Save Template', backToEdit:'Back to Edit', confirmSend:'Confirm & Send', refreshing:'Refreshing...' },
+        dashboard: { hello:'Hello,', description:'Here is your overview. Manage customers and automate flows.', startAutomation:'Start Automation', manageCustomers:'Manage Customers', totalCustomers:'Total Customers', activeInDatabase:'Active in database', inbox:'Inbox', unreadMessages:'Unread messages', activeCampaigns:'Active Campaigns', workflowsRunning:'Workflows running', quickActions:'Quick Actions', createWelcomeSeries:'🎉 Create Welcome Series', sendFollowUp:'🔄 Send Follow-up', sentEmails:'Sent Emails', totalSent:'Total sent', googleConnected:'Google Account Connected Successfully!' },
+        customers: { description:'View and manage your subscriber database.', exportCSV:'Export CSV', importCSV:'Import CSV', addCustomer:'+ Add Customer', allRecords:'All Records', saveChanges:'Save Changes', loading:'Loading data...', fullName:'Full Name', email:'Email', phone:'Phone', company:'Company', status:'Status', active:'Active', inactive:'Inactive', pending:'Pending', noCustomers:'No Customers Yet', startAdding:'Start by adding or importing customers.', addFirst:'Add First Customer', name:'Name', actions:'Actions', save:'Save', delete:'Delete', nameRequired:'Name is required', saving:'Saving...', saved:'Data saved to cloud', saveError:'Error saving data', parsing:'Parsing CSV...', csvError:'CSV file is too short or empty.', noEmailColumn:'Could not detect an Email column. Please check your CSV.', importSuccess:'Successfully imported {count} customers!', confirmDelete:'Are you sure you want to delete this customer?', invalidEmail:'Invalid email format', invalidPhone:'Invalid phone format. Use international format (e.g., +1234567890)', exported:'Customers exported successfully!' },
+        inbox: { title:'Inbox', description:'Messages from your audience.', connectGmail:'Connect Your Gmail Account', connectGmailDesc:'To view and manage your inbox messages, you need to connect your Gmail account.', disconnected:'Disconnected', connected:'Connected', loading:'Loading messages...', noMessages:'No messages in your inbox', selectMessage:'Select a message to read', readingMessage:'Reading Message', subject:'Subject', senderName:'Sender Name', today:'Today', sendToWhatsApp:'Send to WhatsApp', delete:'Delete', noPreview:'No preview available', unknownDate:'Unknown date', noContent:'No content', confirmDelete:'Delete this message permanently?', deleted:'Message deleted', deleteFailed:'Error deleting message', sentToWhatsApp:'Message sent to your WhatsApp!', sendFailed:'Failed to send to WhatsApp' },
+        automation: { title:'Automation Center', description:'Compose and schedule email campaigns.', newCampaign:'New Campaign', recipients:'Recipients', totalList:'Total List', connectGoogle:'Connect Google Account', connectGoogleDesc:'Link your account to send automated emails directly via your Gmail.', disconnected:'Disconnected', whatsappNotifications:'WhatsApp Notifications', whatsappDesc:'Get notified on WhatsApp when you receive new emails.', notConnected:'Not Connected', setupWhatsApp:'Setup WhatsApp', selectAll:'Select All Customers', composeMessage:'Compose Message', blank:'Blank', campaignName:'Campaign Name', schedule:'Schedule', sendImmediately:'Send Immediately', scheduleLater:'Schedule for later', fromName:'From Name', fromEmail:'From Email', replyTo:'Reply To', subjectLine:'Subject Line', emailBody:'Email Body', variables:'Variables: {name}, {email}, {company}', dateTime:'Date & Time', noRecipients:'No recipients selected', googleRequired:'Action Blocked: You must connect your Google Account to send automated messages.', sending:'Sending...', sent:'Sent to {count} recipients', sendFailed:'Failed to send messages', noValidEmails:'No valid email addresses found.', confirmReset:'Reset form?' },
+        whatsapp: { title:'WhatsApp Automation', description:'Receive email notifications directly on your WhatsApp.', connect:'Connect WhatsApp', connectTitle:'Connect Your WhatsApp', connectDesc:'Get instant notifications on WhatsApp whenever you receive a new email.', connected:'WhatsApp Connected', disconnect:'Disconnect', option1:'Option 1: Scan QR Code', option1Desc:'Open WhatsApp on your phone, tap Menu (Android) or Settings (iOS), then WhatsApp Web, and scan this QR code.', option2:'Option 2: Send Message', option2Desc:'Send this exact message to the number above:', option2Note:'After sending the message, your WhatsApp will be automatically connected.', manualTitle:'Or enter your WhatsApp number manually', numberLabel:'WhatsApp Number (with country code)', numberFormat:'Use international format: +[country code][number] (e.g., +1234567890)', testTitle:'Test Notification', testDesc:'Send a test WhatsApp notification to verify your connection is working.', enterNumber:'Please enter your WhatsApp number', invalidFormat:'Invalid phone number format. Please use international format (e.g., +1234567890)', registered:'WhatsApp number registered successfully!', registrationFailed:'Failed to register WhatsApp number', confirmDisconnect:'Disconnect WhatsApp? You will stop receiving notifications.', disconnected:'WhatsApp disconnected', connectFirst:'Please connect WhatsApp first', testMessage:'This is a test notification from Flux On', testSubject:'Test Notification', testSent:'Test notification sent to your WhatsApp!', testFailed:'Failed to send test notification', notificationsEnabled:'WhatsApp notifications enabled', notificationsDisabled:'WhatsApp notifications disabled', connectPrompt:'WhatsApp not connected. Would you like to connect now?' },
+        sent: { title:'Sent Emails', description:"View all emails you've sent through automation.", history:'Email History', noEmails:'No sent emails yet. Start sending automated messages!', from:'From', to:'To', subject:'Subject', date:'Date', campaign:'Campaign', recipients:'Recipients' },
+        analytics: { title:'Analytics', description:'Campaign performance and engagement metrics.', avgOpenRate:'Avg. Open Rate', clickRate:'Click Rate', bounceRate:'Bounce Rate', trendUp:'↑ 5% vs last week', trendDown:'↓ 0.2% vs last week', emailPerformance:'Email Performance (Last 7 Days)', day:'Day' },
+        templates: { title:'Templates', description:'Manage your saved message layouts and quick responses.', newTemplate:'+ New Template', addNew:'Add New Template', name:'Template Name', tag:'Tag (Category)', subject:'Subject Line', body:'Email Body', use:'Use', edit:'Edit', delete:'Del', general:'General', noTemplates:'No templates found.', confirmDelete:'Delete template?' },
+        settings: { title:'Settings', description:'Configure your account preferences and notifications.', profile:'Profile Information', fullName:'Full Name', email:'Email Address', whatsappIntegration:'WhatsApp Integration', whatsappToggle:'Email Notifications on WhatsApp', whatsappDesc:'Receive WhatsApp notifications for new emails', connectedNumber:'Connected Number:', notifications:'Notifications', campaignSummary:'Email Campaign Summary', campaignSummaryDesc:'Receive a weekly summary of your campaign stats', newCustomerAlert:'New Customer Alert', newCustomerAlertDesc:'Get notified when a new customer is added', security:'Security', changePassword:'Change Password', logOutEverywhere:'Log Out Everywhere', saved:'Settings saved successfully!' },
+        preview: { title:'Message Preview', subject:'Subject' },
+        footer: { allRightsReserved:'All rights reserved.' },
+        errors: { loadFailed:'Failed to load data. Please refresh.' }
     },
-    auth: {
-      notSignedIn: 'Not signed in',
-      signIn: 'Sign in',
-      or: 'or',
-      register: 'Register',
-      logOut: 'Log Out',
-      login: 'Login To Existing Account',
-      loginRequired: 'Login Required',
-      loginRequiredDesc: 'Please sign in or create an account to access this feature.',
-      signInUp: 'Sign In / Sign Up',
-      signedIn: 'Signed in',
-      confirmLogout: 'Log out?'
-    },
-    status: {
-      gmailNotLinked: 'Gmail: Not Linked',
-      gmailLinked: '✓ Gmail Linked',
-      whatsappNotConnected: 'WhatsApp: Not Connected',
-      whatsappConnected: '📱 WhatsApp Connected'
-    },
-    legal: {
-      privacy: 'Privacy Policy',
-      terms: 'Terms of Service'
-    },
-    titles: {
-      dashboard: 'Dashboard',
-      customers: 'Customer Management',
-      inbox: 'Inbox',
-      automation: 'Automation Center',
-      whatsapp: 'WhatsApp Automation',
-      sent: 'Sent Emails',
-      analytics: 'Analytics',
-      templates: 'Templates',
-      settings: 'Settings'
-    },
-    buttons: {
-      refresh: 'Refresh',
-      connectGmail: 'Connect Gmail',
-      back: '← Back',
-      reset: 'Reset',
-      previewSend: 'Preview & Send',
-      register: 'Register Number',
-      sendTest: 'Send Test Notification',
-      saveChanges: 'Save Changes',
-      cancel: 'Cancel',
-      saveRecord: 'Save Record',
-      saveTemplate: 'Save Template',
-      backToEdit: 'Back to Edit',
-      confirmSend: 'Confirm & Send',
-      refreshing: 'Refreshing...'
-    },
-    dashboard: {
-      hello: 'Hello,',
-      description: 'Here is your overview. Manage customers and automate flows.',
-      startAutomation: 'Start Automation',
-      manageCustomers: 'Manage Customers',
-      totalCustomers: 'Total Customers',
-      activeInDatabase: 'Active in database',
-      inbox: 'Inbox',
-      unreadMessages: 'Unread messages',
-      activeCampaigns: 'Active Campaigns',
-      workflowsRunning: 'Workflows running',
-      responseRate: 'Response Rate',
-      averageEngagement: 'Average engagement',
-      quickActions: 'Quick Actions',
-      createWelcomeSeries: '🎉 Create Welcome Series',
-      sendFollowUp: '🔄 Send Follow-up',
-      sentEmails: 'Sent Emails',
-      totalSent: 'Total sent',
-      googleConnected: 'Google Account Connected Successfully!'
-    },
-    customers: {
-      description: 'View and manage your subscriber database.',
-      exportCSV: 'Export CSV',
-      importCSV: 'Import CSV',
-      addCustomer: '+ Add Customer',
-      allRecords: 'All Records',
-      saveChanges: 'Save Changes',
-      loading: 'Loading data...',
-      fullName: 'Full Name',
-      email: 'Email',
-      phone: 'Phone',
-      company: 'Company',
-      status: 'Status',
-      active: 'Active',
-      inactive: 'Inactive',
-      pending: 'Pending',
-      noCustomers: 'No Customers Yet',
-      startAdding: 'Start by adding or importing customers.',
-      addFirst: 'Add First Customer',
-      name: 'Name',
-      actions: 'Actions',
-      save: 'Save',
-      delete: 'Delete',
-      nameRequired: 'Name is required',
-      saving: 'Saving...',
-      saved: 'Data saved to cloud',
-      saveError: 'Error saving data',
-      parsing: 'Parsing CSV...',
-      csvError: 'CSV file is too short or empty.',
-      noEmailColumn: 'Could not detect an Email column. Please check your CSV.',
-      importSuccess: 'Successfully imported {count} customers!',
-      confirmDelete: 'Are you sure you want to delete this customer?',
-      invalidEmail: 'Invalid email format',
-      invalidPhone: 'Invalid phone format. Use international format (e.g., +1234567890)',
-      exported: 'Customers exported successfully!'
-    },
-    inbox: {
-      title: 'Inbox',
-      description: 'Messages from your audience.',
-      connectGmail: 'Connect Your Gmail Account',
-      connectGmailDesc: 'To view and manage your inbox messages, you need to connect your Gmail account.',
-      disconnected: 'Disconnected',
-      connected: 'Connected',
-      loading: 'Loading messages...',
-      noMessages: 'No messages in your inbox',
-      selectMessage: 'Select a message to read',
-      readingMessage: 'Reading Message',
-      subject: 'Subject',
-      senderName: 'Sender Name',
-      today: 'Today',
-      sendToWhatsApp: 'Send to WhatsApp',
-      delete: 'Delete',
-      noPreview: 'No preview available',
-      unknownDate: 'Unknown date',
-      noContent: 'No content',
-      confirmDelete: 'Delete this message permanently?',
-      deleted: 'Message deleted',
-      deleteFailed: 'Error deleting message',
-      sentToWhatsApp: 'Message sent to your WhatsApp!',
-      sendFailed: 'Failed to send to WhatsApp'
-    },
-    automation: {
-      title: 'Automation Center',
-      description: 'Compose and schedule email campaigns.',
-      newCampaign: 'New Campaign',
-      recipients: 'Recipients',
-      totalList: 'Total List',
-      connectGoogle: 'Connect Google Account',
-      connectGoogleDesc: 'Link your account to send automated emails directly via your Gmail.',
-      disconnected: 'Disconnected',
-      whatsappNotifications: 'WhatsApp Notifications',
-      whatsappDesc: 'Get notified on WhatsApp when you receive new emails.',
-      notConnected: 'Not Connected',
-      setupWhatsApp: 'Setup WhatsApp',
-      selectAll: 'Select All Customers',
-      composeMessage: 'Compose Message',
-      blank: 'Blank',
-      campaignName: 'Campaign Name',
-      schedule: 'Schedule',
-      sendImmediately: 'Send Immediately',
-      scheduleLater: 'Schedule for later',
-      fromName: 'From Name',
-      fromEmail: 'From Email',
-      replyTo: 'Reply To',
-      subjectLine: 'Subject Line',
-      emailBody: 'Email Body',
-      variables: 'Variables: {name}, {email}, {company}',
-      dateTime: 'Date & Time',
-      noRecipients: 'No recipients selected',
-      googleRequired: 'Action Blocked: You must connect your Google Account to send automated messages.',
-      sending: 'Sending...',
-      sent: 'Sent to {count} recipients',
-      sendFailed: 'Failed to send messages',
-      noValidEmails: 'No valid email addresses found.',
-      confirmReset: 'Reset form?'
-    },
-    whatsapp: {
-      title: 'WhatsApp Automation',
-      description: 'Receive email notifications directly on your WhatsApp.',
-      connect: 'Connect WhatsApp',
-      connectTitle: 'Connect Your WhatsApp',
-      connectDesc: 'Get instant notifications on WhatsApp whenever you receive a new email. Choose one of the methods below to connect.',
-      connected: 'WhatsApp Connected',
-      disconnect: 'Disconnect',
-      option1: 'Option 1: Scan QR Code',
-      option1Desc: 'Open WhatsApp on your phone, tap Menu (Android) or Settings (iOS), then WhatsApp Web, and scan this QR code.',
-      option2: 'Option 2: Send Message',
-      option2Desc: 'Send this exact message to the number above:',
-      option2Note: 'After sending the message, your WhatsApp will be automatically connected.',
-      manualTitle: 'Or enter your WhatsApp number manually',
-      numberLabel: 'WhatsApp Number (with country code)',
-      numberFormat: 'Use international format: +[country code][number] (e.g., +1234567890)',
-      testTitle: 'Test Notification',
-      testDesc: 'Send a test WhatsApp notification to verify your connection is working.',
-      enterNumber: 'Please enter your WhatsApp number',
-      invalidFormat: 'Invalid phone number format. Please use international format (e.g., +1234567890)',
-      registered: 'WhatsApp number registered successfully!',
-      registrationFailed: 'Failed to register WhatsApp number',
-      confirmDisconnect: 'Disconnect WhatsApp? You will stop receiving notifications.',
-      disconnected: 'WhatsApp disconnected',
-      connectFirst: 'Please connect WhatsApp first',
-      testMessage: 'This is a test notification from Flux On',
-      testSubject: 'Test Notification',
-      testSent: 'Test notification sent to your WhatsApp!',
-      testFailed: 'Failed to send test notification',
-      notificationsEnabled: 'WhatsApp notifications enabled',
-      notificationsDisabled: 'WhatsApp notifications disabled',
-      connectPrompt: 'WhatsApp not connected. Would you like to connect now?'
-    },
-    sent: {
-      title: 'Sent Emails',
-      description: 'View all emails you\'ve sent through automation.',
-      history: 'Email History',
-      noEmails: 'No sent emails yet. Start sending automated messages!',
-      from: 'From',
-      to: 'To',
-      subject: 'Subject',
-      date: 'Date',
-      campaign: 'Campaign',
-      recipients: 'Recipients'
-    },
-    analytics: {
-      title: 'Analytics',
-      description: 'Campaign performance and engagement metrics.',
-      avgOpenRate: 'Avg. Open Rate',
-      clickRate: 'Click Rate',
-      bounceRate: 'Bounce Rate',
-      trendUp: '↑ 5% vs last week',
-      trendDown: '↓ 0.2% vs last week',
-      emailPerformance: 'Email Performance (Last 7 Days)',
-      day: 'Day'
-    },
-    templates: {
-      title: 'Templates',
-      description: 'Manage your saved message layouts and quick responses.',
-      newTemplate: '+ New Template',
-      addNew: 'Add New Template',
-      name: 'Template Name',
-      tag: 'Tag (Category)',
-      subject: 'Subject Line',
-      body: 'Email Body',
-      use: 'Use',
-      edit: 'Edit',
-      delete: 'Del',
-      general: 'General',
-      noTemplates: 'No templates found.',
-      confirmDelete: 'Delete template?'
-    },
-    settings: {
-      title: 'Settings',
-      description: 'Configure your account preferences and notifications.',
-      profile: 'Profile Information',
-      fullName: 'Full Name',
-      email: 'Email Address',
-      whatsappIntegration: 'WhatsApp Integration',
-      whatsappToggle: 'Email Notifications on WhatsApp',
-      whatsappDesc: 'Receive WhatsApp notifications for new emails',
-      connectedNumber: 'Connected Number:',
-      notifications: 'Notifications',
-      campaignSummary: 'Email Campaign Summary',
-      campaignSummaryDesc: 'Receive a weekly summary of your campaign stats',
-      newCustomerAlert: 'New Customer Alert',
-      newCustomerAlertDesc: 'Get notified when a new customer is added',
-      security: 'Security',
-      changePassword: 'Change Password',
-      logOutEverywhere: 'Log Out Everywhere',
-      saved: 'Settings saved successfully!'
-    },
-    preview: {
-      title: 'Message Preview',
-      subject: 'Subject'
-    },
-    footer: {
-      allRightsReserved: 'All rights reserved.'
-    },
-    errors: {
-      loadFailed: 'Failed to load data. Please refresh.'
+    es: {
+        nav: { dashboard:'Panel', customers:'Clientes', inbox:'Bandeja', automation:'Automatización', whatsapp:'WhatsApp', sent:'Correos Enviados', analytics:'Analíticas', templates:'Plantillas', settings:'Ajustes' },
+        auth: { notSignedIn:'No has iniciado sesión', signIn:'Iniciar sesión', or:'o', register:'Registrarse', logOut:'Cerrar sesión', login:'Iniciar sesión', loginRequired:'Inicio de sesión requerido', loginRequiredDesc:'Por favor inicia sesión o crea una cuenta para acceder a esta función.', signInUp:'Iniciar sesión / Registrarse', signedIn:'Sesión iniciada', confirmLogout:'¿Cerrar sesión?' },
+        status: { gmailNotLinked:'Gmail: No vinculado', gmailLinked:'✓ Gmail Vinculado', whatsappNotConnected:'WhatsApp: No conectado', whatsappConnected:'📱 WhatsApp Conectado' },
+        legal: { privacy:'Política de Privacidad', terms:'Términos de Servicio' },
+        titles: { dashboard:'Panel', customers:'Gestión de Clientes', inbox:'Bandeja de Entrada', automation:'Centro de Automatización', whatsapp:'Automatización WhatsApp', sent:'Correos Enviados', analytics:'Analíticas', templates:'Plantillas', settings:'Ajustes' },
+        buttons: { refresh:'Actualizar', connectGmail:'Conectar Gmail', back:'← Atrás', reset:'Reiniciar', previewSend:'Vista Previa y Enviar', register:'Registrar Número', sendTest:'Enviar Notificación de Prueba', saveChanges:'Guardar Cambios', cancel:'Cancelar', saveRecord:'Guardar Registro', saveTemplate:'Guardar Plantilla', backToEdit:'Volver a Editar', confirmSend:'Confirmar y Enviar', refreshing:'Actualizando...' },
+        dashboard: { hello:'Hola,', description:'Aquí está tu resumen. Gestiona clientes y automatiza flujos.', startAutomation:'Iniciar Automatización', manageCustomers:'Gestionar Clientes', totalCustomers:'Total Clientes', activeInDatabase:'Activos en base de datos', inbox:'Bandeja', unreadMessages:'Mensajes no leídos', activeCampaigns:'Campañas Activas', workflowsRunning:'Flujos activos', quickActions:'Acciones Rápidas', createWelcomeSeries:'🎉 Crear Serie de Bienvenida', sendFollowUp:'🔄 Enviar Seguimiento', sentEmails:'Correos Enviados', totalSent:'Total enviados', googleConnected:'¡Cuenta de Google conectada exitosamente!' },
+        customers: { description:'Ver y gestionar tu base de datos de suscriptores.', exportCSV:'Exportar CSV', importCSV:'Importar CSV', addCustomer:'+ Agregar Cliente', allRecords:'Todos los Registros', saveChanges:'Guardar Cambios', loading:'Cargando datos...', fullName:'Nombre Completo', email:'Correo Electrónico', phone:'Teléfono', company:'Empresa', status:'Estado', active:'Activo', inactive:'Inactivo', pending:'Pendiente', noCustomers:'No hay clientes aún', startAdding:'Comienza agregando o importando clientes.', addFirst:'Agregar Primer Cliente', name:'Nombre', actions:'Acciones', save:'Guardar', delete:'Eliminar', nameRequired:'El nombre es requerido', saving:'Guardando...', saved:'Datos guardados en la nube', saveError:'Error al guardar datos', parsing:'Analizando CSV...', csvError:'El archivo CSV está vacío o es demasiado corto.', noEmailColumn:'No se pudo detectar una columna de Email.', importSuccess:'¡{count} clientes importados exitosamente!', confirmDelete:'¿Estás seguro de que quieres eliminar este cliente?', invalidEmail:'Formato de email inválido', invalidPhone:'Formato de teléfono inválido.', exported:'¡Clientes exportados exitosamente!' },
+        inbox: { title:'Bandeja de Entrada', description:'Mensajes de tu audiencia.', connectGmail:'Conecta tu Cuenta de Gmail', connectGmailDesc:'Para ver y gestionar los mensajes, necesitas conectar tu cuenta de Gmail.', disconnected:'Desconectado', connected:'Conectado', loading:'Cargando mensajes...', noMessages:'No hay mensajes en tu bandeja de entrada', selectMessage:'Selecciona un mensaje para leer', readingMessage:'Leyendo Mensaje', subject:'Asunto', senderName:'Nombre del Remitente', today:'Hoy', sendToWhatsApp:'Enviar a WhatsApp', delete:'Eliminar', noPreview:'No hay vista previa', unknownDate:'Fecha desconocida', noContent:'Sin contenido', confirmDelete:'¿Eliminar este mensaje permanentemente?', deleted:'Mensaje eliminado', deleteFailed:'Error al eliminar mensaje', sentToWhatsApp:'¡Mensaje enviado a tu WhatsApp!', sendFailed:'Error al enviar a WhatsApp' },
+        automation: { title:'Centro de Automatización', description:'Redacta y programa campañas de correo electrónico.', newCampaign:'Nueva Campaña', recipients:'Destinatarios', totalList:'Lista Total', connectGoogle:'Conectar Cuenta de Google', connectGoogleDesc:'Vincula tu cuenta para enviar correos automatizados vía Gmail.', disconnected:'Desconectado', whatsappNotifications:'Notificaciones de WhatsApp', whatsappDesc:'Recibe notificaciones en WhatsApp cuando recibas nuevos correos.', notConnected:'No Conectado', setupWhatsApp:'Configurar WhatsApp', selectAll:'Seleccionar Todos los Clientes', composeMessage:'Redactar Mensaje', blank:'En Blanco', campaignName:'Nombre de la Campaña', schedule:'Programar', sendImmediately:'Enviar Inmediatamente', scheduleLater:'Programar para después', fromName:'Nombre del Remitente', fromEmail:'Correo del Remitente', replyTo:'Responder a', subjectLine:'Línea de Asunto', emailBody:'Cuerpo del Correo', variables:'Variables: {name}, {email}, {company}', dateTime:'Fecha y Hora', noRecipients:'No hay destinatarios seleccionados', googleRequired:'Acción bloqueada: Debes conectar tu cuenta de Google.', sending:'Enviando...', sent:'Enviado a {count} destinatarios', sendFailed:'Error al enviar mensajes', noValidEmails:'No se encontraron emails válidos.', confirmReset:'¿Reiniciar formulario?' },
+        whatsapp: { title:'Automatización de WhatsApp', description:'Recibe notificaciones de correo en tu WhatsApp.', connect:'Conectar WhatsApp', connectTitle:'Conecta tu WhatsApp', connectDesc:'Recibe notificaciones instantáneas en WhatsApp cada vez que recibas un correo.', connected:'WhatsApp Conectado', disconnect:'Desconectar', option1:'Opción 1: Escanear QR', option1Desc:'Abre WhatsApp, toca Menú/Configuración, luego WhatsApp Web y escanea.', option2:'Opción 2: Enviar Mensaje', option2Desc:'Envía este mensaje exacto al número de arriba:', option2Note:'Después de enviar, tu WhatsApp se conectará automáticamente.', manualTitle:'O ingresa tu número manualmente', numberLabel:'Número de WhatsApp (con código de país)', numberFormat:'Formato internacional: +[código][número] (ej., +1234567890)', testTitle:'Notificación de Prueba', testDesc:'Envía una notificación de prueba para verificar tu conexión.', enterNumber:'Por favor ingresa tu número de WhatsApp', invalidFormat:'Formato inválido. Usa formato internacional (ej., +1234567890)', registered:'¡Número registrado exitosamente!', registrationFailed:'Error al registrar número', confirmDisconnect:'¿Desconectar WhatsApp? Dejarás de recibir notificaciones.', disconnected:'WhatsApp desconectado', connectFirst:'Por favor conecta WhatsApp primero', testMessage:'Esta es una notificación de prueba de Flux On', testSubject:'Notificación de Prueba', testSent:'¡Notificación de prueba enviada!', testFailed:'Error al enviar notificación de prueba', notificationsEnabled:'Notificaciones activadas', notificationsDisabled:'Notificaciones desactivadas', connectPrompt:'WhatsApp no conectado. ¿Quieres conectarlo ahora?' },
+        sent: { title:'Correos Enviados', description:'Ver todos los correos enviados mediante automatización.', history:'Historial de Correos', noEmails:'¡Aún no hay correos enviados!', from:'De', to:'Para', subject:'Asunto', date:'Fecha', campaign:'Campaña', recipients:'Destinatarios' },
+        analytics: { title:'Analíticas', description:'Rendimiento de campañas y métricas.', avgOpenRate:'Tasa de Apertura Prom.', clickRate:'Tasa de Clics', bounceRate:'Tasa de Rebote', trendUp:'↑ 5% vs semana pasada', trendDown:'↓ 0.2% vs semana pasada', emailPerformance:'Rendimiento de Correos (Últimos 7 Días)', day:'Día' },
+        templates: { title:'Plantillas', description:'Gestiona tus diseños de mensajes.', newTemplate:'+ Nueva Plantilla', addNew:'Agregar Nueva Plantilla', name:'Nombre de la Plantilla', tag:'Etiqueta (Categoría)', subject:'Línea de Asunto', body:'Cuerpo del Correo', use:'Usar', edit:'Editar', delete:'Eliminar', general:'General', noTemplates:'No se encontraron plantillas.', confirmDelete:'¿Eliminar plantilla?' },
+        settings: { title:'Ajustes', description:'Configura tus preferencias de cuenta.', profile:'Información de Perfil', fullName:'Nombre Completo', email:'Correo Electrónico', whatsappIntegration:'Integración de WhatsApp', whatsappToggle:'Notificaciones de Correo en WhatsApp', whatsappDesc:'Recibe notificaciones de WhatsApp para nuevos correos', connectedNumber:'Número Conectado:', notifications:'Notificaciones', campaignSummary:'Resumen de Campañas', campaignSummaryDesc:'Resumen semanal de tus estadísticas', newCustomerAlert:'Alerta de Nuevo Cliente', newCustomerAlertDesc:'Notificación cuando se agregue un nuevo cliente', security:'Seguridad', changePassword:'Cambiar Contraseña', logOutEverywhere:'Cerrar Sesión en Todas Partes', saved:'¡Ajustes guardados exitosamente!' },
+        preview: { title:'Vista Previa del Mensaje', subject:'Asunto' },
+        footer: { allRightsReserved:'Todos los derechos reservados.' },
+        errors: { loadFailed:'Error al cargar datos. Por favor actualiza.' }
     }
-  },
-  es: {
-    nav: {
-      dashboard: 'Panel',
-      customers: 'Clientes',
-      inbox: 'Bandeja',
-      automation: 'Automatización',
-      whatsapp: 'WhatsApp',
-      sent: 'Correos Enviados',
-      analytics: 'Analíticas',
-      templates: 'Plantillas',
-      settings: 'Ajustes'
-    },
-    auth: {
-      notSignedIn: 'No has iniciado sesión',
-      signIn: 'Iniciar sesión',
-      or: 'o',
-      register: 'Registrarse',
-      logOut: 'Cerrar sesión',
-      login: 'Iniciar sesión',
-      loginRequired: 'Inicio de sesión requerido',
-      loginRequiredDesc: 'Por favor inicia sesión o crea una cuenta para acceder a esta función.',
-      signInUp: 'Iniciar sesión / Registrarse',
-      signedIn: 'Sesión iniciada',
-      confirmLogout: '¿Cerrar sesión?'
-    },
-    status: {
-      gmailNotLinked: 'Gmail: No vinculado',
-      gmailLinked: '✓ Gmail Vinculado',
-      whatsappNotConnected: 'WhatsApp: No conectado',
-      whatsappConnected: '📱 WhatsApp Conectado'
-    },
-    legal: {
-      privacy: 'Política de Privacidad',
-      terms: 'Términos de Servicio'
-    },
-    titles: {
-      dashboard: 'Panel',
-      customers: 'Gestión de Clientes',
-      inbox: 'Bandeja de Entrada',
-      automation: 'Centro de Automatización',
-      whatsapp: 'Automatización WhatsApp',
-      sent: 'Correos Enviados',
-      analytics: 'Analíticas',
-      templates: 'Plantillas',
-      settings: 'Ajustes'
-    },
-    buttons: {
-      refresh: 'Actualizar',
-      connectGmail: 'Conectar Gmail',
-      back: '← Atrás',
-      reset: 'Reiniciar',
-      previewSend: 'Vista Previa y Enviar',
-      register: 'Registrar Número',
-      sendTest: 'Enviar Notificación de Prueba',
-      saveChanges: 'Guardar Cambios',
-      cancel: 'Cancelar',
-      saveRecord: 'Guardar Registro',
-      saveTemplate: 'Guardar Plantilla',
-      backToEdit: 'Volver a Editar',
-      confirmSend: 'Confirmar y Enviar',
-      refreshing: 'Actualizando...'
-    },
-    dashboard: {
-      hello: 'Hola,',
-      description: 'Aquí está tu resumen. Gestiona clientes y automatiza flujos.',
-      startAutomation: 'Iniciar Automatización',
-      manageCustomers: 'Gestionar Clientes',
-      totalCustomers: 'Total Clientes',
-      activeInDatabase: 'Activos en base de datos',
-      inbox: 'Bandeja',
-      unreadMessages: 'Mensajes no leídos',
-      activeCampaigns: 'Campañas Activas',
-      workflowsRunning: 'Flujos activos',
-      responseRate: 'Tasa de Respuesta',
-      averageEngagement: 'Participación promedio',
-      quickActions: 'Acciones Rápidas',
-      createWelcomeSeries: '🎉 Crear Serie de Bienvenida',
-      sendFollowUp: '🔄 Enviar Seguimiento',
-      sentEmails: 'Correos Enviados',
-      totalSent: 'Total enviados',
-      googleConnected: '¡Cuenta de Google conectada exitosamente!'
-    },
-    customers: {
-      description: 'Ver y gestionar tu base de datos de suscriptores.',
-      exportCSV: 'Exportar CSV',
-      importCSV: 'Importar CSV',
-      addCustomer: '+ Agregar Cliente',
-      allRecords: 'Todos los Registros',
-      saveChanges: 'Guardar Cambios',
-      loading: 'Cargando datos...',
-      fullName: 'Nombre Completo',
-      email: 'Correo Electrónico',
-      phone: 'Teléfono',
-      company: 'Empresa',
-      status: 'Estado',
-      active: 'Activo',
-      inactive: 'Inactivo',
-      pending: 'Pendiente',
-      noCustomers: 'No hay clientes aún',
-      startAdding: 'Comienza agregando o importando clientes.',
-      addFirst: 'Agregar Primer Cliente',
-      name: 'Nombre',
-      actions: 'Acciones',
-      save: 'Guardar',
-      delete: 'Eliminar',
-      nameRequired: 'El nombre es requerido',
-      saving: 'Guardando...',
-      saved: 'Datos guardados en la nube',
-      saveError: 'Error al guardar datos',
-      parsing: 'Analizando CSV...',
-      csvError: 'El archivo CSV está vacío o es demasiado corto.',
-      noEmailColumn: 'No se pudo detectar una columna de Email. Verifica tu CSV.',
-      importSuccess: '¡{count} clientes importados exitosamente!',
-      confirmDelete: '¿Estás seguro de que quieres eliminar este cliente?',
-      invalidEmail: 'Formato de email inválido',
-      invalidPhone: 'Formato de teléfono inválido. Usa formato internacional (ej., +1234567890)',
-      exported: '¡Clientes exportados exitosamente!'
-    },
-    inbox: {
-      title: 'Bandeja de Entrada',
-      description: 'Mensajes de tu audiencia.',
-      connectGmail: 'Conecta tu Cuenta de Gmail',
-      connectGmailDesc: 'Para ver y gestionar los mensajes de tu bandeja de entrada, necesitas conectar tu cuenta de Gmail.',
-      disconnected: 'Desconectado',
-      connected: 'Conectado',
-      loading: 'Cargando mensajes...',
-      noMessages: 'No hay mensajes en tu bandeja de entrada',
-      selectMessage: 'Selecciona un mensaje para leer',
-      readingMessage: 'Leyendo Mensaje',
-      subject: 'Asunto',
-      senderName: 'Nombre del Remitente',
-      today: 'Hoy',
-      sendToWhatsApp: 'Enviar a WhatsApp',
-      delete: 'Eliminar',
-      noPreview: 'No hay vista previa disponible',
-      unknownDate: 'Fecha desconocida',
-      noContent: 'Sin contenido',
-      confirmDelete: '¿Eliminar este mensaje permanentemente?',
-      deleted: 'Mensaje eliminado',
-      deleteFailed: 'Error al eliminar mensaje',
-      sentToWhatsApp: '¡Mensaje enviado a tu WhatsApp!',
-      sendFailed: 'Error al enviar a WhatsApp'
-    },
-    automation: {
-      title: 'Centro de Automatización',
-      description: 'Redacta y programa campañas de correo electrónico.',
-      newCampaign: 'Nueva Campaña',
-      recipients: 'Destinatarios',
-      totalList: 'Lista Total',
-      connectGoogle: 'Conectar Cuenta de Google',
-      connectGoogleDesc: 'Vincula tu cuenta para enviar correos automatizados directamente a través de Gmail.',
-      disconnected: 'Desconectado',
-      whatsappNotifications: 'Notificaciones de WhatsApp',
-      whatsappDesc: 'Recibe notificaciones en WhatsApp cuando recibas nuevos correos.',
-      notConnected: 'No Conectado',
-      setupWhatsApp: 'Configurar WhatsApp',
-      selectAll: 'Seleccionar Todos los Clientes',
-      composeMessage: 'Redactar Mensaje',
-      blank: 'En Blanco',
-      campaignName: 'Nombre de la Campaña',
-      schedule: 'Programar',
-      sendImmediately: 'Enviar Inmediatamente',
-      scheduleLater: 'Programar para después',
-      fromName: 'Nombre del Remitente',
-      fromEmail: 'Correo del Remitente',
-      replyTo: 'Responder a',
-      subjectLine: 'Línea de Asunto',
-      emailBody: 'Cuerpo del Correo',
-      variables: 'Variables: {name}, {email}, {company}',
-      dateTime: 'Fecha y Hora',
-      noRecipients: 'No hay destinatarios seleccionados',
-      googleRequired: 'Acción bloqueada: Debes conectar tu cuenta de Google para enviar mensajes automatizados.',
-      sending: 'Enviando...',
-      sent: 'Enviado a {count} destinatarios',
-      sendFailed: 'Error al enviar mensajes',
-      noValidEmails: 'No se encontraron direcciones de email válidas.',
-      confirmReset: '¿Reiniciar formulario?'
-    },
-    whatsapp: {
-      title: 'Automatización de WhatsApp',
-      description: 'Recibe notificaciones de correo directamente en tu WhatsApp.',
-      connect: 'Conectar WhatsApp',
-      connectTitle: 'Conecta tu WhatsApp',
-      connectDesc: 'Recibe notificaciones instantáneas en WhatsApp cada vez que recibas un nuevo correo. Elige uno de los métodos a continuación para conectar.',
-      connected: 'WhatsApp Conectado',
-      disconnect: 'Desconectar',
-      option1: 'Opción 1: Escanear Código QR',
-      option1Desc: 'Abre WhatsApp en tu teléfono, toca Menú (Android) o Configuración (iOS), luego WhatsApp Web y escanea este código QR.',
-      option2: 'Opción 2: Enviar Mensaje',
-      option2Desc: 'Envía este mensaje exacto al número de arriba:',
-      option2Note: 'Después de enviar el mensaje, tu WhatsApp se conectará automáticamente.',
-      manualTitle: 'O ingresa tu número de WhatsApp manualmente',
-      numberLabel: 'Número de WhatsApp (con código de país)',
-      numberFormat: 'Usa formato internacional: +[código de país][número] (ej., +1234567890)',
-      testTitle: 'Notificación de Prueba',
-      testDesc: 'Envía una notificación de prueba a WhatsApp para verificar que tu conexión funciona.',
-      enterNumber: 'Por favor ingresa tu número de WhatsApp',
-      invalidFormat: 'Formato de número inválido. Usa formato internacional (ej., +1234567890)',
-      registered: '¡Número de WhatsApp registrado exitosamente!',
-      registrationFailed: 'Error al registrar número de WhatsApp',
-      confirmDisconnect: '¿Desconectar WhatsApp? Dejarás de recibir notificaciones.',
-      disconnected: 'WhatsApp desconectado',
-      connectFirst: 'Por favor conecta WhatsApp primero',
-      testMessage: 'Esta es una notificación de prueba de Flux On',
-      testSubject: 'Notificación de Prueba',
-      testSent: '¡Notificación de prueba enviada a tu WhatsApp!',
-      testFailed: 'Error al enviar notificación de prueba',
-      notificationsEnabled: 'Notificaciones de WhatsApp activadas',
-      notificationsDisabled: 'Notificaciones de WhatsApp desactivadas',
-      connectPrompt: 'WhatsApp no está conectado. ¿Quieres conectarlo ahora?'
-    },
-    sent: {
-      title: 'Correos Enviados',
-      description: 'Ver todos los correos que has enviado mediante automatización.',
-      history: 'Historial de Correos',
-      noEmails: '¡Aún no hay correos enviados. Comienza a enviar mensajes automatizados!',
-      from: 'De',
-      to: 'Para',
-      subject: 'Asunto',
-      date: 'Fecha',
-      campaign: 'Campaña',
-      recipients: 'Destinatarios'
-    },
-    analytics: {
-      title: 'Analíticas',
-      description: 'Rendimiento de campañas y métricas de participación.',
-      avgOpenRate: 'Tasa de Apertura Prom.',
-      clickRate: 'Tasa de Clics',
-      bounceRate: 'Tasa de Rebote',
-      trendUp: '↑ 5% vs semana pasada',
-      trendDown: '↓ 0.2% vs semana pasada',
-      emailPerformance: 'Rendimiento de Correos (Últimos 7 Días)',
-      day: 'Día'
-    },
-    templates: {
-      title: 'Plantillas',
-      description: 'Gestiona tus diseños de mensajes guardados y respuestas rápidas.',
-      newTemplate: '+ Nueva Plantilla',
-      addNew: 'Agregar Nueva Plantilla',
-      name: 'Nombre de la Plantilla',
-      tag: 'Etiqueta (Categoría)',
-      subject: 'Línea de Asunto',
-      body: 'Cuerpo del Correo',
-      use: 'Usar',
-      edit: 'Editar',
-      delete: 'Eliminar',
-      general: 'General',
-      noTemplates: 'No se encontraron plantillas.',
-      confirmDelete: '¿Eliminar plantilla?'
-    },
-    settings: {
-      title: 'Ajustes',
-      description: 'Configura tus preferencias de cuenta y notificaciones.',
-      profile: 'Información de Perfil',
-      fullName: 'Nombre Completo',
-      email: 'Correo Electrónico',
-      whatsappIntegration: 'Integración de WhatsApp',
-      whatsappToggle: 'Notificaciones de Correo en WhatsApp',
-      whatsappDesc: 'Recibe notificaciones de WhatsApp para nuevos correos',
-      connectedNumber: 'Número Conectado:',
-      notifications: 'Notificaciones',
-      campaignSummary: 'Resumen de Campañas de Correo',
-      campaignSummaryDesc: 'Recibe un resumen semanal de tus estadísticas de campaña',
-      newCustomerAlert: 'Alerta de Nuevo Cliente',
-      newCustomerAlertDesc: 'Recibe notificación cuando se agregue un nuevo cliente',
-      security: 'Seguridad',
-      changePassword: 'Cambiar Contraseña',
-      logOutEverywhere: 'Cerrar Sesión en Todas Partes',
-      saved: '¡Ajustes guardados exitosamente!'
-    },
-    preview: {
-      title: 'Vista Previa del Mensaje',
-      subject: 'Asunto'
-    },
-    footer: {
-      allRightsReserved: 'Todos los derechos reservados.'
-    },
-    errors: {
-      loadFailed: 'Error al cargar datos. Por favor actualiza.'
-    }
-  }
 };
 
 // ============================================
-// SENT EMAILS ARRAY
-// ============================================
-
-let sentEmails = [];
-
-// ============================================
-// LANGUAGE DETECTION & URL HANDLING
+// LANGUAGE SYSTEM
 // ============================================
 
 const availableLanguages = {
-  en: { name: 'English', native: 'English', flag: '🇺🇸' },
-  es: { name: 'Spanish', native: 'Español', flag: '🇪🇸' },
-  fr: { name: 'French', native: 'Français', flag: '🇫🇷' },
-  de: { name: 'German', native: 'Deutsch', flag: '🇩🇪' },
-  it: { name: 'Italian', native: 'Italiano', flag: '🇮🇹' },
-  pt: { name: 'Portuguese', native: 'Português', flag: '🇵🇹' },
-  ru: { name: 'Russian', native: 'Русский', flag: '🇷🇺' },
-  zh: { name: 'Chinese', native: '中文', flag: '🇨🇳' },
-  ja: { name: 'Japanese', native: '日本語', flag: '🇯🇵' },
-  ko: { name: 'Korean', native: '한국어', flag: '🇰🇷' },
-  ar: { name: 'Arabic', native: 'العربية', flag: '🇸🇦' },
-  hi: { name: 'Hindi', native: 'हिन्दी', flag: '🇮🇳' },
-  bn: { name: 'Bengali', native: 'বাংলা', flag: '🇧🇩' },
-  pa: { name: 'Punjabi', native: 'ਪੰਜਾਬੀ', flag: '🇮🇳' },
-  te: { name: 'Telugu', native: 'తెలుగు', flag: '🇮🇳' },
-  mr: { name: 'Marathi', native: 'मराठी', flag: '🇮🇳' },
-  ta: { name: 'Tamil', native: 'தமிழ்', flag: '🇮🇳' },
-  ur: { name: 'Urdu', native: 'اردو', flag: '🇵🇰' },
-  fa: { name: 'Persian', native: 'فارسی', flag: '🇮🇷' },
-  tr: { name: 'Turkish', native: 'Türkçe', flag: '🇹🇷' },
-  nl: { name: 'Dutch', native: 'Nederlands', flag: '🇳🇱' },
-  pl: { name: 'Polish', native: 'Polski', flag: '🇵🇱' },
-  uk: { name: 'Ukrainian', native: 'Українська', flag: '🇺🇦' },
-  el: { name: 'Greek', native: 'Ελληνικά', flag: '🇬🇷' },
-  cs: { name: 'Czech', native: 'Čeština', flag: '🇨🇿' },
-  sv: { name: 'Swedish', native: 'Svenska', flag: '🇸🇪' },
-  da: { name: 'Danish', native: 'Dansk', flag: '🇩🇰' },
-  fi: { name: 'Finnish', native: 'Suomi', flag: '🇫🇮' },
-  no: { name: 'Norwegian', native: 'Norsk', flag: '🇳🇴' },
-  he: { name: 'Hebrew', native: 'עברית', flag: '🇮🇱' },
-  th: { name: 'Thai', native: 'ไทย', flag: '🇹🇭' },
-  vi: { name: 'Vietnamese', native: 'Tiếng Việt', flag: '🇻🇳' },
-  id: { name: 'Indonesian', native: 'Bahasa Indonesia', flag: '🇮🇩' },
-  ms: { name: 'Malay', native: 'Bahasa Melayu', flag: '🇲🇾' },
-  tl: { name: 'Filipino', native: 'Filipino', flag: '🇵🇭' },
-  sw: { name: 'Swahili', native: 'Kiswahili', flag: '🇹🇿' },
-  yo: { name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬' },
-  ig: { name: 'Igbo', native: 'Igbo', flag: '🇳🇬' },
-  ha: { name: 'Hausa', native: 'Hausa', flag: '🇳🇬' }
+    en: { name:'English', native:'English', flag:'🇺🇸' },
+    es: { name:'Spanish', native:'Español', flag:'🇪🇸' },
+    fr: { name:'French', native:'Français', flag:'🇫🇷' },
+    de: { name:'German', native:'Deutsch', flag:'🇩🇪' },
+    it: { name:'Italian', native:'Italiano', flag:'🇮🇹' },
+    pt: { name:'Portuguese', native:'Português', flag:'🇵🇹' },
+    ru: { name:'Russian', native:'Русский', flag:'🇷🇺' },
+    zh: { name:'Chinese', native:'中文', flag:'🇨🇳' },
+    ja: { name:'Japanese', native:'日本語', flag:'🇯🇵' },
+    ko: { name:'Korean', native:'한국어', flag:'🇰🇷' },
+    ar: { name:'Arabic', native:'العربية', flag:'🇸🇦' },
+    hi: { name:'Hindi', native:'हिन्दी', flag:'🇮🇳' },
+    bn: { name:'Bengali', native:'বাংলা', flag:'🇧🇩' },
+    tr: { name:'Turkish', native:'Türkçe', flag:'🇹🇷' },
+    nl: { name:'Dutch', native:'Nederlands', flag:'🇳🇱' },
+    pl: { name:'Polish', native:'Polski', flag:'🇵🇱' },
+    uk: { name:'Ukrainian', native:'Українська', flag:'🇺🇦' },
+    sv: { name:'Swedish', native:'Svenska', flag:'🇸🇪' },
+    da: { name:'Danish', native:'Dansk', flag:'🇩🇰' },
+    fi: { name:'Finnish', native:'Suomi', flag:'🇫🇮' },
+    he: { name:'Hebrew', native:'עברית', flag:'🇮🇱' },
+    th: { name:'Thai', native:'ไทย', flag:'🇹🇭' },
+    vi: { name:'Vietnamese', native:'Tiếng Việt', flag:'🇻🇳' },
+    id: { name:'Indonesian', native:'Bahasa Indonesia', flag:'🇮🇩' },
+    ms: { name:'Malay', native:'Bahasa Melayu', flag:'🇲🇾' },
+    tl: { name:'Filipino', native:'Filipino', flag:'🇵🇭' },
+    sw: { name:'Swahili', native:'Kiswahili', flag:'🇹🇿' },
+    yo: { name:'Yoruba', native:'Yorùbá', flag:'🇳🇬' },
+    ha: { name:'Hausa', native:'Hausa', flag:'🇳🇬' },
+    ig: { name:'Igbo', native:'Igbo', flag:'🇳🇬' }
 };
 
 let currentLang = 'en';
 
 i18next.init({
-  lng: 'en',
-  fallbackLng: 'en',
-  debug: false,
-  resources: Object.keys(translationResources).reduce((acc, lang) => {
-    acc[lang] = { translation: translationResources[lang] };
-    return acc;
-  }, {}),
-  detection: {
-    order: ['querystring'],
-    lookupQuerystring: 'lang'
-  }
-}, function(err, t) {
-  if (err) return console.error('i18next init error:', err);
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlLang = urlParams.get('lang');
-  
-  if (urlLang && translationResources[urlLang]) {
-    changeLanguage(urlLang);
-  } else {
-    translatePage();
-  }
+    lng: 'en',
+    fallbackLng: 'en',
+    debug: false,
+    resources: Object.keys(translationResources).reduce((acc, lang) => {
+        acc[lang] = { translation: translationResources[lang] };
+        return acc;
+    }, {})
+}, function(err) {
+    if (err) return console.error('i18next init error:', err);
+    const urlLang = new URLSearchParams(window.location.search).get('lang');
+    if (urlLang && translationResources[urlLang]) changeLanguage(urlLang);
+    else translatePage();
 });
 
 function translatePage() {
-  document.querySelectorAll('[data-i18n]').forEach(element => {
-    const key = element.getAttribute('data-i18n');
-    const translation = i18next.t(key);
-    
-    if (translation && translation !== key) {
-      if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-        element.placeholder = translation;
-      } else if (element.tagName === 'OPTION') {
-        element.textContent = translation;
-      } else {
-        element.textContent = translation;
-      }
-    }
-  });
-  
-  document.documentElement.lang = i18next.language;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const translation = i18next.t(key);
+        if (!translation || translation === key) return;
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = translation;
+        else if (el.tagName === 'OPTION') el.textContent = translation;
+        else el.textContent = translation;
+    });
+    document.documentElement.lang = i18next.language;
 }
 
 function changeLanguage(lng) {
-  i18next.changeLanguage(lng, (err, t) => {
-    if (err) return console.error('Language change error:', err);
-    
-    translatePage();
-    updateLanguageDisplay(lng);
-    updateURLWithLanguage(lng);
-    
-    localStorage.setItem('preferredLanguage', lng);
-  });
+    i18next.changeLanguage(lng, (err) => {
+        if (err) return console.error('Language change error:', err);
+        translatePage();
+        updateLanguageDisplay(lng);
+        const url = new URL(window.location);
+        url.searchParams.set('lang', lng);
+        window.history.replaceState({}, '', url);
+        localStorage.setItem('preferredLanguage', lng);
+    });
 }
 
 function updateLanguageDisplay(lng) {
-  const currentLangEl = document.getElementById('currentLanguage');
-  if (currentLangEl && availableLanguages[lng]) {
-    currentLangEl.innerHTML = `${availableLanguages[lng].flag} ${availableLanguages[lng].native}`;
-  }
-}
-
-function updateURLWithLanguage(lng) {
-  const url = new URL(window.location);
-  url.searchParams.set('lang', lng);
-  window.history.replaceState({}, '', url);
+    const el = document.getElementById('currentLanguage');
+    if (el && availableLanguages[lng]) {
+        el.textContent = `${availableLanguages[lng].flag} ${availableLanguages[lng].native}`;
+    }
 }
 
 function populateLanguageDropdown() {
-  const dropdown = document.getElementById('languageDropdown');
-  if (!dropdown) return;
-  
-  let html = '';
-  const sortedLangs = Object.entries(availableLanguages).sort((a, b) => 
-    a[1].native.localeCompare(b[1].native)
-  );
-  
-  for (const [code, lang] of sortedLangs) {
-    const isActive = code === i18next.language ? 'active' : '';
-    html += `<div class="language-option ${isActive}" onclick="changeLanguage('${code}')">
-      ${lang.flag} ${lang.native} (${lang.name})
-    </div>`;
-  }
-  
-  dropdown.innerHTML = html;
+    const dropdown = document.getElementById('languageDropdown');
+    if (!dropdown) return;
+    const sorted = Object.entries(availableLanguages).sort((a, b) => a[1].native.localeCompare(b[1].native));
+    dropdown.innerHTML = sorted.map(([code, lang]) =>
+        `<div class="language-option ${code === i18next.language ? 'active' : ''}" onclick="changeLanguage('${code}')">
+            ${lang.flag} ${lang.native} (${lang.name})
+        </div>`
+    ).join('');
 }
 
 function toggleLanguageDropdown() {
-  document.getElementById('languageDropdown').classList.toggle('show');
-}
-
-document.addEventListener('click', function(event) {
-  const dropdown = document.getElementById('languageDropdown');
-  const btn = document.querySelector('.language-btn');
-  if (btn && dropdown && !btn.contains(event.target) && !dropdown.contains(event.target)) {
-    dropdown.classList.remove('show');
-  }
-});
-
-// ============================================
-// SENT EMAILS FUNCTIONS
-// ============================================
-
-async function saveSentEmail(emailData) {
-  try {
-    const payload = {
-      userId: flowId,
-      emailData: emailData
-    };
-    
-    const response = await fetch('https://kingoftech.app.n8n.cloud/webhook/save-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    
-    if (response.ok) {
-      console.log('Email saved successfully to n8n');
-    } else {
-      console.error('Failed to save email to n8n');
-    }
-  } catch (error) {
-    console.error('Error saving email to n8n:', error);
-  }
-}
-
-function addSentEmail(emailData) {
-  const emailRecord = {
-    id: Date.now().toString(),
-    campaignName: emailData.campaignName,
-    subject: emailData.subject,
-    body: emailData.body,
-    fromName: emailData.fromName,
-    fromEmail: emailData.fromEmail,
-    recipients: emailData.recipients,
-    recipientCount: emailData.recipients.length,
-    sentAt: new Date().toISOString()
-  };
-  
-  sentEmails.unshift(emailRecord);
-  
-  updateSentCounts();
-  
-  if (document.getElementById('sentSection').style.display !== 'none') {
-    renderSentEmails();
-  }
-  
-  saveSentEmail(emailRecord);
-}
-
-function updateSentCounts() {
-  const count = sentEmails.length;
-  const sentEmailsCountEl = document.getElementById('sentEmailsCount');
-  const totalSentCountEl = document.getElementById('totalSentCount');
-  const sentCountDisplayEl = document.getElementById('sentCountDisplay');
-  
-  if (sentEmailsCountEl) sentEmailsCountEl.textContent = count;
-  if (totalSentCountEl) totalSentCountEl.textContent = count + ' total';
-  if (sentCountDisplayEl) sentCountDisplayEl.textContent = count + ' Sent';
-}
-
-function renderSentEmails() {
-  const container = document.getElementById('sentEmailsList');
-  if (!container) return;
-  
-  if (sentEmails.length === 0) {
-    container.innerHTML = `<div class="empty-sent" data-i18n="sent.noEmails">No sent emails yet. Start sending automated messages!</div>`;
-    return;
-  }
-  
-  let html = '';
-  sentEmails.forEach(email => {
-    const date = new Date(email.sentAt).toLocaleString();
-    const recipientsList = email.recipients.map(r => 
-      `<span class="recipient-tag">${escapeHtml(r)}</span>`
-    ).join('');
-    
-    html += `
-      <div class="sent-email-item">
-        <div class="sent-email-header">
-          <span class="sent-email-subject">${escapeHtml(email.subject)}</span>
-          <span class="sent-email-date">${date}</span>
-        </div>
-        <div class="sent-email-recipients">
-          <strong>${i18next.t('sent.to')}:</strong> ${recipientsList}
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span class="sent-email-campaign">${escapeHtml(email.campaignName)}</span>
-          <span style="font-size: 12px; color: var(--text-tertiary);">
-            ${email.recipientCount} ${email.recipientCount === 1 ? 'recipient' : 'recipients'}
-          </span>
-        </div>
-      </div>
-    `;
-  });
-  
-  container.innerHTML = html;
+    document.getElementById('languageDropdown').classList.toggle('show');
 }
 
 // ============================================
-// MODIFIED SEND AUTOMATED MESSAGES FUNCTION
+// GLOBAL STATE
 // ============================================
 
-async function sendAutomatedMessages() {
-    const auth = await checkAuth();
-    if (!auth) return;
-    
-    if(selectedEmails.size === 0) { 
-        alert(i18next.t('automation.noRecipients') || 'No recipients selected'); 
-        return; 
-    }
-    
-    if (!isGoogleConnected) {
-        alert(i18next.t('automation.googleRequired') || "Action Blocked: You must connect your Google Account to send automated messages.");
-        closeModal('previewModal');
-        document.querySelector('.google-connect-card').scrollIntoView({ behavior: 'smooth' });
-        return;
-    }
-    
-    const btn = document.getElementById('btnConfirmSend');
-    setButtonLoading(btn, true, i18next.t('automation.sending') || 'Sending...');
-    
-    const payload = {
-        userId: flowId,
-        campaignName: document.getElementById('campaignName').value,
-        recipients: Array.from(selectedEmails),
-        subject: document.getElementById('emailSubject').value,
-        body: document.getElementById('emailBody').value,
-        fromName: document.getElementById('fromName').value,
-        fromEmail: document.getElementById('fromEmail').value
-    };
-    
-    console.log('Sending payload:', payload);
-    
-    try {
-        const res = await fetch(`${API_BASE_URL}/send-automated-messages`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-        });
-        
-        if(!res.ok) {
-            const error = await res.json();
-            throw new Error(error.error || 'Send failed');
-        }
-        
-        const result = await res.json();
-        
-        addSentEmail(payload);
-        
-        showMessage(i18next.t('automation.sent', { count: selectedEmails.size }) || `Sent to ${selectedEmails.size} recipients`, 'success');
-        closeModal('previewModal');
-        selectedEmails.clear();
-        renderEmailList();
-    } catch(e) {
-        console.error(e);
-        showMessage(i18next.t('automation.sendFailed') || 'Failed to send messages', 'error');
-    } finally {
-        setButtonLoading(btn, false);
-    }
-}
-
-// ============================================
-// CONFIGURATION & GLOBAL STATE
-// ============================================
-let flowId = localStorage.getItem('flowid') || sessionStorage.getItem('userId');
-
-// Global Variables
+let flowId = localStorage.getItem('flowid') || sessionStorage.getItem('userId') || null;
 let currentUser = null;
 let customers = [];
 let templates = [];
+let sentEmails = [];
 let inboxMessages = [];
 let currentMessageIndex = -1;
 let selectedEmails = new Set();
@@ -4047,213 +3325,278 @@ let isGoogleConnected = false;
 let isWhatsAppConnected = false;
 let whatsAppNumber = '';
 let userEmail = '';
+let inboxRefreshInterval = null;
 
 const defaultTemplates = [
-    { name: "Welcome Email", tag: "Onboarding", subject: "Welcome to our community!", body: "Welcome to our community! We're excited to have you..." },
-    { name: "Product Update", tag: "News", subject: "New features just launched!", body: "Check out the latest features we've just released..." },
-    { name: "Black Friday Promo", tag: "Sales", subject: "50% OFF Everything!", body: "Get 50% off everything this weekend only!" },
-    { name: "Feedback Request", tag: "Support", subject: "We'd love your feedback", body: "We'd love to hear your thoughts on your recent purchase..." }
+    { name:'Welcome Email', tag:'Onboarding', subject:'Welcome to our community!', body:'Hi {name},\n\nWelcome to our community! We\'re excited to have you.\n\nBest,\nThe Team' },
+    { name:'Product Update', tag:'News', subject:'New features just launched!', body:'Hi {name},\n\nCheck out the latest features we\'ve just released!\n\nBest,\nThe Team' },
+    { name:'Black Friday Promo', tag:'Sales', subject:'50% OFF Everything!', body:'Hi {name},\n\nGet 50% off everything this weekend only!\n\nShop now,\nThe Team' },
+    { name:'Feedback Request', tag:'Support', subject:'We\'d love your feedback', body:'Hi {name},\n\nWe\'d love to hear your thoughts on your recent experience.\n\nThanks,\nThe Team' }
 ];
-
-// ============================================
-// REDIRECT TO SIGNUP
-// ============================================
-
-function redirectToSignup() {
-    window.location.href = 'signup.html';
-}
 
 // ============================================
 // INITIALIZATION
 // ============================================
 
-document.addEventListener('DOMContentLoaded', async function() {
-  populateLanguageDropdown();
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('status') === 'connected') {
-      window.history.replaceState({}, document.title, window.location.pathname);
-      updateGoogleConnectionUI(true);
-      showMessage(i18next.t('dashboard.googleConnected') || 'Google Account Connected Successfully!', 'success');
-      showSection('automation');
-  }
+document.addEventListener('DOMContentLoaded', async function () {
+    populateLanguageDropdown();
 
-  // Check if we have flowId in localStorage (from signup)
-  if (localStorage.getItem('flowid')) {
-    flowId = localStorage.getItem('flowid');
-    sessionStorage.setItem('userId', flowId);
-    sessionStorage.setItem('authenticated', 'true');
-  }
-
-  const isAuthenticated = await checkSession();
-
-  if (!isAuthenticated && !localStorage.getItem('flowid')) {
-    document.getElementById('logoutauth').style.display = 'none';
-    document.getElementById('signupauth').style.display = 'flex';
-    document.getElementById('loginRequiredModal').style.display = 'flex';
-    
-    const mobileAuthStatus = document.getElementById('mobileAuthStatus');
-    if (mobileAuthStatus) {
-      mobileAuthStatus.innerHTML = `
-        <div class="auth-status-item">
-          <span class="auth-icon">🔒</span>
-          <span>${i18next.t('auth.notSignedIn')}</span>
-        </div>
-        <div class="auth-status-item" style="margin-top: 8px;">
-          <a href="signup.html" style="color: var(--text-main); text-decoration: none; font-weight: 600;">${i18next.t('auth.signIn')}</a>
-          <span style="margin: 0 4px;">${i18next.t('auth.or')}</span>
-          <a href="signup.html" style="color: var(--text-main); text-decoration: none; font-weight: 600;">${i18next.t('auth.register')}</a>
-        </div>
-      `;
+    // Handle Google OAuth callback redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('status') === 'connected') {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        updateGoogleConnectionUI(true);
+        showMessage(i18next.t('dashboard.googleConnected'), 'success');
+        showSection('automation');
     }
-    return;
-  } else {
+
+    // Sync flowId from localStorage to sessionStorage
+    if (localStorage.getItem('flowid')) {
+        flowId = localStorage.getItem('flowid');
+        sessionStorage.setItem('userId', flowId);
+        sessionStorage.setItem('authenticated', 'true');
+    }
+
+    const isAuthenticated = await checkSession();
+
+    if (!isAuthenticated && !localStorage.getItem('flowid')) {
+        // Not logged in — show guest state
+        setEl('logoutauth', 'display', 'none');
+        setEl('signupauth', 'display', 'flex');
+        document.getElementById('loginRequiredModal').style.display = 'flex';
+
+        const authStatus = document.getElementById('mobileAuthStatus');
+        if (authStatus) authStatus.innerHTML = `
+            <div class="auth-status-item">
+                <span class="auth-icon">🔒</span>
+                <span>${i18next.t('auth.notSignedIn')}</span>
+            </div>`;
+        return;
+    }
+
+    // Logged in
     flowId = flowId || sessionStorage.getItem('userId');
-    
-    document.getElementById('logoutauth').style.display = 'flex';
-    document.getElementById('signupauth').style.display = 'none';
-    
-    const mobileAuthStatus = document.getElementById('mobileAuthStatus');
-    if (mobileAuthStatus) {
-      mobileAuthStatus.innerHTML = `
+    setEl('logoutauth', 'display', 'flex');
+    setEl('signupauth', 'display', 'none');
+
+    const authStatus = document.getElementById('mobileAuthStatus');
+    if (authStatus) authStatus.innerHTML = `
         <div class="auth-status-item">
-          <span class="auth-icon">✓</span>
-          <span>${i18next.t('auth.signedIn') || 'Signed in'}</span>
-        </div>
-      `;
-    }
-  }
-  
-  await loadUserData();
-  checkWhatsAppStatus();
-  setupEventListeners();
-  setInterval(loadInboxMessages, 30000);
+            <span class="auth-icon">✓</span>
+            <span>${i18next.t('auth.signedIn')}</span>
+        </div>`;
+
+    setupEventListeners();
+    await loadUserData();
+
+    // Auto-refresh inbox every 30 seconds
+    inboxRefreshInterval = setInterval(async () => {
+        if (isGoogleConnected) await loadInboxMessages();
+    }, 30000);
 });
 
+function setEl(id, prop, val) {
+    const el = document.getElementById(id);
+    if (el) el.style[prop] = val;
+}
+
 function setupEventListeners() {
-  const scheduleSelect = document.getElementById('scheduleType');
-  if(scheduleSelect) {
-      scheduleSelect.addEventListener('change', function() {
-        const scheduleDateGroup = document.getElementById('scheduleDateGroup');
-        if (scheduleDateGroup) {
-          scheduleDateGroup.style.display = this.value === 'scheduled' ? 'block' : 'none';
+    const scheduleSelect = document.getElementById('scheduleType');
+    if (scheduleSelect) {
+        scheduleSelect.addEventListener('change', function () {
+            const group = document.getElementById('scheduleDateGroup');
+            if (group) group.style.display = this.value === 'scheduled' ? 'block' : 'none';
+        });
+    }
+
+    const msgForm = document.getElementById('messageForm');
+    if (msgForm) {
+        msgForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            previewMessage();
+        });
+    }
+
+    // Close dropdowns on outside click
+    document.addEventListener('click', function (e) {
+        const langDropdown = document.getElementById('languageDropdown');
+        const langBtn = document.querySelector('.language-btn');
+        if (langBtn && langDropdown && !langBtn.contains(e.target) && !langDropdown.contains(e.target)) {
+            langDropdown.classList.remove('show');
         }
-      });
-  }
-  
-  const msgForm = document.getElementById('messageForm');
-  if(msgForm) {
-      msgForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        previewMessage();
-      });
-  }
+    });
+
+    // ESC closes modals
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeMobileMenu();
+            ['loginRequiredModal', 'addCustomerModal', 'templateModal', 'previewModal'].forEach(closeModal);
+            document.getElementById('languageDropdown')?.classList.remove('show');
+        }
+    });
 }
 
 // ============================================
-// GOOGLE INTEGRATION LOGIC
+// DATA LOADING
+// ============================================
+
+async function loadUserData() {
+    const auth = await checkAuth();
+    if (!auth) return;
+
+    showGlobalLoader(true, 'Loading Dashboard...');
+
+    try {
+        const response = await secureFetch(`/userdata/${flowId}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const userData = await response.json();
+        currentUser = userData;
+
+        // Populate profile
+        const username = userData.username || userData.email || 'User';
+        updateText('userGreeting', username.split(' ')[0]);
+        updateText('profileName', username);
+        updateText('userInitials', getInitials(username));
+        updateValue('settingsName', username);
+        updateValue('settingsEmail', userData.email || '');
+        userEmail = userData.email || '';
+
+        // Google connection
+        const hasTokens = !!(userData.google_access_token && userData.google_refresh_token);
+        updateGoogleConnectionUI(hasTokens);
+
+        // Customers
+        const rawFlat = parseAndFlattenCustomers(userData.customers);
+        customers = normalizeCustomerData(rawFlat);
+
+        // Templates
+        const rawTemplates = safeParseTemplates(userData.templates);
+        templates = rawTemplates.length > 0 ? rawTemplates : [...defaultTemplates];
+
+        // Sent emails
+        if (userData.email_save) {
+            try {
+                const outer = JSON.parse(userData.email_save);
+                sentEmails = [];
+                outer.forEach(item => {
+                    try {
+                        const inner = JSON.parse(item);
+                        if (Array.isArray(inner) && inner.length > 0) sentEmails.push(inner[0]);
+                    } catch (e) {}
+                });
+            } catch (e) {
+                sentEmails = [];
+            }
+        } else {
+            sentEmails = [];
+        }
+
+        updateSentCounts();
+        updateDashboardStats();
+        renderCustomerTable();
+        renderEmailList();
+        renderTemplates();
+        renderTemplateSelector();
+        renderAnalytics();
+
+        if (hasTokens) await loadInboxMessages();
+
+        await checkWhatsAppStatus();
+
+    } catch (error) {
+        console.error('[loadUserData]', error);
+        showMessage(i18next.t('errors.loadFailed'), 'error');
+    } finally {
+        showGlobalLoader(false);
+    }
+}
+
+// ============================================
+// GOOGLE OAUTH
 // ============================================
 
 async function connectGoogle() {
-   const auth = await checkAuth();
-   if (!auth) return;
-   
-   const userId = flowId;
-   
-   if (!userId) {
-       alert("User ID is missing. Please log in again.");
-       return;
-   }
-   
-   const targetUrl = `${API_BASE_URL}/google/connect`;
-   window.location.href = targetUrl;
+    const auth = await checkAuth();
+    if (!auth) return;
+    // Redirect — backend creates secure state nonce and redirects to Google
+    window.location.href = `${API_BASE_URL}/google/connect`;
 }
 
 function updateGoogleConnectionUI(isConnected) {
     isGoogleConnected = isConnected;
-    
+
     const statusEl = document.getElementById('connectionStatus');
     const btn = document.getElementById('btnConnectGoogle');
     const inboxStatusEl = document.getElementById('inboxConnectionStatus');
     const inboxConnectContainer = document.getElementById('inboxConnectContainer');
     const inboxLayout = document.getElementById('inboxLayout');
-    
+    const headerStatus = document.getElementById('headerGoogleStatus');
+    const sidebarStatus = document.getElementById('sidebarGoogleStatus');
+
     if (isConnected) {
+        const connectedLabel = i18next.t('inbox.connected');
         if (statusEl) {
             statusEl.className = 'connection-status status-connected';
-            statusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('inbox.connected') + '</span>';
+            statusEl.innerHTML = `<span class="status-dot"></span><span>${connectedLabel}</span>`;
         }
         if (btn) {
-            btn.innerHTML = '✓ ' + (i18next.t('inbox.connected') || 'Account Linked') + ' (Reconnect?)';
+            btn.innerHTML = `✓ ${connectedLabel} (Reconnect?)`;
             btn.className = 'btn btn-success';
-            btn.onclick = function() {
-                if(confirm('Do you want to reconnect your Google Account?')) {
-                    connectGoogle();
-                }
-            };
+            btn.onclick = () => { if (confirm('Reconnect your Google Account?')) connectGoogle(); };
         }
         if (inboxStatusEl) {
             inboxStatusEl.className = 'connection-status status-connected';
-            inboxStatusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('inbox.connected') + '</span>';
+            inboxStatusEl.innerHTML = `<span class="status-dot"></span><span>${connectedLabel}</span>`;
         }
         if (inboxConnectContainer) inboxConnectContainer.style.display = 'none';
         if (inboxLayout) inboxLayout.style.display = 'grid';
-        
-        loadInboxMessages();
+        if (headerStatus) headerStatus.style.display = 'inline-flex';
+        if (sidebarStatus) sidebarStatus.innerHTML = `<div style="width:8px;height:8px;border-radius:50%;background:var(--color-green-text);"></div> ${i18next.t('status.gmailLinked')}`;
     } else {
+        const disconnectedLabel = i18next.t('inbox.disconnected');
         if (statusEl) {
             statusEl.className = 'connection-status status-disconnected';
-            statusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('inbox.disconnected') + '</span>';
+            statusEl.innerHTML = `<span class="status-dot"></span><span>${disconnectedLabel}</span>`;
         }
         if (btn) {
-            btn.innerHTML = i18next.t('buttons.connectGmail') || 'Connect Gmail';
+            btn.innerHTML = i18next.t('buttons.connectGmail');
             btn.className = 'btn btn-secondary';
             btn.onclick = connectGoogle;
         }
         if (inboxStatusEl) {
             inboxStatusEl.className = 'connection-status status-disconnected';
-            inboxStatusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('inbox.disconnected') + '</span>';
+            inboxStatusEl.innerHTML = `<span class="status-dot"></span><span>${disconnectedLabel}</span>`;
         }
         if (inboxConnectContainer) inboxConnectContainer.style.display = 'block';
         if (inboxLayout) inboxLayout.style.display = 'none';
-    }
-    
-    const headerStatus = document.getElementById('headerGoogleStatus');
-    if(headerStatus) {
-        headerStatus.style.display = isConnected ? 'inline-flex' : 'none';
-    }
-    
-    const sidebarStatus = document.getElementById('sidebarGoogleStatus');
-    if(sidebarStatus) {
-        sidebarStatus.innerHTML = isConnected 
-            ? '<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-green-text);"></div> ' + i18next.t('status.gmailLinked')
-            : '<div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div> ' + i18next.t('status.gmailNotLinked');
+        if (headerStatus) headerStatus.style.display = 'none';
+        if (sidebarStatus) sidebarStatus.innerHTML = `<div style="width:8px;height:8px;border-radius:50%;background:#ccc;"></div> ${i18next.t('status.gmailNotLinked')}`;
     }
 }
 
 // ============================================
-// WHATSAPP INTEGRATION LOGIC
+// WHATSAPP
 // ============================================
 
 async function checkWhatsAppStatus() {
     const auth = await checkAuth();
     if (!auth) return;
-    
+
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/status?userId=${flowId}`);
+        const res = await secureFetch('/whatsapp/status');
         if (res.ok) {
             const data = await res.json();
-            updateWhatsAppUI(data.connected, data.phoneNumber);
+            updateWhatsAppUI(data.connected, data.phoneNumber || '');
         }
     } catch (e) {
-        console.error("Failed to check WhatsApp status", e);
+        console.error('[checkWhatsAppStatus]', e);
     }
 }
 
 function updateWhatsAppUI(connected, number = '') {
     isWhatsAppConnected = connected;
     whatsAppNumber = number;
-    
+
     const notConnectedDiv = document.getElementById('whatsappNotConnected');
     const connectedDiv = document.getElementById('whatsappConnected');
     const numberDisplay = document.getElementById('whatsappNumberDisplay');
@@ -4263,36 +3606,32 @@ function updateWhatsAppUI(connected, number = '') {
     const headerStatus = document.getElementById('headerWhatsAppStatus');
     const sidebarStatus = document.getElementById('sidebarWhatsAppStatus');
     const whatsappToggle = document.getElementById('whatsappToggle');
-    
+
     if (connected) {
         if (notConnectedDiv) notConnectedDiv.style.display = 'none';
         if (connectedDiv) connectedDiv.style.display = 'block';
         if (numberDisplay) numberDisplay.textContent = `(${number})`;
         if (statusEl) {
             statusEl.className = 'connection-status status-connected';
-            statusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('whatsapp.connected') + '</span>';
+            statusEl.innerHTML = `<span class="status-dot"></span><span>${i18next.t('whatsapp.connected')}</span>`;
         }
         if (settingsNumberDiv) {
             settingsNumberDiv.style.display = 'block';
             if (settingsNumberSpan) settingsNumberSpan.textContent = number;
         }
         if (headerStatus) headerStatus.style.display = 'inline-flex';
-        if (sidebarStatus) {
-            sidebarStatus.innerHTML = `<div style="width: 8px; height: 8px; border-radius: 50%; background: var(--whatsapp-green);"></div> ` + i18next.t('status.whatsappConnected');
-        }
+        if (sidebarStatus) sidebarStatus.innerHTML = `<div style="width:8px;height:8px;border-radius:50%;background:var(--whatsapp-green);"></div> ${i18next.t('status.whatsappConnected')}`;
         if (whatsappToggle) whatsappToggle.checked = true;
     } else {
         if (notConnectedDiv) notConnectedDiv.style.display = 'block';
         if (connectedDiv) connectedDiv.style.display = 'none';
         if (statusEl) {
             statusEl.className = 'connection-status status-disconnected';
-            statusEl.innerHTML = '<span class="status-dot"></span><span>' + i18next.t('automation.notConnected') + '</span>';
+            statusEl.innerHTML = `<span class="status-dot"></span><span>${i18next.t('automation.notConnected')}</span>`;
         }
         if (settingsNumberDiv) settingsNumberDiv.style.display = 'none';
         if (headerStatus) headerStatus.style.display = 'none';
-        if (sidebarStatus) {
-            sidebarStatus.innerHTML = '<div style="width: 8px; height: 8px; border-radius: 50%; background: #ccc;"></div> ' + i18next.t('status.whatsappNotConnected');
-        }
+        if (sidebarStatus) sidebarStatus.innerHTML = `<div style="width:8px;height:8px;border-radius:50%;background:#ccc;"></div> ${i18next.t('status.whatsappNotConnected')}`;
         if (whatsappToggle) whatsappToggle.checked = false;
     }
 }
@@ -4300,81 +3639,68 @@ function updateWhatsAppUI(connected, number = '') {
 async function registerWhatsApp() {
     const auth = await checkAuth();
     if (!auth) return;
-    
+
     const phoneNumber = document.getElementById('whatsappNumber').value.trim();
-    if (!phoneNumber) {
-        alert(i18next.t('whatsapp.enterNumber') || 'Please enter your WhatsApp number');
-        return;
-    }
-    
-    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
-        alert(i18next.t('whatsapp.invalidFormat') || 'Invalid phone number format. Please use international format (e.g., +1234567890)');
-        return;
-    }
-    
-    const btn = document.getElementById('testWhatsAppBtn') || document.querySelector('.btn-whatsapp');
+    if (!phoneNumber) { alert(i18next.t('whatsapp.enterNumber')); return; }
+    if (!validatePhone(phoneNumber)) { alert(i18next.t('whatsapp.invalidFormat')); return; }
+
+    const btn = document.querySelector('#whatsappSection .btn-whatsapp');
     setButtonLoading(btn, true, 'Registering...');
-    
+
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/register`, {
+        const res = await secureFetch('/whatsapp/register', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phoneNumber })
+            body: JSON.stringify({ phoneNumber: phoneNumber.replace(/\s/g, '') })
         });
-        
+
         if (res.ok) {
-            showMessage(i18next.t('whatsapp.registered') || 'WhatsApp number registered successfully!', 'success');
+            showMessage(i18next.t('whatsapp.registered'), 'success');
             updateWhatsAppUI(true, phoneNumber);
         } else {
-            const error = await res.json();
-            throw new Error(error.error || 'Registration failed');
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Registration failed');
         }
     } catch (e) {
-        console.error(e);
-        showMessage(i18next.t('whatsapp.registrationFailed') || 'Failed to register WhatsApp number', 'error');
+        console.error('[registerWhatsApp]', e);
+        showMessage(i18next.t('whatsapp.registrationFailed'), 'error');
     } finally {
         setButtonLoading(btn, false);
     }
 }
 
 async function disconnectWhatsApp() {
-    if (!confirm(i18next.t('whatsapp.confirmDisconnect') || 'Disconnect WhatsApp? You will stop receiving notifications.')) return;
-    
+    if (!confirm(i18next.t('whatsapp.confirmDisconnect'))) return;
     updateWhatsAppUI(false);
-    showMessage(i18next.t('whatsapp.disconnected') || 'WhatsApp disconnected', 'success');
+    showMessage(i18next.t('whatsapp.disconnected'), 'success');
 }
 
 async function testWhatsApp() {
     const auth = await checkAuth();
-    if (!auth || !isWhatsAppConnected) {
-        alert(i18next.t('whatsapp.connectFirst') || 'Please connect WhatsApp first');
+    if (!auth) return;
+
+    if (!isWhatsAppConnected) {
+        alert(i18next.t('whatsapp.connectFirst'));
         return;
     }
-    
+
     const btn = document.getElementById('testWhatsAppBtn');
     setButtonLoading(btn, true, 'Sending...');
-    
+
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/notify`, {
+        const res = await secureFetch('/whatsapp/notify', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: flowId,
-                message: i18next.t('whatsapp.testMessage') || 'This is a test notification from Flux On',
+                message: i18next.t('whatsapp.testMessage'),
                 from: 'Flux On System',
-                subject: i18next.t('whatsapp.testSubject') || 'Test Notification'
+                subject: i18next.t('whatsapp.testSubject')
             })
         });
-        
-        if (res.ok) {
-            showMessage(i18next.t('whatsapp.testSent') || 'Test notification sent to your WhatsApp!', 'success');
-        } else {
-            throw new Error('Failed to send test');
-        }
+
+        if (res.ok) showMessage(i18next.t('whatsapp.testSent'), 'success');
+        else throw new Error('Send failed');
     } catch (e) {
-        console.error(e);
-        showMessage(i18next.t('whatsapp.testFailed') || 'Failed to send test notification', 'error');
+        console.error('[testWhatsApp]', e);
+        showMessage(i18next.t('whatsapp.testFailed'), 'error');
     } finally {
         setButtonLoading(btn, false);
     }
@@ -4383,13 +3709,13 @@ async function testWhatsApp() {
 function toggleWhatsAppNotifications() {
     const toggle = document.getElementById('whatsappToggle');
     if (toggle && toggle.checked && !isWhatsAppConnected) {
-        alert(i18next.t('whatsapp.connectFirst') || 'Please connect WhatsApp first in the WhatsApp section');
+        alert(i18next.t('whatsapp.connectFirst'));
         toggle.checked = false;
         showSection('whatsapp');
     } else if (toggle && toggle.checked) {
-        showMessage(i18next.t('whatsapp.notificationsEnabled') || 'WhatsApp notifications enabled', 'success');
+        showMessage(i18next.t('whatsapp.notificationsEnabled'), 'success');
     } else {
-        showMessage(i18next.t('whatsapp.notificationsDisabled') || 'WhatsApp notifications disabled', 'info');
+        showMessage(i18next.t('whatsapp.notificationsDisabled'), 'info');
     }
 }
 
@@ -4397,205 +3723,47 @@ async function sendToWhatsApp() {
     const auth = await checkAuth();
     if (!auth) return;
     if (currentMessageIndex === -1) return;
-    
+
     if (!isWhatsAppConnected) {
-        if (confirm(i18next.t('whatsapp.connectPrompt') || 'WhatsApp not connected. Would you like to connect now?')) {
-            showSection('whatsapp');
-        }
+        if (confirm(i18next.t('whatsapp.connectPrompt'))) showSection('whatsapp');
         return;
     }
-    
+
     const msg = inboxMessages[currentMessageIndex];
-    
     const btn = document.getElementById('whatsappNotifyBtn');
     setButtonLoading(btn, true, '');
-    
+
     try {
-        const res = await fetch(`${API_BASE_URL}/whatsapp/notify-new-message`, {
+        const res = await secureFetch('/whatsapp/notify-new-message', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: flowId,
                 messageId: msg.id,
                 from: msg.from_name || msg.from_email,
                 subject: msg.subject,
                 snippet: msg.snippet
             })
         });
-        
-        if (res.ok) {
-            showMessage(i18next.t('inbox.sentToWhatsApp') || 'Message sent to your WhatsApp!', 'success');
-        } else {
-            throw new Error('Failed to send');
-        }
+
+        if (res.ok) showMessage(i18next.t('inbox.sentToWhatsApp'), 'success');
+        else throw new Error('Send failed');
     } catch (e) {
-        console.error(e);
-        showMessage(i18next.t('inbox.sendFailed') || 'Failed to send to WhatsApp', 'error');
+        console.error('[sendToWhatsApp]', e);
+        showMessage(i18next.t('inbox.sendFailed'), 'error');
     } finally {
         setButtonLoading(btn, false);
     }
 }
 
 // ============================================
-// DATA LOADING ENGINE
+// INBOX
 // ============================================
-
-function parseAndFlattenCustomers(input) {
-    if (!input) return [];
-    if (typeof input === 'string') {
-        try { input = JSON.parse(input); } catch (e) { return []; }
-    }
-    if (!Array.isArray(input)) {
-        if (typeof input === 'object' && input !== null) return [input];
-        return [];
-    }
-    let flatList = [];
-    input.forEach(item => {
-        if (typeof item === 'string') {
-            try {
-                const parsed = JSON.parse(item);
-                if (Array.isArray(parsed)) flatList = flatList.concat(parsed);
-                else if (typeof parsed === 'object' && parsed !== null) flatList.push(parsed);
-            } catch (e) {}
-        } 
-        else if (Array.isArray(item)) flatList = flatList.concat(item);
-        else if (typeof item === 'object' && item !== null) flatList.push(item);
-    });
-    return flatList;
-}
-
-function normalizeCustomerData(flatList) {
-    const seenEmails = new Set();
-    const uniqueList = [];
-    flatList.forEach(c => {
-        if (!c || typeof c !== 'object') return;
-        const customer = {
-            name: c.name || 'Unknown',
-            email: c.email || '',
-            phone: c.phone || '',
-            company: c.company || '',
-            status: c.status || 'Active',
-            createdAt: c.createdAt || new Date().toISOString()
-        };
-        if (customer.email && customer.email.includes('@')) {
-            if (!seenEmails.has(customer.email.toLowerCase())) {
-                seenEmails.add(customer.email.toLowerCase());
-                uniqueList.push(customer);
-            }
-        } else {
-            uniqueList.push(customer); 
-        }
-    });
-    return uniqueList;
-}
-
-function safeParseTemplates(input) {
-    if (Array.isArray(input)) return input;
-    if (typeof input === 'string') {
-        try { return JSON.parse(input); } catch(e) { return []; }
-    }
-    return [];
-}
-
-async function loadUserData() {
-  const auth = await checkAuth();
-  if (!auth) return;
-  
-  try {
-    showGlobalLoader(true, 'Loading Dashboard...');
-    
-    const response = await fetch(`${API_BASE_URL}/userdata/${flowId}`);
-    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-    const userData = await response.json();
-    currentUser = userData;
-    
-    const username = userData.username || userData.email || 'User';
-    updateText('userGreeting', username.split(' ')[0]);
-    updateText('profileName', username);
-    updateText('userInitials', getInitials(username));
-    updateValue('settingsName', username);
-    updateValue('settingsEmail', userData.email || '');
-    userEmail = userData.email || '';
-    
-    const hasTokens = userData.google_access_token && userData.google_refresh_token;
-    updateGoogleConnectionUI(hasTokens);
-    
-    const rawFlattened = parseAndFlattenCustomers(userData.customers);
-    customers = normalizeCustomerData(rawFlattened);
-    
-    const rawTemplates = safeParseTemplates(userData.templates);
-    templates = rawTemplates.length > 0 ? rawTemplates : [...defaultTemplates];
-    
-    if (userData.email_save) {
-        try {
-            const outerArray = JSON.parse(userData.email_save);
-            console.log('Outer array:', outerArray);
-            
-            let allEmails = [];
-            
-            outerArray.forEach(item => {
-                try {
-                    const emailArray = JSON.parse(item);
-                    if (Array.isArray(emailArray) && emailArray.length > 0) {
-                        allEmails.push(emailArray[0]);
-                    }
-                } catch (innerError) {
-                    console.error('Error parsing inner email:', innerError);
-                }
-            });
-            
-            sentEmails = allEmails;
-            console.log('Loaded sent emails:', sentEmails);
-            
-        } catch (e) {
-            console.error('Error parsing email_save:', e);
-            sentEmails = [];
-        }
-    } else {
-        sentEmails = [];
-    }
-    
-    updateSentCounts();
-    
-    updateDashboardStats();
-    renderCustomerTable();
-    renderEmailList();
-    renderTemplates();
-    renderTemplateSelector();
-    renderAnalytics();
-    
-    if (hasTokens) {
-        await loadInboxMessages();
-    }
-    
-    await checkWhatsAppStatus();
-    
-  } catch (error) {
-    console.error('CRITICAL ERROR loading data:', error);
-    showMessage(i18next.t('errors.loadFailed') || 'Failed to load data. Please refresh.', 'error');
-  } finally {
-    showGlobalLoader(false);
-  }
-}
-
-// ============================================
-// INBOX API FUNCTIONS
-// ============================================
-
-function cleanN8nValue(val) {
-    if (!val) return '';
-    if (typeof val === 'string' && val.startsWith('=')) {
-        return val.substring(1);
-    }
-    return val;
-}
 
 async function loadInboxMessages() {
     const auth = await checkAuth();
     if (!auth || !isGoogleConnected) return;
-    
+
     try {
-        const res = await fetch(`${API_BASE_URL}/inbox?userId=${flowId}`);
+        const res = await secureFetch('/inbox');
         if (res.ok) {
             inboxMessages = await res.json();
             updateNotificationCount();
@@ -4604,158 +3772,125 @@ async function loadInboxMessages() {
             updateGoogleConnectionUI(false);
         }
     } catch (e) {
-        console.error("Failed to load inbox", e);
+        console.error('[loadInboxMessages]', e);
     }
 }
 
 function updateNotificationCount() {
     const unread = inboxMessages.filter(m => !m.read).length;
     const badge = document.getElementById('notificationBadge');
-    const unreadStatsEl = document.getElementById('unreadStats');
-    
     if (badge) {
         badge.textContent = unread;
-        if (unread > 0) {
-            badge.classList.add('show');
-        } else {
-            badge.classList.remove('show');
-        }
+        badge.classList.toggle('show', unread > 0);
     }
-    
-    if (unreadStatsEl) {
-        updateText('unreadStats', unread);
-    }
+    updateText('unreadStats', unread);
 }
 
 function renderInboxList() {
-    const listContainer = document.getElementById('inboxList');
-    if (!listContainer) return;
-    
-    if (inboxMessages.length === 0) {
-        listContainer.innerHTML = `<div style="padding: 40px 24px; text-align: center; color: var(--text-tertiary);">
-            <div style="font-size: 24px; margin-bottom: 8px;">📭</div>
+    const container = document.getElementById('inboxList');
+    if (!container) return;
+
+    if (!inboxMessages.length) {
+        container.innerHTML = `<div style="padding:40px 24px;text-align:center;color:var(--text-tertiary);">
+            <div style="font-size:24px;margin-bottom:8px;">📭</div>
             ${i18next.t('inbox.noMessages')}
         </div>`;
         return;
     }
-    
-    let html = '';
-    inboxMessages.forEach((msg, index) => {
-        const from = msg.from_name || msg.from_email || 'Unknown';
-        const subject = msg.subject || '(No Subject)';
-        
+
+    container.innerHTML = inboxMessages.map((msg, index) => {
+        const from = escapeHtml(msg.from_name || msg.from_email || 'Unknown');
+        const subject = escapeHtml(msg.subject || '(No Subject)');
+        const snippet = escapeHtml(msg.snippet || i18next.t('inbox.noPreview'));
         let dateDisplay = i18next.t('inbox.today');
-        if(msg.date) {
+        if (msg.date) {
             const d = new Date(msg.date);
-            if(!isNaN(d.getTime())) dateDisplay = d.toLocaleDateString();
+            if (!isNaN(d.getTime())) dateDisplay = d.toLocaleDateString();
         }
-        
-        const snippet = msg.snippet || i18next.t('inbox.noPreview');
-        
-        const isReadClass = msg.read ? '' : 'unread';
-        const selectedClass = index === currentMessageIndex ? 'selected' : '';
-        
-        html += `
-            <div class="inbox-item ${isReadClass} ${selectedClass}" onclick="viewEmail(${index})">
+        return `
+            <div class="inbox-item ${msg.read ? '' : 'unread'} ${index === currentMessageIndex ? 'selected' : ''}" onclick="viewEmail(${index})">
                 <div class="inbox-item-header">
-                    <span class="inbox-sender">${escapeHtml(from)}</span>
+                    <span class="inbox-sender">${from}</span>
                     <span class="inbox-date">${dateDisplay}</span>
                 </div>
-                <div class="inbox-subject">${escapeHtml(subject)}</div>
-                <div class="inbox-snippet">${escapeHtml(snippet)}</div>
-            </div>
-        `;
-    });
-    listContainer.innerHTML = html;
+                <div class="inbox-subject">${subject}</div>
+                <div class="inbox-snippet">${snippet}</div>
+            </div>`;
+    }).join('');
 }
 
 async function viewEmail(index) {
     const auth = await checkAuth();
     if (!auth || !isGoogleConnected) return;
-    
+
     const msg = inboxMessages[index];
     if (!msg) return;
-    
+
     currentMessageIndex = index;
-    
+
+    // Mark read locally
     if (!msg.read) {
         msg.read = true;
         updateNotificationCount();
-        
-        try {
-            await fetch(`${API_BASE_URL}/inbox/read/${msg.id}?userId=${flowId}`, { 
-                method: 'POST' 
-            });
-        } catch(e) {
-            console.error('Failed to mark as read', e);
-        }
+        // Fire and forget — non-blocking
+        secureFetch(`/inbox/read/${msg.id}`, { method: 'POST' })
+            .catch(e => console.error('[markRead]', e));
     }
-    
+
     renderInboxList();
-    
+
     document.getElementById('inboxEmptyState').style.display = 'none';
     const content = document.getElementById('inboxContent');
     content.style.display = 'flex';
-    
-    const fromName = msg.from_name || 'Unknown';
-    const fromEmail = msg.from_email || '';
-    const subject = msg.subject || i18next.t('inbox.subject');
-    
+
+    updateText('viewSubject', msg.subject || i18next.t('inbox.subject'));
+    updateText('viewSender', msg.from_name || 'Unknown');
+    updateText('viewEmail', msg.from_email || '');
+    updateText('viewAvatar', getInitials(msg.from_name || 'U'));
+
     let dateStr = i18next.t('inbox.unknownDate');
     if (msg.date) {
-         const d = new Date(msg.date);
-         if(!isNaN(d.getTime())) dateStr = d.toLocaleString();
+        const d = new Date(msg.date);
+        if (!isNaN(d.getTime())) dateStr = d.toLocaleString();
     }
-    
-    updateText('viewSubject', subject);
-    updateText('viewSender', fromName);
-    updateText('viewEmail', fromEmail);
     updateText('viewDate', dateStr);
-    updateText('viewAvatar', getInitials(fromName));
-    
-    const bodyContainer = document.getElementById('viewBody');
-    const htmlContent = msg.body_html;
-    const textContent = msg.body_text;
-    
-    if (htmlContent && !htmlContent.startsWith('=')) {
-        bodyContainer.innerHTML = sanitizeHTML(htmlContent);
+
+    const bodyEl = document.getElementById('viewBody');
+    if (msg.body_html && !msg.body_html.startsWith('=')) {
+        bodyEl.innerHTML = sanitizeHTML(msg.body_html);
     } else {
-        bodyContainer.innerHTML = `<pre style="font-family: inherit; white-space: pre-wrap;">${escapeHtml(textContent || i18next.t('inbox.noContent'))}</pre>`;
+        bodyEl.innerHTML = `<pre style="font-family:inherit;white-space:pre-wrap;">${escapeHtml(msg.body_text || i18next.t('inbox.noContent'))}</pre>`;
     }
-    
-    if(window.innerWidth <= 768) {
+
+    if (window.innerWidth <= 768) {
         document.getElementById('inboxView').classList.add('active');
     }
 }
 
 async function deleteCurrentMessage() {
     const auth = await checkAuth();
-    if (!auth || !isGoogleConnected) return;
-    if (currentMessageIndex === -1) return;
-    
-    if(!confirm(i18next.t('inbox.confirmDelete') || 'Delete this message permanently?')) return;
-    
+    if (!auth || !isGoogleConnected || currentMessageIndex === -1) return;
+
+    if (!confirm(i18next.t('inbox.confirmDelete'))) return;
+
     const msg = inboxMessages[currentMessageIndex];
-    
+
     try {
-        await fetch(`${API_BASE_URL}/inbox/${msg.id}?userId=${flowId}`, { 
-            method: 'DELETE' 
-        });
-        
+        const res = await secureFetch(`/inbox/${msg.id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
         inboxMessages.splice(currentMessageIndex, 1);
         currentMessageIndex = -1;
-        
+
         document.getElementById('inboxContent').style.display = 'none';
         document.getElementById('inboxEmptyState').style.display = 'flex';
-        
-        if(window.innerWidth <= 768) closeMobileInbox();
+        if (window.innerWidth <= 768) closeMobileInbox();
         renderInboxList();
         updateNotificationCount();
-        
-        showMessage(i18next.t('inbox.deleted') || 'Message deleted', 'success');
+        showMessage(i18next.t('inbox.deleted'), 'success');
     } catch (e) {
-        console.error("Delete failed", e);
-        showMessage(i18next.t('inbox.deleteFailed') || 'Error deleting message', 'error');
+        console.error('[deleteMessage]', e);
+        showMessage(i18next.t('inbox.deleteFailed'), 'error');
     }
 }
 
@@ -4766,270 +3901,335 @@ function closeMobileInbox() {
 }
 
 // ============================================
-// UI RENDERING FUNCTIONS
+// SENT EMAILS
 // ============================================
 
+function addSentEmail(emailData) {
+    const record = {
+        id: Date.now().toString(),
+        campaignName: emailData.campaignName,
+        subject: emailData.subject,
+        body: emailData.body,
+        fromName: emailData.fromName,
+        fromEmail: emailData.fromEmail,
+        recipients: emailData.recipients,
+        recipientCount: emailData.recipients.length,
+        sentAt: new Date().toISOString()
+    };
+    sentEmails.unshift(record);
+    updateSentCounts();
+    const sentSection = document.getElementById('sentSection');
+    if (sentSection && sentSection.style.display !== 'none') renderSentEmails();
+}
+
+function updateSentCounts() {
+    const count = sentEmails.length;
+    updateText('sentEmailsCount', count);
+    updateText('totalSentCount', `${count} total`);
+    updateText('sentCountDisplay', `${count} Sent`);
+}
+
+function renderSentEmails() {
+    const container = document.getElementById('sentEmailsList');
+    if (!container) return;
+
+    if (!sentEmails.length) {
+        container.innerHTML = `<div class="empty-sent">${i18next.t('sent.noEmails')}</div>`;
+        return;
+    }
+
+    container.innerHTML = sentEmails.map(email => `
+        <div class="sent-email-item">
+            <div class="sent-email-header">
+                <span class="sent-email-subject">${escapeHtml(email.subject)}</span>
+                <span class="sent-email-date">${new Date(email.sentAt).toLocaleString()}</span>
+            </div>
+            <div class="sent-email-recipients">
+                <strong>${i18next.t('sent.to')}:</strong>
+                ${(email.recipients || []).map(r => `<span class="recipient-tag">${escapeHtml(r)}</span>`).join('')}
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="sent-email-campaign">${escapeHtml(email.campaignName || '')}</span>
+                <span style="font-size:12px;color:var(--text-tertiary);">${email.recipientCount || 0} recipients</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ============================================
+// AUTOMATION — SEND CAMPAIGN
+// ============================================
+
+async function sendAutomatedMessages() {
+    const auth = await checkAuth();
+    if (!auth) return;
+
+    if (selectedEmails.size === 0) {
+        alert(i18next.t('automation.noRecipients'));
+        return;
+    }
+
+    if (!isGoogleConnected) {
+        alert(i18next.t('automation.googleRequired'));
+        closeModal('previewModal');
+        document.querySelector('.google-connect-card')?.scrollIntoView({ behavior: 'smooth' });
+        return;
+    }
+
+    const btn = document.getElementById('btnConfirmSend');
+    setButtonLoading(btn, true, i18next.t('automation.sending'));
+
+    const payload = {
+        campaignName: document.getElementById('campaignName').value,
+        recipients: Array.from(selectedEmails),
+        subject: document.getElementById('emailSubject').value,
+        body: document.getElementById('emailBody').value,
+        fromName: document.getElementById('fromName').value,
+        fromEmail: document.getElementById('fromEmail').value
+    };
+
+    try {
+        const res = await secureFetch('/send-automated-messages', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Send failed');
+        }
+
+        addSentEmail(payload);
+        showMessage(i18next.t('automation.sent', { count: selectedEmails.size }), 'success');
+        closeModal('previewModal');
+        selectedEmails.clear();
+        renderEmailList();
+    } catch (e) {
+        console.error('[sendAutomatedMessages]', e);
+        showMessage(i18next.t('automation.sendFailed'), 'error');
+    } finally {
+        setButtonLoading(btn, false);
+    }
+}
+
+// ============================================
+// CUSTOMERS
+// ============================================
+
+function parseAndFlattenCustomers(input) {
+    if (!input) return [];
+    if (typeof input === 'string') { try { input = JSON.parse(input); } catch (e) { return []; } }
+    if (!Array.isArray(input)) return typeof input === 'object' ? [input] : [];
+
+    let flat = [];
+    input.forEach(item => {
+        if (typeof item === 'string') {
+            try {
+                const p = JSON.parse(item);
+                flat = flat.concat(Array.isArray(p) ? p : [p]);
+            } catch (e) {}
+        } else if (Array.isArray(item)) flat = flat.concat(item);
+        else if (typeof item === 'object' && item !== null) flat.push(item);
+    });
+    return flat;
+}
+
+function normalizeCustomerData(flatList) {
+    const seen = new Set();
+    return flatList.reduce((acc, c) => {
+        if (!c || typeof c !== 'object') return acc;
+        const customer = {
+            name: c.name || 'Unknown',
+            email: c.email || '',
+            phone: c.phone || '',
+            company: c.company || '',
+            status: c.status || 'Active',
+            createdAt: c.createdAt || new Date().toISOString()
+        };
+        const key = customer.email.toLowerCase();
+        if (customer.email && customer.email.includes('@')) {
+            if (!seen.has(key)) { seen.add(key); acc.push(customer); }
+        } else {
+            acc.push(customer);
+        }
+        return acc;
+    }, []);
+}
+
+function safeParseTemplates(input) {
+    if (Array.isArray(input)) return input;
+    if (typeof input === 'string') { try { return JSON.parse(input); } catch (e) { return []; } }
+    return [];
+}
+
+async function saveAllChanges() {
+    const auth = await checkAuth();
+    if (!auth) return;
+
+    const btn = document.getElementById('btnSaveChanges');
+    if (btn) setButtonLoading(btn, true, i18next.t('customers.saving'));
+
+    try {
+        const res = await secureFetch('/updatecustomers', {
+            method: 'POST',
+            body: JSON.stringify({ customers, templates, sent_emails: sentEmails })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showMessage(i18next.t('customers.saved'), 'success');
+    } catch (e) {
+        console.error('[saveAllChanges]', e);
+        showMessage(i18next.t('customers.saveError'), 'error');
+    } finally {
+        if (btn) setButtonLoading(btn, false);
+    }
+}
+
 function updateDashboardStats() {
-  const total = customers.length;
-  updateText('totalCustomers', total);
-  updateText('totalEmails', total); 
-  updateText('activeCampaigns', '2'); 
-  updateText('responseRate', '18%'); 
-  updateText('customerCount', `(${total})`);
+    updateText('totalCustomers', customers.length);
+    updateText('totalEmails', customers.length);
+    updateText('activeCampaigns', '2');
+    updateText('customerCount', `(${customers.length})`);
 }
 
 function renderCustomerTable() {
-  const container = document.getElementById('tableContainer');
-  if (!container) return;
-  
-  if (customers.length === 0) {
+    const container = document.getElementById('tableContainer');
+    if (!container) return;
+
+    if (!customers.length) {
+        container.innerHTML = `
+            <div style="padding:40px;text-align:center;">
+                <h3 style="margin-top:0;">${i18next.t('customers.noCustomers')}</h3>
+                <p style="color:var(--text-secondary);margin-bottom:20px;">${i18next.t('customers.startAdding')}</p>
+                <button class="btn btn-primary" onclick="addNewCustomer()">${i18next.t('customers.addFirst')}</button>
+            </div>`;
+        return;
+    }
+
     container.innerHTML = `
-      <div style="padding: 40px; text-align: center;">
-        <h3 style="margin-top:0;">${i18next.t('customers.noCustomers') || 'No Customers Yet'}</h3>
-        <p style="color: var(--text-secondary); margin-bottom: 20px;">${i18next.t('customers.startAdding') || 'Start by adding or importing customers.'}</p>
-        <button class="btn btn-primary" onclick="addNewCustomer()">${i18next.t('customers.addFirst') || 'Add First Customer'}</button>
-      </div>`;
-    return;
-  }
-  
-  let html = `
-    <table class="simple-table">
-      <thead>
-        <tr>
-          <th width="40">#</th>
-          <th>${i18next.t('customers.name') || 'Name'}</th>
-          <th>${i18next.t('customers.email')}</th>
-          <th>${i18next.t('customers.phone')}</th>
-          <th>${i18next.t('customers.company')}</th>
-          <th>${i18next.t('customers.status')}</th>
-          <th width="100">${i18next.t('customers.actions') || 'Actions'}</th>
-        </tr>
-      </thead>
-      <tbody>`;
-  
-  customers.forEach((c, i) => {
-    const status = c.status || 'Active';
-    html += `
-      <tr>
-        <td style="color: var(--text-tertiary);">${i + 1}</td>
-        <td><input class="table-input" value="${escapeHtml(c.name)}" onchange="updateCustomerField(${i}, 'name', this.value)"></td>
-        <td><input class="table-input" value="${escapeHtml(c.email)}" onchange="updateCustomerField(${i}, 'email', this.value)"></td>
-        <td><input class="table-input" value="${escapeHtml(c.phone)}" onchange="updateCustomerField(${i}, 'phone', this.value)"></td>
-        <td><input class="table-input" value="${escapeHtml(c.company)}" onchange="updateCustomerField(${i}, 'company', this.value)"></td>
-        <td>
-          <select class="table-input email-status status-${status.toLowerCase()}" style="width: auto;" onchange="updateCustomerField(${i}, 'status', this.value)">
-            <option value="Active" ${status === 'Active' ? 'selected' : ''}>${i18next.t('customers.active')}</option>
-            <option value="Inactive" ${status === 'Inactive' ? 'selected' : ''}>${i18next.t('customers.inactive')}</option>
-            <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>${i18next.t('customers.pending')}</option>
-          </select>
-        </td>
-        <td style="display: flex; gap: 4px;">
-          <button class="icon-btn btn" style="width: 32px; padding: 0;" onclick="saveCustomer(${i})" title="${i18next.t('customers.save') || 'Save'}">💾</button>
-          <button class="icon-btn btn" style="width: 32px; padding: 0; color: var(--color-red-text);" onclick="deleteCustomer(${i})" title="${i18next.t('customers.delete') || 'Delete'}">🗑️</button>
-        </td>
-      </tr>`;
-  });
-  
-  html += `</tbody></table>`;
-  container.innerHTML = html;
+        <table class="simple-table">
+            <thead><tr>
+                <th width="40">#</th>
+                <th>${i18next.t('customers.name')}</th>
+                <th>${i18next.t('customers.email')}</th>
+                <th>${i18next.t('customers.phone')}</th>
+                <th>${i18next.t('customers.company')}</th>
+                <th>${i18next.t('customers.status')}</th>
+                <th width="100">${i18next.t('customers.actions')}</th>
+            </tr></thead>
+            <tbody>
+                ${customers.map((c, i) => `
+                    <tr>
+                        <td style="color:var(--text-tertiary);">${i + 1}</td>
+                        <td><input class="table-input" value="${escapeHtml(c.name)}" onchange="updateCustomerField(${i},'name',this.value)"></td>
+                        <td><input class="table-input" value="${escapeHtml(c.email)}" onchange="updateCustomerField(${i},'email',this.value)"></td>
+                        <td><input class="table-input" value="${escapeHtml(c.phone)}" onchange="updateCustomerField(${i},'phone',this.value)"></td>
+                        <td><input class="table-input" value="${escapeHtml(c.company)}" onchange="updateCustomerField(${i},'company',this.value)"></td>
+                        <td>
+                            <select class="table-input" style="width:auto;" onchange="updateCustomerField(${i},'status',this.value)">
+                                <option value="Active" ${c.status==='Active'?'selected':''}>${i18next.t('customers.active')}</option>
+                                <option value="Inactive" ${c.status==='Inactive'?'selected':''}>${i18next.t('customers.inactive')}</option>
+                                <option value="Pending" ${c.status==='Pending'?'selected':''}>${i18next.t('customers.pending')}</option>
+                            </select>
+                        </td>
+                        <td style="display:flex;gap:4px;">
+                            <button class="btn" style="width:32px;padding:0;" onclick="saveCustomer(${i})" title="${i18next.t('customers.save')}">💾</button>
+                            <button class="btn" style="width:32px;padding:0;color:var(--color-red-text);" onclick="deleteCustomer(${i})" title="${i18next.t('customers.delete')}">🗑️</button>
+                        </td>
+                    </tr>`).join('')}
+            </tbody>
+        </table>`;
 }
 
 function renderEmailList() {
-  const container = document.getElementById('emailList');
-  if(!container) return;
-  
-  const validCustomers = customers.filter(c => c.email && c.email.includes('@'));
-  if (validCustomers.length === 0) {
-    container.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-secondary);"><p>${i18next.t('automation.noValidEmails') || 'No valid email addresses found.'}</p></div>`;
-    return;
-  }
-  
-  let html = '';
-  validCustomers.forEach((c) => {
-    const isSelected = selectedEmails.has(c.email);
-    const status = c.status || 'Active';
-    html += `
-      <div class="email-item">
-        <input type="checkbox" class="email-checkbox" 
-               data-email="${c.email}" 
-               ${isSelected ? 'checked' : ''} 
-               onchange="toggleEmailSelection(this)">
-        <div class="email-info">
-          <div class="email-address">${escapeHtml(c.email)}</div>
-          <div class="email-customer">${escapeHtml(c.name)} · ${escapeHtml(c.company)}</div>
-        </div>
-        <div class="email-status status-${status.toLowerCase()}">${i18next.t(`customers.${status.toLowerCase()}`)}</div>
-      </div>`;
-  });
-  
-  container.innerHTML = html;
-  updateSelectionCount();
-}
+    const container = document.getElementById('emailList');
+    if (!container) return;
 
-function renderTemplates() {
-    const grid = document.getElementById('templatesGrid');
-    if(!grid) return;
-    
-    if (templates.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px;">${i18next.t('templates.noTemplates') || 'No templates found.'}</div>`;
+    const valid = customers.filter(c => c.email && c.email.includes('@'));
+    if (!valid.length) {
+        container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text-secondary);">${i18next.t('automation.noValidEmails')}</div>`;
         return;
     }
-    
-    let html = '';
-    templates.forEach((t, i) => {
-        html += `
-            <div class="template-card">
-                <div class="template-card-header">
-                    <span class="template-name">${escapeHtml(t.name)}</span>
-                    <span class="template-tag">${escapeHtml(t.tag || i18next.t('templates.general') || 'General')}</span>
-                </div>
-                <div class="template-body">${escapeHtml(t.body || '')}</div>
-                <div class="template-footer">
-                    <button class="btn btn-secondary" style="height: 32px; font-size: 13px; flex: 1;" onclick="useTemplate(${i})">${i18next.t('templates.use') || 'Use'}</button>
-                    <button class="btn btn-secondary" style="height: 32px; font-size: 13px;" onclick="editTemplate(${i})">${i18next.t('templates.edit') || 'Edit'}</button>
-                    <button class="btn btn-secondary" style="height: 32px; font-size: 13px; color: var(--color-red-text);" onclick="deleteTemplate(${i})">${i18next.t('templates.delete') || 'Del'}</button>
-                </div>
-            </div>`;
-    });
-    
-    grid.innerHTML = html;
-}
 
-function renderTemplateSelector() {
-    const container = document.getElementById('automationTemplateSelector');
-    if(!container) return;
-    
-    let html = '';
-    templates.forEach((t, i) => {
-        html += `<button class="template-btn" onclick="loadTemplate(${i})">${escapeHtml(t.name)}</button> `;
-    });
-    html += `<button class="template-btn" onclick="loadTemplate('custom')">${i18next.t('automation.blank')}</button>`;
-    container.innerHTML = html;
-}
+    container.innerHTML = valid.map(c => `
+        <div class="email-item">
+            <input type="checkbox" class="email-checkbox" data-email="${escapeHtml(c.email)}"
+                ${selectedEmails.has(c.email) ? 'checked' : ''}
+                onchange="toggleEmailSelection(this)">
+            <div class="email-info">
+                <div class="email-address">${escapeHtml(c.email)}</div>
+                <div class="email-customer">${escapeHtml(c.name)} · ${escapeHtml(c.company)}</div>
+            </div>
+            <div class="email-status status-${(c.status || 'active').toLowerCase()}">${i18next.t(`customers.${(c.status||'Active').toLowerCase()}`)}</div>
+        </div>`).join('');
 
-// ============================================
-// USER ACTIONS & LOGIC
-// ============================================
-
-async function toggleEmailSelection(checkbox) {
-  if (!await checkAuth()) return;
-  const email = checkbox.dataset.email;
-  if (checkbox.checked) selectedEmails.add(email);
-  else selectedEmails.delete(email);
-  updateSelectionCount();
-  updateSelectAllCheckbox();
-}
-
-async function toggleAllEmails() {
-  if (!await checkAuth()) return;
-  const selectAll = document.getElementById('selectAllEmails');
-  const checkboxes = document.querySelectorAll('.email-checkbox');
-  
-  if (selectAll.checked) {
-    selectedEmails.clear();
-    checkboxes.forEach(cb => {
-        cb.checked = true;
-        selectedEmails.add(cb.dataset.email);
-    });
-  } else {
-    selectedEmails.clear();
-    checkboxes.forEach(cb => cb.checked = false);
-  }
-  updateSelectionCount();
-}
-
-function updateSelectionCount() {
-  updateText('selectedCount', selectedEmails.size);
-}
-
-function updateSelectAllCheckbox() {
-  const selectAll = document.getElementById('selectAllEmails');
-  const checkboxes = document.querySelectorAll('.email-checkbox');
-  const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-  
-  if(selectAll) {
-      selectAll.checked = checkedCount === checkboxes.length && checkboxes.length > 0;
-      selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
-  }
+    updateSelectionCount();
 }
 
 function updateCustomerField(index, field, value) {
-  if (!customers[index]) customers[index] = {};
-  customers[index][field] = sanitizeInput(value);
+    if (customers[index]) customers[index][field] = sanitizeInput(value);
 }
 
 async function saveCustomer(index) {
-  if (!await checkAuth()) return;
-  await saveAllChanges();
+    await saveAllChanges();
 }
 
 async function deleteCustomer(index) {
-  if (!await checkAuth()) return;
-  if (!confirm(i18next.t('customers.confirmDelete') || 'Are you sure you want to delete this customer?')) return;
-  customers.splice(index, 1);
-  refreshUI();
-  await saveAllChanges();
+    const auth = await checkAuth();
+    if (!auth) return;
+    if (!confirm(i18next.t('customers.confirmDelete'))) return;
+    customers.splice(index, 1);
+    refreshUI();
+    await saveAllChanges();
 }
 
 async function addNewCustomer() {
-  if (!await checkAuth()) return;
-  updateValue('newCustomerName', '');
-  updateValue('newCustomerEmail', '');
-  updateValue('newCustomerPhone', '');
-  updateValue('newCustomerCompany', '');
-  updateValue('newCustomerStatus', 'Active');
-  openModal('addCustomerModal');
+    const auth = await checkAuth();
+    if (!auth) return;
+    ['newCustomerName', 'newCustomerEmail', 'newCustomerPhone', 'newCustomerCompany'].forEach(id => updateValue(id, ''));
+    updateValue('newCustomerStatus', 'Active');
+    openModal('addCustomerModal');
 }
 
 async function saveNewCustomer() {
-  if (!await checkAuth()) return;
-  const btn = document.getElementById('btnSaveCustomer');
-  setButtonLoading(btn, true, i18next.t('customers.saving') || 'Saving...');
-  
-  try {
-      const name = document.getElementById('newCustomerName').value.trim();
-      if (!name) { 
-          alert(i18next.t('customers.nameRequired') || 'Name is required'); 
-          setButtonLoading(btn, false); 
-          return; 
-      }
-      
-      const email = document.getElementById('newCustomerEmail').value.trim();
-      if (email && !validateEmail(email)) {
-          alert(i18next.t('customers.invalidEmail') || 'Invalid email format');
-          setButtonLoading(btn, false);
-          return;
-      }
-      
-      const phone = document.getElementById('newCustomerPhone').value.trim();
-      if (phone && !validatePhone(phone)) {
-          alert(i18next.t('customers.invalidPhone') || 'Invalid phone format. Use international format (e.g., +1234567890)');
-          setButtonLoading(btn, false);
-          return;
-      }
-      
-      const newC = {
-          name: sanitizeInput(name),
-          email: sanitizeInput(email),
-          phone: sanitizeInput(phone),
-          company: sanitizeInput(document.getElementById('newCustomerCompany').value.trim()),
-          status: document.getElementById('newCustomerStatus').value,
-          createdAt: new Date().toISOString()
-      };
-      
-      customers.push(newC);
-      closeModal('addCustomerModal');
-      refreshUI();
-      await saveAllChanges();
-  } catch(e) {
-      console.error(e);
-  } finally {
-      setButtonLoading(btn, false);
-  }
+    const auth = await checkAuth();
+    if (!auth) return;
+
+    const btn = document.getElementById('btnSaveCustomer');
+    setButtonLoading(btn, true, i18next.t('customers.saving'));
+
+    try {
+        const name = document.getElementById('newCustomerName').value.trim();
+        if (!name) { alert(i18next.t('customers.nameRequired')); return; }
+
+        const email = document.getElementById('newCustomerEmail').value.trim();
+        if (email && !validateEmail(email)) { alert(i18next.t('customers.invalidEmail')); return; }
+
+        const phone = document.getElementById('newCustomerPhone').value.trim();
+        if (phone && !validatePhone(phone)) { alert(i18next.t('customers.invalidPhone')); return; }
+
+        customers.push({
+            name: sanitizeInput(name),
+            email: sanitizeInput(email),
+            phone: sanitizeInput(phone),
+            company: sanitizeInput(document.getElementById('newCustomerCompany').value.trim()),
+            status: document.getElementById('newCustomerStatus').value,
+            createdAt: new Date().toISOString()
+        });
+
+        closeModal('addCustomerModal');
+        refreshUI();
+        await saveAllChanges();
+    } catch (e) {
+        console.error('[saveNewCustomer]', e);
+    } finally {
+        setButtonLoading(btn, false);
+    }
 }
 
 async function importCustomers() {
-    if (!await checkAuth()) return;
+    const auth = await checkAuth();
+    if (!auth) return;
     document.getElementById('csvFileInput').click();
 }
 
@@ -5038,95 +4238,129 @@ function handleFileSelect(event) {
         if (!auth) return;
         const file = event.target.files[0];
         if (!file) return;
-        
-        showGlobalLoader(true, i18next.t('customers.parsing') || 'Parsing CSV...');
+        showGlobalLoader(true, i18next.t('customers.parsing'));
         const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            setTimeout(() => processCSV(e.target.result), 100);
-        };
-        
+        reader.onload = e => setTimeout(() => processCSV(e.target.result), 100);
         reader.readAsText(file);
-        event.target.value = ''; 
+        event.target.value = '';
     });
 }
 
 function processCSV(csvText) {
-    const lines = csvText.split(/\r\n|\n/).filter(line => line.trim() !== '');
-    
+    const lines = csvText.split(/\r\n|\n/).filter(l => l.trim());
     if (lines.length < 2) {
         showGlobalLoader(false);
-        alert(i18next.t('customers.csvError') || 'CSV file is too short or empty.');
+        alert(i18next.t('customers.csvError'));
         return;
     }
-    
-    function parseCSVRow(text) {
-        const re_value = /(?!\s*$)\s*(?:'([^']*)'|"([^"]*)"|([^,;]*))\s*(?:[,;]|$)/g;
+
+    const parseRow = (text) => {
+        const re = /(?!\s*$)\s*(?:'([^']*)'|"([^"]*)"|([^,;]*))\s*(?:[,;]|$)/g;
         const row = [];
-        text.replace(re_value, (m, p1, p2, p3) => {
-            if (p1 !== undefined) row.push(p1);
-            else if (p2 !== undefined) row.push(p2);
-            else if (p3 !== undefined) row.push(p3);
-            return '';
+        text.replace(re, (m, p1, p2, p3) => {
+            row.push(p1 !== undefined ? p1 : p2 !== undefined ? p2 : p3);
         });
         return row;
-    }
-    
-    const rawHeaders = parseCSVRow(lines[0]);
-    const headers = rawHeaders.map(h => h.toLowerCase().trim());
-    
-    let emailIdx = headers.findIndex(h => h === 'email' || h.includes('primary email') || h.includes('email address'));
+    };
+
+    const headers = parseRow(lines[0]).map(h => h.toLowerCase().trim());
+    let emailIdx = headers.findIndex(h => h === 'email' || h.includes('email'));
     let nameIdx = headers.findIndex(h => h === 'name' || h.includes('full name') || h.includes('first name'));
     let companyIdx = headers.findIndex(h => h.includes('company'));
     let phoneIdx = headers.findIndex(h => h.includes('phone') || h.includes('mobile'));
-    
-    if (emailIdx === -1 && lines.length > 0) {
-        const firstDataRow = parseCSVRow(lines[1]);
-        emailIdx = firstDataRow.findIndex(val => val && val.includes('@'));
+
+    if (emailIdx === -1 && lines.length > 1) {
+        const firstRow = parseRow(lines[1]);
+        emailIdx = firstRow.findIndex(v => v && v.includes('@'));
     }
-    
+
     if (emailIdx === -1) {
         showGlobalLoader(false);
-        alert(i18next.t('customers.noEmailColumn') || 'Could not detect an Email column. Please check your CSV.');
+        alert(i18next.t('customers.noEmailColumn'));
         return;
     }
-    
-    let importedCount = 0;
+
+    let count = 0;
     for (let i = 1; i < lines.length; i++) {
-        const row = parseCSVRow(lines[i]);
-        if (!row || row.length === 0) continue;
-        
+        const row = parseRow(lines[i]);
+        if (!row.length) continue;
         const email = (row[emailIdx] || '').trim();
-        if (email && email.includes('@')) {
-            let name = 'Unknown';
-            if (nameIdx > -1 && row[nameIdx]) name = sanitizeInput(row[nameIdx]);
-            else if (headers.includes('first name')) {
-                const fNameIdx = headers.indexOf('first name');
-                const lNameIdx = headers.indexOf('last name');
-                name = sanitizeInput(`${row[fNameIdx] || ''} ${row[lNameIdx] || ''}`.trim());
-            } else name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            
-            customers.push({
-                name: name,
-                email: sanitizeInput(email),
-                phone: phoneIdx > -1 ? sanitizeInput(row[phoneIdx]) : '',
-                company: companyIdx > -1 ? sanitizeInput(row[companyIdx]) : '',
-                status: 'Active',
-                createdAt: new Date().toISOString()
-            });
-            importedCount++;
-        }
+        if (!email || !email.includes('@')) continue;
+
+        let name = 'Unknown';
+        if (nameIdx > -1 && row[nameIdx]) name = sanitizeInput(row[nameIdx]);
+        else name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+        customers.push({
+            name,
+            email: sanitizeInput(email),
+            phone: phoneIdx > -1 ? sanitizeInput(row[phoneIdx] || '') : '',
+            company: companyIdx > -1 ? sanitizeInput(row[companyIdx] || '') : '',
+            status: 'Active',
+            createdAt: new Date().toISOString()
+        });
+        count++;
     }
-    
+
     refreshUI();
     saveAllChanges().finally(() => {
         showGlobalLoader(false);
-        showMessage(i18next.t('customers.importSuccess', { count: importedCount }) || `Successfully imported ${importedCount} customers!`, 'success');
+        showMessage(i18next.t('customers.importSuccess', { count }), 'success');
     });
 }
 
+function exportCustomers() {
+    checkAuth().then(auth => {
+        if (!auth) return;
+        const rows = [['Name', 'Email', 'Phone', 'Company', 'Status']];
+        customers.forEach(c => rows.push([`"${c.name}"`, `"${c.email}"`, `"${c.phone || ''}"`, `"${c.company || ''}"`, c.status]));
+        const blob = new Blob([rows.map(r => r.join(',')).join('\n')], { type: 'text/csv' });
+        const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'customers.csv' });
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showMessage(i18next.t('customers.exported'), 'success');
+    });
+}
+
+// ============================================
+// TEMPLATES
+// ============================================
+
+function renderTemplates() {
+    const grid = document.getElementById('templatesGrid');
+    if (!grid) return;
+
+    if (!templates.length) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;">${i18next.t('templates.noTemplates')}</div>`;
+        return;
+    }
+
+    grid.innerHTML = templates.map((t, i) => `
+        <div class="template-card">
+            <div class="template-card-header">
+                <span class="template-name">${escapeHtml(t.name)}</span>
+                <span class="template-tag">${escapeHtml(t.tag || i18next.t('templates.general'))}</span>
+            </div>
+            <div class="template-body">${escapeHtml(t.body || '')}</div>
+            <div class="template-footer">
+                <button class="btn btn-secondary" style="height:32px;font-size:13px;flex:1;" onclick="useTemplate(${i})">${i18next.t('templates.use')}</button>
+                <button class="btn btn-secondary" style="height:32px;font-size:13px;" onclick="editTemplate(${i})">${i18next.t('templates.edit')}</button>
+                <button class="btn btn-secondary" style="height:32px;font-size:13px;color:var(--color-red-text);" onclick="deleteTemplate(${i})">${i18next.t('templates.delete')}</button>
+            </div>
+        </div>`).join('');
+}
+
+function renderTemplateSelector() {
+    const container = document.getElementById('automationTemplateSelector');
+    if (!container) return;
+    container.innerHTML = templates.map((t, i) =>
+        `<button class="template-btn" onclick="loadTemplate(${i})">${escapeHtml(t.name)}</button>`
+    ).join('') + `<button class="template-btn" onclick="loadTemplate('custom')">${i18next.t('automation.blank')}</button>`;
+}
+
 async function createNewTemplate() {
-    if (!await checkAuth()) return;
+    const auth = await checkAuth();
+    if (!auth) return;
     updateValue('templateIndex', '-1');
     document.getElementById('templateForm').reset();
     updateText('templateModalTitle', i18next.t('templates.addNew'));
@@ -5134,22 +4368,24 @@ async function createNewTemplate() {
 }
 
 async function editTemplate(index) {
-    if (!await checkAuth()) return;
+    const auth = await checkAuth();
+    if (!auth) return;
     const t = templates[index];
     updateValue('templateIndex', index);
     updateValue('templateName', t.name);
-    updateValue('templateTag', t.tag);
+    updateValue('templateTag', t.tag || '');
     updateValue('templateSubject', t.subject || t.name);
-    updateValue('templateBody', t.body);
-    updateText('templateModalTitle', i18next.t('templates.edit') || 'Edit Template');
+    updateValue('templateBody', t.body || '');
+    updateText('templateModalTitle', i18next.t('templates.edit'));
     openModal('templateModal');
 }
 
 async function saveTemplate() {
-    if (!await checkAuth()) return;
+    const auth = await checkAuth();
+    if (!auth) return;
     const btn = document.getElementById('btnSaveTemplate');
     setButtonLoading(btn, true);
-    
+
     const index = parseInt(document.getElementById('templateIndex').value);
     const newT = {
         name: sanitizeInput(document.getElementById('templateName').value),
@@ -5157,10 +4393,10 @@ async function saveTemplate() {
         subject: sanitizeInput(document.getElementById('templateSubject').value),
         body: document.getElementById('templateBody').value
     };
-    
+
     if (index === -1) templates.push(newT);
     else templates[index] = newT;
-    
+
     closeModal('templateModal');
     renderTemplates();
     renderTemplateSelector();
@@ -5169,8 +4405,9 @@ async function saveTemplate() {
 }
 
 async function deleteTemplate(index) {
-    if (!await checkAuth()) return;
-    if(!confirm(i18next.t('templates.confirmDelete') || 'Delete template?')) return;
+    const auth = await checkAuth();
+    if (!auth) return;
+    if (!confirm(i18next.t('templates.confirmDelete'))) return;
     templates.splice(index, 1);
     renderTemplates();
     renderTemplateSelector();
@@ -5187,61 +4424,123 @@ function useTemplate(index) {
 
 function loadTemplate(identifier) {
     document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
-    if(event && event.target) event.target.classList.add('active');
-    
-    if(identifier === 'custom') {
+    if (event && event.target) event.target.classList.add('active');
+
+    if (identifier === 'custom') {
         updateValue('emailSubject', '');
         updateValue('emailBody', '');
     } else {
         const t = templates[identifier];
-        if(t) {
+        if (t) {
             updateValue('emailSubject', t.subject || t.name);
-            updateValue('emailBody', t.body);
+            updateValue('emailBody', t.body || '');
         }
     }
 }
 
-async function previewMessage() {
-    if (!await checkAuth()) return;
-    const subject = document.getElementById('emailSubject').value;
-    const body = document.getElementById('emailBody').value;
-    updateText('previewSubject', subject);
-    updateText('previewBody', body);
-    openModal('previewModal');
+// ============================================
+// EMAIL SELECTION
+// ============================================
+
+async function toggleEmailSelection(checkbox) {
+    const auth = await checkAuth();
+    if (!auth) return;
+    if (checkbox.checked) selectedEmails.add(checkbox.dataset.email);
+    else selectedEmails.delete(checkbox.dataset.email);
+    updateSelectionCount();
+    updateSelectAllCheckbox();
 }
 
-async function saveAllChanges() {
-    if (!await checkAuth()) return;
-    const btn = document.getElementById('btnSaveChanges');
-    if(btn) setButtonLoading(btn, true, i18next.t('customers.saving') || 'Saving...');
-    
-    try {
-        const payload = {
-            customers: customers,
-            templates: templates,
-            sent_emails: sentEmails
-        };
-        
-        const res = await fetch(`${API_BASE_URL}/updatecustomers`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-        });
-        
-        if (!res.ok) throw new Error('Save failed');
-        
-        showMessage(i18next.t('customers.saved') || 'Data saved to cloud', 'success');
-    } catch(e) {
-        console.error(e);
-        showMessage(i18next.t('customers.saveError') || 'Error saving data', 'error');
-    } finally {
-        if(btn) setButtonLoading(btn, false);
+async function toggleAllEmails() {
+    const auth = await checkAuth();
+    if (!auth) return;
+    const selectAll = document.getElementById('selectAllEmails');
+    const checkboxes = document.querySelectorAll('.email-checkbox');
+
+    selectedEmails.clear();
+    checkboxes.forEach(cb => {
+        cb.checked = selectAll.checked;
+        if (selectAll.checked) selectedEmails.add(cb.dataset.email);
+    });
+    updateSelectionCount();
+}
+
+function updateSelectionCount() {
+    updateText('selectedCount', selectedEmails.size);
+}
+
+function updateSelectAllCheckbox() {
+    const selectAll = document.getElementById('selectAllEmails');
+    const checkboxes = document.querySelectorAll('.email-checkbox');
+    const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+    if (selectAll) {
+        selectAll.checked = checked === checkboxes.length && checkboxes.length > 0;
+        selectAll.indeterminate = checked > 0 && checked < checkboxes.length;
     }
 }
 
 // ============================================
-// UTILITIES
+// PREVIEW
 // ============================================
+
+async function previewMessage() {
+    const auth = await checkAuth();
+    if (!auth) return;
+    updateText('previewSubject', document.getElementById('emailSubject').value);
+    updateText('previewBody', document.getElementById('emailBody').value);
+    openModal('previewModal');
+}
+
+// ============================================
+// ANALYTICS
+// ============================================
+
+function renderAnalytics() {
+    const container = document.getElementById('analyticsChart');
+    if (!container) return;
+    const data = [10, 40, 25, 50, 30, 60, 70];
+    const max = Math.max(...data);
+    container.innerHTML = data.map((d, i) => `
+        <div class="chart-bar-group">
+            <div class="chart-value">${d}</div>
+            <div class="chart-bar" style="height:${(d / max) * 100}%"></div>
+            <div class="chart-label">${i18next.t('analytics.day')} ${i + 1}</div>
+        </div>`).join('');
+}
+
+// ============================================
+// NAVIGATION & UI
+// ============================================
+
+async function showSection(id) {
+    const auth = await checkAuth();
+    if (!auth) return;
+
+    document.querySelectorAll('.section-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    const sec = document.getElementById(`${id}Section`);
+    if (sec) sec.style.display = 'block';
+
+    const nav = document.querySelector(`a[href="#${id}"]`);
+    if (nav) nav.classList.add('active');
+
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle) pageTitle.textContent = i18next.t(`titles.${id}`) || i18next.t('titles.dashboard');
+
+    if (id === 'whatsapp') checkWhatsAppStatus();
+    if (id === 'inbox' && isGoogleConnected) loadInboxMessages();
+    if (id === 'sent') renderSentEmails();
+}
+
+async function refreshData() {
+    const auth = await checkAuth();
+    if (!auth) return;
+    const btn = document.getElementById('btnRefresh');
+    setButtonLoading(btn, true, i18next.t('buttons.refreshing'));
+    await loadUserData();
+    setButtonLoading(btn, false);
+}
 
 function refreshUI() {
     updateDashboardStats();
@@ -5249,24 +4548,72 @@ function refreshUI() {
     renderEmailList();
 }
 
-async function refreshData() {
-    if (!await checkAuth()) return;
-    const btn = document.getElementById('btnRefresh');
-    setButtonLoading(btn, true, i18next.t('buttons.refreshing') || 'Refreshing...');
-    loadUserData().finally(() => setButtonLoading(btn, false));
+async function confirmLogout() {
+    if (!confirm(i18next.t('auth.confirmLogout'))) return;
+    try {
+        await secureFetch('/logout', { method: 'POST' });
+    } catch (e) {
+        console.warn('[logout]', e);
+    } finally {
+        localStorage.removeItem('flowid');
+        sessionStorage.removeItem('authenticated');
+        sessionStorage.removeItem('userId');
+        if (inboxRefreshInterval) clearInterval(inboxRefreshInterval);
+        window.location.href = 'index.html';
+    }
 }
 
-function showMessage(text, type) {
+function redirectToSignup() {
+    window.location.href = 'signup.html';
+}
+
+function saveSettings() {
+    checkAuth().then(auth => {
+        if (auth) showMessage(i18next.t('settings.saved'), 'success');
+    });
+}
+
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+
+async function clearForm() {
+    if (confirm(i18next.t('automation.confirmReset'))) {
+        document.getElementById('messageForm').reset();
+    }
+}
+
+function toggleMobileMenu() {
+    const sidebar = document.getElementById('mainSidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+    document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+}
+
+function closeMobileMenu() {
+    const sidebar = document.getElementById('mainSidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// ============================================
+// UTILITY HELPERS
+// ============================================
+
+function showMessage(text, type = 'success') {
+    const colors = { success: '#000', error: '#991b1b', info: '#1e40af' };
     const msg = document.createElement('div');
     msg.textContent = text;
-    msg.style.cssText = `position:fixed; top:20px; right:20px; padding:12px 20px; background:${type==='error'?'#991b1b':'#000'}; color:#fff; border-radius:4px; z-index:3000; animation: fadeIn 0.3s;`;
+    msg.style.cssText = `position:fixed;top:20px;right:20px;padding:12px 20px;background:${colors[type]||colors.success};color:#fff;border-radius:4px;z-index:9999;font-size:14px;max-width:320px;box-shadow:0 4px 12px rgba(0,0,0,0.15);`;
     document.body.appendChild(msg);
-    setTimeout(() => msg.remove(), 3000);
+    setTimeout(() => msg.remove(), 3500);
 }
 
-function setButtonLoading(btn, isLoading, text='Loading...') {
-    if(!btn) return;
-    if(isLoading) {
+function setButtonLoading(btn, isLoading, text = 'Loading...') {
+    if (!btn) return;
+    if (isLoading) {
         btn.dataset.og = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = `<span class="btn-spinner"></span> ${text}`;
@@ -5276,204 +4623,30 @@ function setButtonLoading(btn, isLoading, text='Loading...') {
     }
 }
 
-function showGlobalLoader(show, text='Loading...') {
+function showGlobalLoader(show, text = 'Loading...') {
     const el = document.getElementById('globalLoader');
-    if(el) {
+    if (el) {
         el.style.display = show ? 'flex' : 'none';
         const txt = document.getElementById('loaderText');
-        if(txt) txt.textContent = text;
+        if (txt) txt.textContent = text;
     }
 }
 
 function updateText(id, text) {
     const el = document.getElementById(id);
-    if(el) el.textContent = text;
+    if (el) el.textContent = text;
 }
 
 function updateValue(id, val) {
     const el = document.getElementById(id);
-    if(el) el.value = val;
-}
-
-function escapeHtml(text) {
-  if (!text) return "";
-  return String(text)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    if (el) el.value = val;
 }
 
 function getInitials(name) {
-    return (name || 'U').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    return (name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 }
-
-async function showSection(id) {
-    if (!await checkAuth()) return;
-    
-    document.querySelectorAll('.section-content').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    
-    const sec = document.getElementById(id + 'Section');
-    if(sec) sec.style.display = 'block';
-    
-    const nav = document.querySelector(`a[href="#${id}"]`);
-    if(nav) nav.classList.add('active');
-    
-    const titles = {
-        'dashboard': i18next.t('titles.dashboard'),
-        'customers': i18next.t('titles.customers'),
-        'inbox': i18next.t('titles.inbox'),
-        'automation': i18next.t('titles.automation'),
-        'whatsapp': i18next.t('titles.whatsapp'),
-        'sent': i18next.t('titles.sent'),
-        'analytics': i18next.t('titles.analytics'),
-        'templates': i18next.t('titles.templates'),
-        'settings': i18next.t('titles.settings')
-    };
-    updateText('pageTitle', titles[id] || i18next.t('titles.dashboard'));
-    
-    if (id === 'whatsapp') {
-        checkWhatsAppStatus();
-    }
-    if (id === 'inbox' && isGoogleConnected) {
-        loadInboxMessages();
-    }
-    if (id === 'sent') {
-        renderSentEmails();
-    }
-}
-
-function openModal(id) { 
-    document.getElementById(id).style.display = 'flex'; 
-}
-
-function closeModal(id) { 
-    document.getElementById(id).style.display = 'none'; 
-}
-
-async function clearForm() { 
-    if(confirm(i18next.t('automation.confirmReset') || 'Reset form?')) 
-        document.getElementById('messageForm').reset(); 
-}
-
-async function confirmLogout() { 
-    if(confirm(i18next.t('auth.confirmLogout') || 'Log out?')) { 
-        localStorage.removeItem('flowid');
-        sessionStorage.removeItem('authenticated');
-        sessionStorage.removeItem('userId');
-        window.location.href = 'index.html';
-    } 
-}
-
-function renderAnalytics() {
-    const container = document.getElementById('analyticsChart');
-    if(!container) return;
-    
-    const data = [10, 40, 25, 50, 30, 60, 70];
-    const max = Math.max(...data);
-    
-    container.innerHTML = data.map((d,i) => `
-        <div class="chart-bar-group">
-            <div class="chart-value">${d}</div>
-            <div class="chart-bar" style="height:${(d/max)*100}%"></div>
-            <div class="chart-label">${i18next.t('analytics.day') || 'Day'} ${i+1}</div>
-        </div>
-    `).join('');
-}
-
-function toggleMobileMenu() {
-    const sidebar = document.getElementById('mainSidebar');
-    const overlay = document.getElementById('mobileOverlay');
-    
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
-    
-    if (sidebar.classList.contains('active')) {
-        document.body.style.overflow = 'hidden';
-    } else {
-        document.body.style.overflow = '';
-    }
-}
-
-function closeMobileMenu() {
-    const sidebar = document.getElementById('mainSidebar');
-    const overlay = document.getElementById('mobileOverlay');
-    
-    sidebar.classList.remove('active');
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-}
-
-document.addEventListener('keydown', function(event) {
-    if (event.key === "Escape") {
-        closeMobileMenu();
-        closeModal('loginRequiredModal');
-        closeModal('addCustomerModal');
-        closeModal('templateModal');
-        closeModal('previewModal');
-        document.getElementById('userDropdown')?.classList.remove('show');
-        document.getElementById('languageDropdown')?.classList.remove('show');
-    }
-});
-
-function exportCustomers() {
-    checkAuth().then(auth => {
-        if (!auth) return;
-        
-        const headers = ['Name', 'Email', 'Phone', 'Company', 'Status'];
-        const csvRows = [];
-        
-        csvRows.push(headers.join(','));
-        
-        customers.forEach(c => {
-            const values = [
-                `"${c.name}"`,
-                `"${c.email}"`,
-                `"${c.phone || ''}"`,
-                `"${c.company || ''}"`,
-                c.status
-            ];
-            csvRows.push(values.join(','));
-        });
-        
-        const csvContent = csvRows.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'customers.csv';
-        a.click();
-        window.URL.revokeObjectURL(url);
-        
-        showMessage(i18next.t('customers.exported') || 'Customers exported successfully!', 'success');
-    });
-}
-
-function saveSettings(btn) {
-    checkAuth().then(auth => {
-        if (!auth) return;
-        showMessage(i18next.t('settings.saved') || 'Settings saved successfully!', 'success');
-    });
-}
-
-// Close dropdowns when clicking outside
-document.addEventListener('click', function(event) {
-    const dropdown = document.getElementById('languageDropdown');
-    const btn = document.querySelector('.language-btn');
-    if (btn && dropdown && !btn.contains(event.target) && !dropdown.contains(event.target)) {
-        dropdown.classList.remove('show');
-    }
-    
-    const userDropdown = document.getElementById('userDropdown');
-    const profile = document.querySelector('.profile-area');
-    if (userDropdown && profile && !profile.contains(event.target) && !userDropdown.contains(event.target)) {
-        userDropdown.classList.remove('show');
-    }
-});
-
 </script>
 </body>
 </html>
+
 
