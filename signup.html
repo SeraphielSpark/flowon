@@ -528,8 +528,6 @@
     // Create session in backend after successful n8n auth
     async function createSession(userId, email) {
       try {
-        // This is a special endpoint that creates a session without password
-        // You need to implement this in your backend
         const response = await fetch(`${API_BASE_URL}/create-session`, {
           method: 'POST',
           credentials: 'include',
@@ -771,7 +769,6 @@
           sessionError: "Error al crear sesión. Por favor intenta iniciar sesión manualmente."
         }
       }
-      // Add more languages as needed...
     };
 
     // ============================================
@@ -916,7 +913,7 @@
     }
 
     // ============================================
-    // AUTH FUNCTIONS - n8n Webhook Based
+    // AUTH FUNCTIONS - FIXED FOR N8N RESPONSES
     // ============================================
 
     // Switch between login and signup tabs
@@ -945,33 +942,47 @@
       alert(i18next.t('alerts.forgotPassword'));
     }
 
-    // Handle successful authentication from n8n
+    // Handle successful authentication from n8n - FIXED
     async function handleAuthSuccess(data, email) {
-      if (data.message && data.message.toLowerCase().includes('success')) {
-        if (data.userid) {
-          // Store in localStorage for backward compatibility
-          localStorage.setItem('flowid', data.userid);
-          
-          // Try to create session in backend
+      console.log('Auth response:', data); // Debug log
+      
+      // Check for success message - n8n returns "Sign Up Successful, Please Check Your Email"
+      // or for login, it should return something with "success" or the userid
+      const hasSuccess = data.message && (
+        data.message.toLowerCase().includes('success') || 
+        data.message.toLowerCase().includes('successful')
+      );
+      
+      if (hasSuccess && data.userid) {
+        // Store in localStorage for backward compatibility
+        localStorage.setItem('flowid', data.userid);
+        localStorage.setItem('userEmail', email);
+        
+        // Try to create session in backend
+        try {
           const sessionCreated = await createSession(data.userid, email);
-          
           if (!sessionCreated) {
             console.warn('Session creation failed, but continuing with localStorage auth');
           }
-          
-          // Preserve language when redirecting
-          const currentLang = i18next.language;
-          const redirectUrl = currentLang !== 'en' ? `flow.html?lang=${currentLang}` : 'flow.html';
-          
-          // Small delay to ensure session cookie is set
-          setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, 500);
-        } else {
-          showError("Account verified, but UserID missing. Contact Admin.");
+        } catch (sessionError) {
+          console.error('Session creation error:', sessionError);
         }
+        
+        // Show success message
+        showSuccess(i18next.t('auth.loginSuccess') || 'Login successful! Redirecting...');
+        
+        // Preserve language when redirecting
+        const currentLang = i18next.language;
+        const redirectUrl = currentLang !== 'en' ? `flow.html?lang=${currentLang}` : 'flow.html';
+        
+        // Small delay to ensure session cookie is set
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 1000);
       } else {
-        showError(data.message || i18next.t('errors.wrongCredentials'));
+        // Show error message from response or default
+        const errorMsg = data.message || data.error || i18next.t('errors.wrongCredentials');
+        showError(errorMsg);
       }
     }
 
@@ -998,6 +1009,7 @@
       clearMessages();
 
       try {
+        console.log('Sending login request to n8n...');
         const response = await fetch(`${N8N_WEBHOOK_BASE}/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1005,6 +1017,8 @@
         });
 
         const data = await response.json();
+        console.log('Login response:', data);
+        
         await handleAuthSuccess(data, email);
         
       } catch (err) {
@@ -1050,6 +1064,7 @@
       clearMessages();
 
       try {
+        console.log('Sending signup request to n8n...');
         const response = await fetch(`${N8N_WEBHOOK_BASE}/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1057,8 +1072,10 @@
         });
 
         const data = await response.json();
+        console.log('Signup response:', data);
         
-        if (data.message && data.message.toLowerCase().includes('success')) {
+        // Check for success message - n8n returns "Sign Up Successful, Please Check Your Email"
+        if (data.message && data.message.toLowerCase().includes('success') && data.userid) {
           showSuccess(i18next.t('auth.signupSuccess'));
           await handleAuthSuccess(data, email);
         } else {
