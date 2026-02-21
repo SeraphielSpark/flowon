@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- Security Meta Tags (ADD THESE) -->
-<!-- Security Meta Tags (ADD THESE) -->
+<!-- Security Meta Tags -->
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <title>Flux On Customer Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -465,7 +464,7 @@
   /* --- Page Content --- */
   .page-content { 
     padding: 40px; 
-    max-width: 1200px; 
+    max-width: 1400px; 
     margin: 0 auto; 
     width: 100%; 
     flex: 1; 
@@ -549,6 +548,119 @@
     font-size: 13px; 
     color: var(--text-tertiary); 
   }
+  
+  /* Dashboard Section Grid */
+  .dashboard-sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+  
+  .dashboard-section-card {
+    background: #fff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  
+  .dashboard-section-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-subtle);
+  }
+  
+  .dashboard-section-header h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  
+  .dashboard-section-header .view-link {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  
+  .dashboard-section-header .view-link:hover {
+    color: var(--text-main);
+    text-decoration: underline;
+  }
+  
+  .dashboard-section-content {
+    padding: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .template-preview-item {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .template-preview-item:last-child {
+    border-bottom: none;
+  }
+  
+  .template-preview-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  .template-preview-info p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .template-preview-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #e5e7eb;
+    color: #374151;
+    font-weight: 600;
+  }
+  
+  .analytics-preview {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .analytics-preview-item .preview-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+  
+  .analytics-preview-item .preview-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  
+  .analytics-preview-item .preview-trend {
+    font-size: 10px;
+    margin-top: 4px;
+  }
+  
+  .preview-trend.up { color: var(--color-green-text); }
+  .preview-trend.down { color: var(--color-red-text); }
   
   /* --- Buttons --- */
   .btn {
@@ -1798,6 +1910,10 @@
     .inbox-layout {
       height: calc(100vh - 160px);
     }
+    
+    .dashboard-sections {
+      grid-template-columns: 1fr;
+    }
   }
   
   @media (max-width: 768px) {
@@ -2171,14 +2287,6 @@
         <span class="nav-icon">📤</span>
         <span>Sent Emails</span>
       </a>
-      <a href="#analytics" class="nav-item" onclick="showSection('analytics'); closeMobileMenu();" data-i18n="nav.analytics">
-        <span class="nav-icon">📈</span>
-        <span>Analytics</span>
-      </a>
-      <a href="#templates" class="nav-item" onclick="showSection('templates'); closeMobileMenu();" data-i18n="nav.templates">
-        <span class="nav-icon">📝</span>
-        <span>Templates</span>
-      </a>
       <a href="#settings" class="nav-item" onclick="showSection('settings'); closeMobileMenu();" data-i18n="nav.settings">
         <span class="nav-icon">⚙️</span>
         <span>Settings</span>
@@ -2210,22 +2318,6 @@
     <div class="sidebar-legal">
         <a href="https://seraphielspark.github.io/flowon/privacy.html" target="_blank" class="legal-link" data-i18n="legal.privacy">Privacy Policy</a>
         <a href="https://seraphielspark.github.io/flowon/terms.html" target="_blank" class="legal-link" data-i18n="legal.terms">Terms of Service</a>
-    </div>
-    <div class="nav-menu" style="flex: 0; margin-top: 2px;">
-      <a href="#" id="logoutauth" class="nav-item" style="font-size: 12px; height: fit-content; margin: 0 0 0 0; padding: 0 0 0 0;" onclick="confirmLogout()" data-i18n="auth.logOut">
-        <span class="nav-icon">↪</span>
-        <span>Log Out</span>
-      </a>
-      <div id="signupauth">
-        <a href="signup.html" class="nav-item" style="font-size: 12px; height: fit-content; margin: 0 0 0 0; padding: 0 0 0 0;" data-i18n="auth.login">
-          <span class="nav-icon">↪</span>
-          <span>Login To Existing Account</span>
-        </a>
-        <a href="signup.html" class="nav-item" style="font-size: 12px; height: fit-content; margin: 0 0 0 0; padding: 0 0 0 0;" data-i18n="auth.register">
-          <span class="nav-icon">↪</span>
-          <span>Register New Account</span>
-        </a>
-      </div>
     </div>
   </aside>
   
@@ -2332,6 +2424,47 @@
             </div>
             <div class="card-count" id="sentEmailsCount" aria-live="polite">0</div>
             <div class="card-desc" data-i18n="dashboard.totalSent">Total sent</div>
+          </div>
+        </div>
+        
+        <!-- Templates and Analytics Dashboard Sections -->
+        <div class="dashboard-sections">
+          <!-- Templates Preview -->
+          <div class="dashboard-section-card">
+            <div class="dashboard-section-header">
+              <h2 data-i18n="nav.templates">Templates</h2>
+              <a href="#" onclick="showSection('templates')" class="view-link" data-i18n="buttons.viewAll">View All →</a>
+            </div>
+            <div class="dashboard-section-content" id="dashboardTemplatesPreview">
+              <div style="padding: 20px; text-align: center; color: var(--text-tertiary);" data-i18n="customers.loading">Loading templates...</div>
+            </div>
+          </div>
+          
+          <!-- Analytics Preview -->
+          <div class="dashboard-section-card">
+            <div class="dashboard-section-header">
+              <h2 data-i18n="nav.analytics">Analytics</h2>
+              <a href="#" onclick="showSection('analytics')" class="view-link" data-i18n="buttons.viewAll">View All →</a>
+            </div>
+            <div class="dashboard-section-content" id="dashboardAnalyticsPreview">
+              <div class="analytics-preview">
+                <div class="analytics-preview-item">
+                  <div class="preview-value">42.5%</div>
+                  <div class="preview-label" data-i18n="analytics.avgOpenRate">Avg. Open Rate</div>
+                  <div class="preview-trend up">↑ 5%</div>
+                </div>
+                <div class="analytics-preview-item">
+                  <div class="preview-value">18.2%</div>
+                  <div class="preview-label" data-i18n="analytics.clickRate">Click Rate</div>
+                  <div class="preview-trend up">↑ 2%</div>
+                </div>
+                <div class="analytics-preview-item">
+                  <div class="preview-value">0.8%</div>
+                  <div class="preview-label" data-i18n="analytics.bounceRate">Bounce Rate</div>
+                  <div class="preview-trend down">↓ 0.2%</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -3098,13 +3231,23 @@ async function checkAuth() {
     }
 
     const isAuthenticated = await checkSession();
-    if (!isAuthenticated) {
-        showLoginRequired();
-        return false;
+    if (isAuthenticated) {
+        flowId = sessionStorage.getItem('userId');
+        return true;
     }
 
-    flowId = sessionStorage.getItem('userId');
-    return !!flowId;
+    // Only show login modal if not authenticated AND not in the process of checking
+    const modal = document.getElementById('loginRequiredModal');
+    if (modal && modal.style.display !== 'flex') {
+        // Check if we're not already on the dashboard trying to load
+        const currentSection = document.querySelector('.section-content[style*="display: block"]')?.id || 'dashboardSection';
+        if (currentSection === 'dashboardSection') {
+            // Don't show modal on dashboard load - let guest view show
+            return false;
+        }
+        showLoginRequired();
+    }
+    return false;
 }
 
 async function requireAuth(section) {
@@ -3173,7 +3316,7 @@ const translationResources = {
         status: { gmailNotLinked:'Gmail: Not Linked', gmailLinked:'✓ Gmail Linked', whatsappNotConnected:'WhatsApp: Not Connected', whatsappConnected:'📱 WhatsApp Connected' },
         legal: { privacy:'Privacy Policy', terms:'Terms of Service' },
         titles: { dashboard:'Dashboard', customers:'Customer Management', inbox:'Inbox', automation:'Automation Center', whatsapp:'WhatsApp Automation', sent:'Sent Emails', analytics:'Analytics', templates:'Templates', settings:'Settings' },
-        buttons: { refresh:'Refresh', connectGmail:'Connect Gmail', back:'← Back', reset:'Reset', previewSend:'Preview & Send', register:'Register Number', sendTest:'Send Test Notification', saveChanges:'Save Changes', cancel:'Cancel', saveRecord:'Save Record', saveTemplate:'Save Template', backToEdit:'Back to Edit', confirmSend:'Confirm & Send', refreshing:'Refreshing...' },
+        buttons: { refresh:'Refresh', connectGmail:'Connect Gmail', back:'← Back', reset:'Reset', previewSend:'Preview & Send', register:'Register Number', sendTest:'Send Test Notification', saveChanges:'Save Changes', cancel:'Cancel', saveRecord:'Save Record', saveTemplate:'Save Template', backToEdit:'Back to Edit', confirmSend:'Confirm & Send', refreshing:'Refreshing...', viewAll:'View All →' },
         dashboard: { hello:'Hello,', description:'Here is your overview. Manage customers and automate flows.', startAutomation:'Start Automation', manageCustomers:'Manage Customers', totalCustomers:'Total Customers', activeInDatabase:'Active in database', inbox:'Inbox', unreadMessages:'Unread messages', activeCampaigns:'Active Campaigns', workflowsRunning:'Workflows running', quickActions:'Quick Actions', createWelcomeSeries:'🎉 Create Welcome Series', sendFollowUp:'🔄 Send Follow-up', sentEmails:'Sent Emails', totalSent:'Total sent', googleConnected:'Google Account Connected Successfully!' },
         customers: { description:'View and manage your subscriber database.', exportCSV:'Export CSV', importCSV:'Import CSV', addCustomer:'+ Add Customer', allRecords:'All Records', saveChanges:'Save Changes', loading:'Loading data...', fullName:'Full Name', email:'Email', phone:'Phone', company:'Company', status:'Status', active:'Active', inactive:'Inactive', pending:'Pending', noCustomers:'No Customers Yet', startAdding:'Start by adding or importing customers.', addFirst:'Add First Customer', name:'Name', actions:'Actions', save:'Save', delete:'Delete', nameRequired:'Name is required', saving:'Saving...', saved:'Data saved to cloud', saveError:'Error saving data', parsing:'Parsing CSV...', csvError:'CSV file is too short or empty.', noEmailColumn:'Could not detect an Email column. Please check your CSV.', importSuccess:'Successfully imported {count} customers!', confirmDelete:'Are you sure you want to delete this customer?', invalidEmail:'Invalid email format', invalidPhone:'Invalid phone format. Use international format (e.g., +1234567890)', exported:'Customers exported successfully!' },
         inbox: { title:'Inbox', description:'Messages from your audience.', connectGmail:'Connect Your Gmail Account', connectGmailDesc:'To view and manage your inbox messages, you need to connect your Gmail account.', disconnected:'Disconnected', connected:'Connected', loading:'Loading messages...', noMessages:'No messages in your inbox', selectMessage:'Select a message to read', readingMessage:'Reading Message', subject:'Subject', senderName:'Sender Name', today:'Today', sendToWhatsApp:'Send to WhatsApp', delete:'Delete', noPreview:'No preview available', unknownDate:'Unknown date', noContent:'No content', confirmDelete:'Delete this message permanently?', deleted:'Message deleted', deleteFailed:'Error deleting message', sentToWhatsApp:'Message sent to your WhatsApp!', sendFailed:'Failed to send to WhatsApp' },
@@ -3193,7 +3336,7 @@ const translationResources = {
         status: { gmailNotLinked:'Gmail: No vinculado', gmailLinked:'✓ Gmail Vinculado', whatsappNotConnected:'WhatsApp: No conectado', whatsappConnected:'📱 WhatsApp Conectado' },
         legal: { privacy:'Política de Privacidad', terms:'Términos de Servicio' },
         titles: { dashboard:'Panel', customers:'Gestión de Clientes', inbox:'Bandeja de Entrada', automation:'Centro de Automatización', whatsapp:'Automatización WhatsApp', sent:'Correos Enviados', analytics:'Analíticas', templates:'Plantillas', settings:'Ajustes' },
-        buttons: { refresh:'Actualizar', connectGmail:'Conectar Gmail', back:'← Atrás', reset:'Reiniciar', previewSend:'Vista Previa y Enviar', register:'Registrar Número', sendTest:'Enviar Notificación de Prueba', saveChanges:'Guardar Cambios', cancel:'Cancelar', saveRecord:'Guardar Registro', saveTemplate:'Guardar Plantilla', backToEdit:'Volver a Editar', confirmSend:'Confirmar y Enviar', refreshing:'Actualizando...' },
+        buttons: { refresh:'Actualizar', connectGmail:'Conectar Gmail', back:'← Atrás', reset:'Reiniciar', previewSend:'Vista Previa y Enviar', register:'Registrar Número', sendTest:'Enviar Notificación de Prueba', saveChanges:'Guardar Cambios', cancel:'Cancelar', saveRecord:'Guardar Registro', saveTemplate:'Guardar Plantilla', backToEdit:'Volver a Editar', confirmSend:'Confirmar y Enviar', refreshing:'Actualizando...', viewAll:'Ver Todo →' },
         dashboard: { hello:'Hola,', description:'Aquí está tu resumen. Gestiona clientes y automatiza flujos.', startAutomation:'Iniciar Automatización', manageCustomers:'Gestionar Clientes', totalCustomers:'Total Clientes', activeInDatabase:'Activos en base de datos', inbox:'Bandeja', unreadMessages:'Mensajes no leídos', activeCampaigns:'Campañas Activas', workflowsRunning:'Flujos activos', quickActions:'Acciones Rápidas', createWelcomeSeries:'🎉 Crear Serie de Bienvenida', sendFollowUp:'🔄 Enviar Seguimiento', sentEmails:'Correos Enviados', totalSent:'Total enviados', googleConnected:'¡Cuenta de Google conectada exitosamente!' },
         customers: { description:'Ver y gestionar tu base de datos de suscriptores.', exportCSV:'Exportar CSV', importCSV:'Importar CSV', addCustomer:'+ Agregar Cliente', allRecords:'Todos los Registros', saveChanges:'Guardar Cambios', loading:'Cargando datos...', fullName:'Nombre Completo', email:'Correo Electrónico', phone:'Teléfono', company:'Empresa', status:'Estado', active:'Activo', inactive:'Inactivo', pending:'Pendiente', noCustomers:'No hay clientes aún', startAdding:'Comienza agregando o importando clientes.', addFirst:'Agregar Primer Cliente', name:'Nombre', actions:'Acciones', save:'Guardar', delete:'Eliminar', nameRequired:'El nombre es requerido', saving:'Guardando...', saved:'Datos guardados en la nube', saveError:'Error al guardar datos', parsing:'Analizando CSV...', csvError:'El archivo CSV está vacío o es demasiado corto.', noEmailColumn:'No se pudo detectar una columna de Email.', importSuccess:'¡{count} clientes importados exitosamente!', confirmDelete:'¿Estás seguro de que quieres eliminar este cliente?', invalidEmail:'Formato de email inválido', invalidPhone:'Formato de teléfono inválido.', exported:'¡Clientes exportados exitosamente!' },
         inbox: { title:'Bandeja de Entrada', description:'Mensajes de tu audiencia.', connectGmail:'Conecta tu Cuenta de Gmail', connectGmailDesc:'Para ver y gestionar los mensajes, necesitas conectar tu cuenta de Gmail.', disconnected:'Desconectado', connected:'Conectado', loading:'Cargando mensajes...', noMessages:'No hay mensajes en tu bandeja de entrada', selectMessage:'Selecciona un mensaje para leer', readingMessage:'Leyendo Mensaje', subject:'Asunto', senderName:'Nombre del Remitente', today:'Hoy', sendToWhatsApp:'Enviar a WhatsApp', delete:'Eliminar', noPreview:'No hay vista previa', unknownDate:'Fecha desconocida', noContent:'Sin contenido', confirmDelete:'¿Eliminar este mensaje permanentemente?', deleted:'Mensaje eliminado', deleteFailed:'Error al eliminar mensaje', sentToWhatsApp:'¡Mensaje enviado a tu WhatsApp!', sendFailed:'Error al enviar a WhatsApp' },
@@ -3360,10 +3503,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     const isAuthenticated = await checkSession();
 
     if (!isAuthenticated && !localStorage.getItem('flowid')) {
-        // Not logged in — show guest state
+        // Not logged in — show guest state without modal
         setEl('logoutauth', 'display', 'none');
-        setEl('signupauth', 'display', 'flex');
-        document.getElementById('loginRequiredModal').style.display = 'flex';
+        setEl('signupauth', 'display', 'none'); // Remove signup links from sidebar
+        document.getElementById('loginRequiredModal').style.display = 'none';
 
         const authStatus = document.getElementById('mobileAuthStatus');
         if (authStatus) authStatus.innerHTML = `
@@ -3376,8 +3519,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Logged in
     flowId = flowId || sessionStorage.getItem('userId');
-    setEl('logoutauth', 'display', 'flex');
-    setEl('signupauth', 'display', 'none');
+    setEl('logoutauth', 'display', 'none'); // Hide since we removed from sidebar
+    setEl('signupauth', 'display', 'none'); // Hide signup links
 
     const authStatus = document.getElementById('mobileAuthStatus');
     if (authStatus) authStatus.innerHTML = `
@@ -3498,6 +3641,7 @@ async function loadUserData() {
         renderTemplates();
         renderTemplateSelector();
         renderAnalytics();
+        renderDashboardTemplatesPreview();
 
         if (hasTokens) await loadInboxMessages();
 
@@ -3509,6 +3653,31 @@ async function loadUserData() {
     } finally {
         showGlobalLoader(false);
     }
+}
+
+// ============================================
+// DASHBOARD PREVIEWS
+// ============================================
+
+function renderDashboardTemplatesPreview() {
+    const container = document.getElementById('dashboardTemplatesPreview');
+    if (!container) return;
+
+    if (!templates.length) {
+        container.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-tertiary);">${i18next.t('templates.noTemplates')}</div>`;
+        return;
+    }
+
+    const previewTemplates = templates.slice(0, 3);
+    container.innerHTML = previewTemplates.map((t, i) => `
+        <div class="template-preview-item">
+            <div class="template-preview-info">
+                <h4>${escapeHtml(t.name)}</h4>
+                <p>${escapeHtml(t.body || '').substring(0, 60)}${t.body && t.body.length > 60 ? '...' : ''}</p>
+            </div>
+            <span class="template-preview-tag">${escapeHtml(t.tag || i18next.t('templates.general'))}</span>
+        </div>
+    `).join('');
 }
 
 // ============================================
@@ -4400,6 +4569,7 @@ async function saveTemplate() {
     closeModal('templateModal');
     renderTemplates();
     renderTemplateSelector();
+    renderDashboardTemplatesPreview();
     await saveAllChanges();
     setButtonLoading(btn, false);
 }
@@ -4411,6 +4581,7 @@ async function deleteTemplate(index) {
     templates.splice(index, 1);
     renderTemplates();
     renderTemplateSelector();
+    renderDashboardTemplatesPreview();
     await saveAllChanges();
 }
 
@@ -4546,6 +4717,7 @@ function refreshUI() {
     updateDashboardStats();
     renderCustomerTable();
     renderEmailList();
+    renderDashboardTemplatesPreview();
 }
 
 async function confirmLogout() {
@@ -4648,4 +4820,3 @@ function getInitials(name) {
 </script>
 </body>
 </html>
-
