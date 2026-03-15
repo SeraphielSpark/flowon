@@ -450,7 +450,7 @@
 // ============================================
 
 const API_BASE_URL  = 'https://flowon.onrender.com/api';
-const N8N_BASE      = 'https://kingoftech.app.n8n.cloud/webhook';
+const N8N_BASE      = 'https://southlord.app.n8n.cloud/webhook';
 
 // ============================================
 // DEBUG LOGGER (safe to leave in — silent in prod)
@@ -730,7 +730,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     dbg('SIGNUP step 1 → POST n8n/signup');
     showInfo('Creating your account...');
 
-    const n8nRes = await fetch(`${N8N_BASE}/signup`, {
+    const n8nRes = await fetch(`${N8N_BASE}/flow-signup`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ username, email, password })
